@@ -1,0 +1,29 @@
+name: Revision de Codigo Obligatoria
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+jobs:
+  verificar-revision:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar estado de aprobaciones
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Revisando si el código tiene el visto bueno..."
+          
+          # Consulta a la API de GitHub para contar cuántos "Approve" tiene este Pull Request
+          APROBACIONES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '[.[] | select(.state=="APPROVED")] | length')
+          
+          if [ "$APROBACIONES" -lt 1 ]; then
+            echo "❌ ERROR: Este código aún no ha sido aprobado."
+            echo "Por favor, avisa a tu compañero para que revise los cambios y envíe su aprobación oficial."
+            exit 1
+          else
+            echo "✅ ÉXITO: El código ha sido revisado y aprobado. Es seguro hacer Merge."
+            exit 0
+          fi
