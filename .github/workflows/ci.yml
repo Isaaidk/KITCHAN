@@ -41,5 +41,5 @@ jobs:
 
     - name: 4. Ejecución de Pruebas Unitarias (Pytest)
       run: |
-        export PYTHONPATH=src
+        export PYTHONPATH=.
         pytest tests/
