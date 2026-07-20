@@ -9,6 +9,11 @@ on:
 jobs:
   verificacion-codigo:
     runs-on: ubuntu-latest
+    
+    # Indicamos que todos los comandos corran dentro de la subcarpeta del backend
+    defaults:
+      run:
+        working-directory: kitchan-backend
 
     steps:
     - name: Clonar el código
@@ -22,7 +27,7 @@ jobs:
     - name: Instalar herramientas de calidad y dependencias
       run: |
         python -m pip install --upgrade pip
-        pip install "pydantic[email]" black flake8 mypy bandit pytest
+        pip install "pydantic[email]" black flake8 mypy bandit pytest pytest-asyncio
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: 1. Formateador de Código (Black)
