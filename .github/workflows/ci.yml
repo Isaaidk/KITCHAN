@@ -3,6 +3,8 @@ name: Pipeline de Calidad KITCHAN
 on:
   pull_request:
     branches: [ "develop", "main" ]
+  push:
+    branches: [ "develop", "main" ]
 
 jobs:
   verificacion-codigo:
@@ -15,12 +17,12 @@ jobs:
     - name: Configurar entorno Python
       uses: actions/setup-python@v4
       with:
-        python-version: "3.10" # O la versión que estén utilizando
+        python-version: "3.12"
 
     - name: Instalar herramientas de calidad y dependencias
       run: |
         python -m pip install --upgrade pip
-        pip install black flake8 mypy bandit pytest
+        pip install "pydantic[email]" black flake8 mypy bandit pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: 1. Formateador de Código (Black)
