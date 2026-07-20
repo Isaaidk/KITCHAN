@@ -1,9 +1,10 @@
-#Puerto de salida 
-#Es el que define comunicacion entre el nucleo y el adaptador de salida 
+# Puerto de salida
+# Es el que define comunicacion entre el nucleo y el adaptador de salida
 
 from abc import ABC, abstractmethod
 from typing import Optional
 from src.kitchan.modules.usuarios.domain.entities import Usuario
+
 
 class IUsuarioRepository(ABC):
     """
@@ -11,9 +12,9 @@ class IUsuarioRepository(ABC):
     """
 
     @abstractmethod
-    async def guardar(self, usuario:Usuario) -> Usuario:
+    async def guardar(self, usuario: Usuario) -> Usuario:
         pass
 
     @abstractmethod
-    async def buscar_por_email(self, email:str) ->Optional[Usuario]:
+    async def buscar_por_email(self, email: str) -> Optional[Usuario]:
         pass

@@ -12,12 +12,11 @@ engine = create_async_engine(DATABASE_URL, echo=True)
 
 # Fábrica de sesiones
 AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    bind=engine, class_=AsyncSession, expire_on_commit=False
 )
 
 Base = declarative_base()
+
 
 # Dependencia para inyectar la sesión en los endpoints
 async def get_db():

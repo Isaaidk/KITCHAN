@@ -5,8 +5,9 @@ import os
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '../src')))
+
+sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "../src")))
 from alembic import context
 
 # Esto es de Alembic por defecto
@@ -17,9 +18,10 @@ if config.config_file_name is not None:
 
 # Importamos tu Base y tus modelos para el --autogenerate
 from src.kitchan.core.database import Base
-from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel # noqa
+from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel  # noqa
 
 target_metadata = Base.metadata
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

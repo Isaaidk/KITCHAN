@@ -1,17 +1,19 @@
-#dominio 
-#Define como sera el usuario exactamente 
+# dominio
+# Define como sera el usuario exactamente
 from dataclasses import dataclass
 from enum import Enum
 
+
 class RolUsuario(Enum):
-    ADMIN="ADMIN"
-    OPERADOR ="OPERADOR"
+    ADMIN = "ADMIN"
+    OPERADOR = "OPERADOR"
+
 
 @dataclass
 class Usuario:
-    id:str
-    nombre:str
-    email:str
+    id: str
+    nombre: str
+    email: str
     password_hash: str
-    rol:RolUsuario
+    rol: RolUsuario
     estado: bool = True

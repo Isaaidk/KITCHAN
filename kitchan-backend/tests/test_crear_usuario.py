@@ -9,9 +9,10 @@ async def test_crear_usuario_exitoso():
     # Arrange (Preparar el escenario)
     repositorio_mock = AsyncMock()
     repositorio_mock.buscar_por_email.return_value = None
-    
+
     async def side_effect(usuario: Usuario):
         return usuario
+
     repositorio_mock.guardar.side_effect = side_effect
 
     caso_uso = CrearUsuarioUseCase(repository=repositorio_mock)
@@ -21,7 +22,7 @@ async def test_crear_usuario_exitoso():
         nombre="Isaac Puga",
         email="isaac.puga@udla.edu.ec",
         password_hash="password_falsificado_hash",
-        rol=RolUsuario.ADMIN
+        rol=RolUsuario.ADMIN,
     )
 
     # Assert (Verificar el resultado)
@@ -30,7 +31,7 @@ async def test_crear_usuario_exitoso():
     assert resultado.email == "isaac.puga@udla.edu.ec"
     assert resultado.rol == RolUsuario.ADMIN
     assert resultado.estado is True
-    
+
     repositorio_mock.buscar_por_email.assert_awaited_once_with("isaac.puga@udla.edu.ec")
     repositorio_mock.guardar.assert_awaited_once()
 
@@ -45,7 +46,7 @@ async def test_crear_usuario_email_duplicado():
         email="isaac.puga@udla.edu.ec",
         password_hash="hash",
         rol=RolUsuario.OPERADOR,
-        estado=True
+        estado=True,
     )
     repositorio_mock.buscar_por_email.return_value = usuario_existente
 
@@ -57,7 +58,7 @@ async def test_crear_usuario_email_duplicado():
             nombre="Isaac Puga",
             email="isaac.puga@udla.edu.ec",
             password_hash="password_falsificado_hash",
-            rol=RolUsuario.ADMIN
+            rol=RolUsuario.ADMIN,
         )
 
     repositorio_mock.guardar.assert_not_awaited()
