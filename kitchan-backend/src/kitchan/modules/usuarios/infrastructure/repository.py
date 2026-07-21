@@ -51,3 +51,24 @@ class PostgresUsuarioRepository(IUsuarioRepository):
 
         # 3. Retornar la entidad de Dominio pura
         return modelo.to_domain()
+
+    async def buscar_por_id(self, id: str) -> Optional[Usuario]:
+        stmt = select(UsuarioModel).where(UsuarioModel.id == id)
+        resultado = await self.session.execute(stmt)
+
+        modelo = resultado.scalar_one_or_none()
+
+        if modelo is None:
+            return None
+
+        return modelo.to_domain()
+
+    async def eliminar(self, id: str) -> None:
+        stmt = select(UsuarioModel).where(UsuarioModel.id == id)
+        resultado = await self.session.execute(stmt)
+
+        modelo = resultado.scalar_one_or_none()
+
+        if modelo is not None:
+            await self.session.delete(modelo)
+            await self.session.commit()

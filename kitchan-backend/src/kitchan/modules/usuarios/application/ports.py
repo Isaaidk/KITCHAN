@@ -18,3 +18,11 @@ class IUsuarioRepository(ABC):
     @abstractmethod
     async def buscar_por_email(self, email: str) -> Optional[Usuario]:
         pass
+
+    @abstractmethod
+    async def buscar_por_id(self, id: str) -> Optional[Usuario]:
+        pass
+
+    @abstractmethod
+    async def eliminar(self, id: str) -> None:
+        pass

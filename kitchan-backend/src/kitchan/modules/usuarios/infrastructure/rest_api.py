@@ -6,7 +6,10 @@ from pydantic import BaseModel, EmailStr
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
-from src.kitchan.modules.usuarios.application.use_cases import CrearUsuarioUseCase
+from src.kitchan.modules.usuarios.application.use_cases import (
+    CrearUsuarioUseCase,
+    EliminarUsuarioUseCase,
+)
 from src.kitchan.modules.usuarios.infrastructure.repository import (
     PostgresUsuarioRepository,
 )
@@ -64,3 +67,21 @@ async def crear_usuario(
         )
     except ValueError as e:  # Capturamos el error de "Email ya registrado"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# -------------------------------------------------
+# Creacion de ruta para la eliminacion de usuarios
+#
+@router.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_usuario(usuario_id: str, db: AsyncSession = Depends(get_db)):
+    # 1. Instanciamos el Adaptador de Salida (Repositorio)
+    repo = PostgresUsuarioRepository(session=db)
+
+    # 2. Inyectamos el repositorio al Caso de Uso
+    caso_uso = EliminarUsuarioUseCase(repository=repo)
+
+    # 3. Ejecutamos el núcleo y capturamos errores de negocio
+    try:
+        await caso_uso.ejecutar(usuario_id=usuario_id)
+    except ValueError as e:  # Capturamos el error de "Usuario no encontrado"
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

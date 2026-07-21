@@ -29,3 +29,16 @@ class CrearUsuarioUseCase:
         )
 
         return await self.repository.guardar(nuevoUsuario)
+
+
+class EliminarUsuarioUseCase:
+    def __init__(self, repository: IUsuarioRepository):
+        self.repository = repository
+
+    async def ejecutar(self, usuario_id: str) -> None:
+        # Validar que el usuario exista antes de eliminar
+        usuario_existente = await self.repository.buscar_por_id(usuario_id)
+        if usuario_existente is None:
+            raise ValueError("Usuario no encontrado")
+
+        await self.repository.eliminar(usuario_id)
