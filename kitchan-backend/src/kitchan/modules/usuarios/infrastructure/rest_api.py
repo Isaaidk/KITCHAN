@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr
+from src.kitchan.modules.usuarios.infrastructure.security import BcryptPasswordHasher
 
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
@@ -9,6 +10,8 @@ from src.kitchan.modules.usuarios.domain.entities import RolUsuario
 from src.kitchan.modules.usuarios.application.use_cases import (
     CrearUsuarioUseCase,
     EliminarUsuarioUseCase,
+    EditarUsuarioUCase,
+    ListarUsuariosUCase,
 )
 from src.kitchan.modules.usuarios.infrastructure.repository import (
     PostgresUsuarioRepository,
@@ -25,12 +28,17 @@ class CrearUsuarioRequest(BaseModel):
     rol: RolUsuario
 
 
+class EditarUsuarioRequest(BaseModel):
+    password_hash: str
+
+
 class UsuarioResponse(BaseModel):
     id: str
     nombre: str
     email: str
     rol: str
     estado: bool
+    # password_hash: str
 
 
 # -------------------------------------------------
@@ -42,9 +50,10 @@ async def crear_usuario(
 ):
     # 1. Instanciamos el Adaptador de Salida (Repositorio)
     repo = PostgresUsuarioRepository(session=db)
+    hasher_real = BcryptPasswordHasher()
 
     # 2. Inyectamos el repositorio al Caso de Uso
-    caso_uso = CrearUsuarioUseCase(repository=repo)
+    caso_uso = CrearUsuarioUseCase(repository=repo, hasher=hasher_real)
 
     # 3. Ejecutamos el núcleo y capturamos errores de negocio
     try:
@@ -85,3 +94,29 @@ async def eliminar_usuario(usuario_id: str, db: AsyncSession = Depends(get_db)):
         await caso_uso.ejecutar(usuario_id=usuario_id)
     except ValueError as e:  # Capturamos el error de "Usuario no encontrado"
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.patch("/{email}", status_code=status.HTTP_204_NO_CONTENT)
+async def editar_contraseña(
+    email: str, data: EditarUsuarioRequest, db: AsyncSession = Depends(get_db)
+):
+
+    hasher_real = BcryptPasswordHasher()
+    repo = PostgresUsuarioRepository(session=db)
+    caso_uso = EditarUsuarioUCase(repository=repo, hasher=hasher_real)
+    try:
+        await caso_uso.ejecutar(email=email, password_hash=data.password_hash)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get("/", response_model=list[UsuarioResponse], status_code=status.HTTP_200_OK)
+async def listar_usuarios(
+    db: AsyncSession = Depends(get_db),
+):
+    repo = PostgresUsuarioRepository(session=db)
+    caso_uso = ListarUsuariosUCase(repository=repo)
+
+    usuarios = await caso_uso.ejecutar()
+
+    return usuarios

@@ -26,3 +26,22 @@ class IUsuarioRepository(ABC):
     @abstractmethod
     async def eliminar(self, id: str) -> None:
         pass
+
+    @abstractmethod
+    async def editar_contraseña(self, email: str, password_hash: str) -> None:
+        pass
+
+    @abstractmethod
+    async def listar(self) -> list[Usuario]:
+        pass
+
+
+# Clase que implementa el HASHEO de las contraseñas
+class IPasswordHasher(ABC):
+    @abstractmethod
+    def hashear(self, password: str) -> str:
+        pass
+
+    @abstractmethod
+    def verificar(self, plain_password: str, hashed_password: str) -> bool:
+        pass

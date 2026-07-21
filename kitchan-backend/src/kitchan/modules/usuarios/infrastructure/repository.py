@@ -72,3 +72,29 @@ class PostgresUsuarioRepository(IUsuarioRepository):
         if modelo is not None:
             await self.session.delete(modelo)
             await self.session.commit()
+
+    async def editar_contraseña(
+        self, email: str, password_hash: str
+    ) -> Optional[Usuario]:
+        stmt = select(UsuarioModel).where(UsuarioModel.email == email)
+        resultado = await self.session.execute(stmt)
+
+        modelo = resultado.scalar_one_or_none()
+
+        if modelo is None:
+            return None
+
+        modelo.password_hash = password_hash
+
+        await self.session.commit()
+        await self.session.refresh(modelo)
+
+        return modelo.to_domain()
+
+    async def listar(self) -> list[Usuario]:
+        stmt = select(UsuarioModel)
+        resultado = await self.session.execute(stmt)
+
+        modelos = resultado.scalars().all()
+
+        return [modelo.to_domain() for modelo in modelos]
