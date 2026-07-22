@@ -2,7 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr
-from src.kitchan.modules.usuarios.infrastructure.security import BcryptPasswordHasher
+from src.kitchan.modules.usuarios.infrastructure.security import (
+    BcryptPasswordHasher,
+    JWTTokenGenerator,
+)
 
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
@@ -12,6 +15,7 @@ from src.kitchan.modules.usuarios.application.use_cases import (
     EliminarUsuarioUseCase,
     EditarUsuarioUCase,
     ListarUsuariosUCase,
+    LoginUsuarioUseCase,
 )
 from src.kitchan.modules.usuarios.infrastructure.repository import (
     PostgresUsuarioRepository,
@@ -39,6 +43,17 @@ class UsuarioResponse(BaseModel):
     rol: str
     estado: bool
     # password_hash: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    usuario: UsuarioResponse
 
 
 # -------------------------------------------------
@@ -120,3 +135,41 @@ async def listar_usuarios(
     usuarios = await caso_uso.ejecutar()
 
     return usuarios
+
+
+# -------------------------------------------------
+# Creacion de ruta para el login de usuarios (incluye el rol en el
+# token JWT y en el body para que el frontend decida la pantalla a mostrar)
+#
+@router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
+async def login_usuario(request: LoginRequest, db: AsyncSession = Depends(get_db)):
+    repo = PostgresUsuarioRepository(session=db)
+    hasher_real = BcryptPasswordHasher()
+    token_generator_real = JWTTokenGenerator()
+
+    caso_uso = LoginUsuarioUseCase(
+        repository=repo, hasher=hasher_real, token_generator=token_generator_real
+    )
+
+    try:
+        usuario, token = await caso_uso.ejecutar(
+            email=request.email, password=request.password
+        )
+
+        return LoginResponse(
+            access_token=token,
+            usuario=UsuarioResponse(
+                id=usuario.id,
+                nombre=usuario.nombre,
+                email=usuario.email,
+                rol=usuario.rol.value,
+                estado=usuario.estado,
+            ),
+        )
+    except ValueError as e:
+        detail = str(e)
+        if detail == "Rol de usuario no reconocido":
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
+            )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)

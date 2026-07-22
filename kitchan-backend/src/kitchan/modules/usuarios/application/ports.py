@@ -45,3 +45,11 @@ class IPasswordHasher(ABC):
     @abstractmethod
     def verificar(self, plain_password: str, hashed_password: str) -> bool:
         pass
+
+
+# Puerto de salida: define cómo el núcleo pide la generación de un token de acceso,
+# sin conocer la librería/algoritmo concreto usado para firmarlo (JWT, etc.)
+class ITokenGenerator(ABC):
+    @abstractmethod
+    def generar_token(self, data: dict) -> str:
+        pass

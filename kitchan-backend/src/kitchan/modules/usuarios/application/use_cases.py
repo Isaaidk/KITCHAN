@@ -5,6 +5,7 @@ from src.kitchan.modules.usuarios.domain.entities import Usuario, RolUsuario
 from src.kitchan.modules.usuarios.application.ports import (
     IUsuarioRepository,
     IPasswordHasher,
+    ITokenGenerator,
 )
 
 import uuid
@@ -71,3 +72,34 @@ class ListarUsuariosUCase:
 
     async def ejecutar(self):
         return await self.repository.listar()
+
+
+class LoginUsuarioUseCase:
+    def __init__(
+        self,
+        repository: IUsuarioRepository,
+        hasher: IPasswordHasher,
+        token_generator: ITokenGenerator,
+    ):
+        self.repository = repository
+        self.hasher = hasher
+        self.token_generator = token_generator
+
+    async def ejecutar(self, email: str, password: str) -> tuple[Usuario, str]:
+        usuario = await self.repository.buscar_por_email(email)
+
+        # Mismo mensaje genérico si el usuario no existe o si la contraseña
+        # no coincide, para no revelar si un email está registrado
+        if usuario is None or not self.hasher.verificar(
+            password, usuario.password_hash
+        ):
+            raise ValueError("Credenciales inválidas")
+
+        if not isinstance(usuario.rol, RolUsuario):
+            raise ValueError("Rol de usuario no reconocido")
+
+        token = self.token_generator.generar_token(
+            {"sub": usuario.email, "id": usuario.id, "rol": usuario.rol.value}
+        )
+
+        return usuario, token
