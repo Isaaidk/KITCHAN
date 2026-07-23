@@ -8,7 +8,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.kitchan.core.database import Base
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from src.kitchan.modules.restaurantes.infrastructure.models import RestauranteModel
 # Adaptador de salida
 # Mapea los datos
 

@@ -4,6 +4,10 @@ from sqlalchemy import UUID, Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.kitchan.core.database import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
 
 
 class RestauranteModel(Base):
