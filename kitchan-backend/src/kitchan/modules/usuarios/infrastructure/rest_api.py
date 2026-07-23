@@ -6,14 +6,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
 from src.kitchan.modules.usuarios.application.use_cases import (
-    CrearUsuarioPorAdminUseCase, EditarUsuarioUCase, EliminarUsuarioUseCase,
-    ListarUsuariosPorRestauranteUCase, ListarUsuariosUCase,
-    LoginUsuarioUseCase)
+    CrearUsuarioPorAdminUseCase,
+    EditarUsuarioUCase,
+    EliminarUsuarioUseCase,
+    ListarUsuariosPorRestauranteUCase,
+    ListarUsuariosUCase,
+    LoginUsuarioUseCase,
+)
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
-from src.kitchan.modules.usuarios.infrastructure.repository import \
-    PostgresUsuarioRepository
+from src.kitchan.modules.usuarios.infrastructure.repository import (
+    PostgresUsuarioRepository,
+)
 from src.kitchan.modules.usuarios.infrastructure.security import (
-    BcryptPasswordHasher, JWTTokenGenerator)
+    BcryptPasswordHasher,
+    JWTTokenGenerator,
+)
 
 router = APIRouter(prefix="/api/v1/usuarios", tags=["Usuarios"])
 

@@ -1,10 +1,8 @@
 import uuid
 
-from sqlalchemy.exc import \
-    IntegrityError  # <- Importante para atrapar duplicados de BD
+from sqlalchemy.exc import IntegrityError  # <- Importante para atrapar duplicados de BD
 
-from src.kitchan.modules.restaurantes.application.ports import \
-    IRestauranteRepository
+from src.kitchan.modules.restaurantes.application.ports import IRestauranteRepository
 from src.kitchan.modules.restaurantes.domain.entities import Restaurante
 from src.kitchan.modules.usuarios.application.ports import IPasswordHasher
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario

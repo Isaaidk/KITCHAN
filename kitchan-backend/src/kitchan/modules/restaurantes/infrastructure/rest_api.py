@@ -3,15 +3,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Dependencias de tu proyecto (ajusta las rutas según tu estructura)
 from src.kitchan.core.database import get_db
-from src.kitchan.modules.restaurantes.application.use_cases import \
-    RegistrarRestauranteSaaSUseCase
-from src.kitchan.modules.restaurantes.infrastructure.repositories import \
-    PostgresRestauranteRepository
+from src.kitchan.modules.restaurantes.application.use_cases import (
+    RegistrarRestauranteSaaSUseCase,
+)
+from src.kitchan.modules.restaurantes.infrastructure.repositories import (
+    PostgresRestauranteRepository,
+)
 from src.kitchan.modules.restaurantes.infrastructure.schemas import (
-    OnboardingRequest, OnboardingResponse, RestauranteResponse,
-    UsuarioSaaSResponse)
-from src.kitchan.modules.usuarios.infrastructure.security import \
-    BcryptPasswordHasher
+    OnboardingRequest,
+    OnboardingResponse,
+    RestauranteResponse,
+    UsuarioSaaSResponse,
+)
+from src.kitchan.modules.usuarios.infrastructure.security import BcryptPasswordHasher
 
 router = APIRouter(prefix="/api/v1/onboarding", tags=["SaaS Onboarding"])
 

@@ -14,10 +14,10 @@ sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), ".."
 
 # 2. SEGUNDO: Ahora sí podemos importar nuestros modelos porque Python ya entiende la ruta
 from src.kitchan.core.database import Base
-from src.kitchan.modules.restaurantes.infrastructure.models import \
-    RestauranteModel  # noqa
-from src.kitchan.modules.usuarios.infrastructure.models import \
-    UsuarioModel  # noqa
+from src.kitchan.modules.restaurantes.infrastructure.models import (
+    RestauranteModel,
+)  # noqa
+from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel  # noqa
 
 # Esto es de Alembic por defecto
 config = context.config
@@ -28,8 +28,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 # Importamos tu Base y tus modelos para el --autogenerate
 from src.kitchan.core.database import Base
-from src.kitchan.modules.usuarios.infrastructure.models import \
-    UsuarioModel  # noqa
+from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel  # noqa
 
 
 def run_migrations_offline() -> None:

@@ -5,16 +5,14 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.types import CHAR, TypeDecorator
 
 # Importa la Base de datos y tus modelos de infraestructura
 from src.kitchan.core.database import Base, get_db
 from src.kitchan.main import app
-from src.kitchan.modules.restaurantes.infrastructure.models import \
-    RestauranteModel
+from src.kitchan.modules.restaurantes.infrastructure.models import RestauranteModel
 from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
 
 

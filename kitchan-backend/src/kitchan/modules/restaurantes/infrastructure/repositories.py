@@ -3,11 +3,9 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.kitchan.modules.restaurantes.application.ports import \
-    IRestauranteRepository
+from src.kitchan.modules.restaurantes.application.ports import IRestauranteRepository
 from src.kitchan.modules.restaurantes.domain.entities import Restaurante
-from src.kitchan.modules.restaurantes.infrastructure.models import \
-    RestauranteModel
+from src.kitchan.modules.restaurantes.infrastructure.models import RestauranteModel
 from src.kitchan.modules.usuarios.domain.entities import Usuario
 from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
 
