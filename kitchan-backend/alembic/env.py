@@ -1,26 +1,34 @@
 import asyncio
-from logging.config import fileConfig
-import sys
 import os
+import sys
+from logging.config import fileConfig
+
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+# 1. PRIMERO: Inyectamos la ruta raíz al sistema para que Python encuentre 'src'
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "../src")))
-from alembic import context
+
+# 2. SEGUNDO: Ahora sí podemos importar nuestros modelos porque Python ya entiende la ruta
+from src.kitchan.core.database import Base
+from src.kitchan.modules.restaurantes.infrastructure.models import \
+    RestauranteModel  # noqa
+from src.kitchan.modules.usuarios.infrastructure.models import \
+    UsuarioModel  # noqa
 
 # Esto es de Alembic por defecto
 config = context.config
-
+target_metadata = Base.metadata
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+target_metadata = Base.metadata
 # Importamos tu Base y tus modelos para el --autogenerate
 from src.kitchan.core.database import Base
-from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel  # noqa
-
-target_metadata = Base.metadata
+from src.kitchan.modules.usuarios.infrastructure.models import \
+    UsuarioModel  # noqa
 
 
 def run_migrations_offline() -> None:

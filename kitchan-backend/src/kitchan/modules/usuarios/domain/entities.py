@@ -12,6 +12,7 @@ class RolUsuario(Enum):
 @dataclass
 class Usuario:
     id: str
+    restaurante_id: str
     nombre: str
     email: str
     password_hash: str

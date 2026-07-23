@@ -1,35 +1,30 @@
-# Aadaptador de entrada
+# Adaptador de entrada
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr
-from src.kitchan.modules.usuarios.infrastructure.security import (
-    BcryptPasswordHasher,
-    JWTTokenGenerator,
-)
-
+from sqlalchemy.ext.asyncio import AsyncSession
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
-from src.kitchan.modules.usuarios.domain.entities import RolUsuario
 from src.kitchan.modules.usuarios.application.use_cases import (
-    CrearUsuarioUseCase,
-    EliminarUsuarioUseCase,
-    EditarUsuarioUCase,
-    ListarUsuariosUCase,
-    LoginUsuarioUseCase,
-)
-from src.kitchan.modules.usuarios.infrastructure.repository import (
-    PostgresUsuarioRepository,
-)
+    CrearUsuarioPorAdminUseCase, EditarUsuarioUCase, EliminarUsuarioUseCase,
+    ListarUsuariosPorRestauranteUCase, ListarUsuariosUCase,
+    LoginUsuarioUseCase)
+from src.kitchan.modules.usuarios.domain.entities import RolUsuario
+from src.kitchan.modules.usuarios.infrastructure.repository import \
+    PostgresUsuarioRepository
+from src.kitchan.modules.usuarios.infrastructure.security import (
+    BcryptPasswordHasher, JWTTokenGenerator)
 
 router = APIRouter(prefix="/api/v1/usuarios", tags=["Usuarios"])
 
 
 # --- ESQUEMAS PYDANTIC (Data Transfer Objects) ---
-class CrearUsuarioRequest(BaseModel):
+class CrearUsuarioAdminRequest(BaseModel):
     nombre: str
     email: EmailStr
     password: str
     rol: RolUsuario
+    # Temporalmente para pruebas de rol de quien ejecuta la acción
+    admin_rol_ejecutor: RolUsuario = RolUsuario.ADMIN
 
 
 class EditarUsuarioRequest(BaseModel):
@@ -38,11 +33,11 @@ class EditarUsuarioRequest(BaseModel):
 
 class UsuarioResponse(BaseModel):
     id: str
+    restaurante_id: str
     nombre: str
     email: str
     rol: str
     estado: bool
-    # password_hash: str
 
 
 class LoginRequest(BaseModel):
@@ -57,57 +52,52 @@ class LoginResponse(BaseModel):
 
 
 # -------------------------------------------------
-# Creacion de ruta para la creacion de usuarios
+# Creación de ruta para que un Administrador cree un usuario
 #
-@router.post("/", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
-async def crear_usuario(
-    request: CrearUsuarioRequest, db: AsyncSession = Depends(get_db)
+@router.post(
+    "/restaurante/{restaurante_id}",
+    response_model=UsuarioResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def crear_usuario_por_admin(
+    restaurante_id: str,
+    request: CrearUsuarioAdminRequest,
+    db: AsyncSession = Depends(get_db),
 ):
-    # 1. Instanciamos el Adaptador de Salida (Repositorio)
     repo = PostgresUsuarioRepository(session=db)
     hasher_real = BcryptPasswordHasher()
+    caso_uso = CrearUsuarioPorAdminUseCase(repository=repo, hasher=hasher_real)
 
-    # 2. Inyectamos el repositorio al Caso de Uso
-    caso_uso = CrearUsuarioUseCase(repository=repo, hasher=hasher_real)
-
-    # 3. Ejecutamos el núcleo y capturamos errores de negocio
     try:
-        # IMPORTANTE: Aquí la contraseña debería encriptarse con Bcrypt antes de guardarla.
-        # Por ahora la pasamos directo para probar la arquitectura.
         usuario = await caso_uso.ejecutar(
-            nombre=request.nombre,
-            email=request.email,
-            password_hash=request.password,
-            rol=request.rol,
+            restaurante_id=restaurante_id,
+            admin_rol=request.admin_rol_ejecutor.value,
+            datos_nuevo_usuario=request.model_dump(),
         )
 
-        # 4. Retornamos la respuesta mapeada
         return UsuarioResponse(
-            id=usuario.id,
+            id=str(usuario.id),
+            restaurante_id=str(usuario.restaurante_id),
             nombre=usuario.nombre,
             email=usuario.email,
             rol=usuario.rol.value,
             estado=usuario.estado,
         )
-    except ValueError as e:  # Capturamos el error de "Email ya registrado"
+    except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # -------------------------------------------------
-# Creacion de ruta para la eliminacion de usuarios
+# Creación de ruta para la eliminación de usuarios
 #
 @router.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_usuario(usuario_id: str, db: AsyncSession = Depends(get_db)):
-    # 1. Instanciamos el Adaptador de Salida (Repositorio)
     repo = PostgresUsuarioRepository(session=db)
-
-    # 2. Inyectamos el repositorio al Caso de Uso
     caso_uso = EliminarUsuarioUseCase(repository=repo)
 
-    # 3. Ejecutamos el núcleo y capturamos errores de negocio
     try:
         await caso_uso.ejecutar(usuario_id=usuario_id)
-    except ValueError as e:  # Capturamos el error de "Usuario no encontrado"
+    except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
@@ -115,14 +105,41 @@ async def eliminar_usuario(usuario_id: str, db: AsyncSession = Depends(get_db)):
 async def editar_contraseña(
     email: str, data: EditarUsuarioRequest, db: AsyncSession = Depends(get_db)
 ):
-
     hasher_real = BcryptPasswordHasher()
     repo = PostgresUsuarioRepository(session=db)
     caso_uso = EditarUsuarioUCase(repository=repo, hasher=hasher_real)
+
     try:
         await caso_uso.ejecutar(email=email, password_hash=data.password_hash)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get(
+    "/restaurante/{restaurante_id}",
+    response_model=list[UsuarioResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def listar_usuarios_por_restaurante(
+    restaurante_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    repo = PostgresUsuarioRepository(session=db)
+    caso_uso = ListarUsuariosPorRestauranteUCase(repository=repo)
+
+    usuarios = await caso_uso.ejecutar(restaurante_id)
+
+    return [
+        UsuarioResponse(
+            id=str(u.id),
+            restaurante_id=str(u.restaurante_id),
+            nombre=u.nombre,
+            email=u.email,
+            rol=u.rol.value,
+            estado=u.estado,
+        )
+        for u in usuarios
+    ]
 
 
 @router.get("/", response_model=list[UsuarioResponse], status_code=status.HTTP_200_OK)
@@ -134,12 +151,21 @@ async def listar_usuarios(
 
     usuarios = await caso_uso.ejecutar()
 
-    return usuarios
+    return [
+        UsuarioResponse(
+            id=str(u.id),
+            restaurante_id=str(u.restaurante_id),
+            nombre=u.nombre,
+            email=u.email,
+            rol=u.rol.value,
+            estado=u.estado,
+        )
+        for u in usuarios
+    ]
 
 
 # -------------------------------------------------
-# Creacion de ruta para el login de usuarios (incluye el rol en el
-# token JWT y en el body para que el frontend decida la pantalla a mostrar)
+# Creación de ruta para el login de usuarios
 #
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
 async def login_usuario(request: LoginRequest, db: AsyncSession = Depends(get_db)):
@@ -159,7 +185,8 @@ async def login_usuario(request: LoginRequest, db: AsyncSession = Depends(get_db
         return LoginResponse(
             access_token=token,
             usuario=UsuarioResponse(
-                id=usuario.id,
+                id=str(usuario.id),
+                restaurante_id=str(usuario.restaurante_id),
                 nombre=usuario.nombre,
                 email=usuario.email,
                 rol=usuario.rol.value,

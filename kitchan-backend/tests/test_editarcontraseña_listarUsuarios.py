@@ -1,10 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 from src.kitchan.modules.usuarios.application.use_cases import (
-    EditarUsuarioUCase,
-    ListarUsuariosUCase,
-)
-from src.kitchan.modules.usuarios.domain.entities import Usuario, RolUsuario
+    EditarUsuarioUCase, ListarUsuariosUCase)
+from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
 
 
 @pytest.mark.anyio
@@ -15,6 +14,7 @@ async def test_editar_contrasena_exitoso():
 
     usuario = Usuario(
         id="123",
+        restaurante_id="db3dfd6b-c78d-4306-81e3-81078c521c95",
         nombre="Isaac",
         email="isaac.puga@udla.edu.ec",
         password_hash="hash_viejo",
@@ -74,6 +74,7 @@ async def test_listar_usuarios():
     usuarios = [
         Usuario(
             id="1",
+            restaurante_id="db3dfd6b-c78d-4306-81e3-81078c521c95",
             nombre="Isaac",
             email="isaac@udla.edu.ec",
             password_hash="123",
@@ -82,6 +83,7 @@ async def test_listar_usuarios():
         ),
         Usuario(
             id="2",
+            restaurante_id="db3dfd6b-c78d-4306-81e3-81078c521c95",
             nombre="Santiago",
             email="santiago@udla.edu.ec",
             password_hash="456",

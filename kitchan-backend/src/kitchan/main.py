@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from src.kitchan.modules.usuarios.infrastructure.rest_api import (
-    router as usuarios_router,
-)
+from src.kitchan.modules.restaurantes.infrastructure.rest_api import \
+    router as onboarding_router
+from src.kitchan.modules.usuarios.infrastructure.rest_api import \
+    router as usuarios_router
 
 app = FastAPI(
     title="KITCHAN API",
@@ -20,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(usuarios_router)
+app.include_router(onboarding_router)
 
 
 @app.get("/")

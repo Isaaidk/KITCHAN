@@ -3,6 +3,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Optional
+
 from src.kitchan.modules.usuarios.domain.entities import Usuario
 
 
@@ -12,7 +13,7 @@ class IUsuarioRepository(ABC):
     """
 
     @abstractmethod
-    async def guardar(self, usuario: Usuario) -> Usuario:
+    async def crear(self, usuario: Usuario) -> Usuario:
         pass
 
     @abstractmethod
@@ -29,6 +30,11 @@ class IUsuarioRepository(ABC):
 
     @abstractmethod
     async def editar_contraseña(self, email: str, password_hash: str) -> None:
+        pass
+
+    @abstractmethod
+    async def listar_por_restaurante(self, restaurante_id: str) -> list[Usuario]:
+        """Lista únicamente los usuarios que pertenecen a un restaurante específico (Multi-tenant)."""
         pass
 
     @abstractmethod
