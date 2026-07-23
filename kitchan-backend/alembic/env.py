@@ -3,10 +3,11 @@ import os
 import sys
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+
+from alembic import context
 
 # 1. PRIMERO: Inyectamos la ruta raíz al sistema para que Python encuentre 'src'
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))

@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
+
 from src.kitchan.modules.usuarios.application.use_cases import \
     EliminarUsuarioUseCase
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario

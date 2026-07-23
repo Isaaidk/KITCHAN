@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import jwt
+
 from src.kitchan.modules.usuarios.application.ports import (IPasswordHasher,
                                                             ITokenGenerator)
 

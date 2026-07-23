@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.types import CHAR, TypeDecorator
+
 # Importa la Base de datos y tus modelos de infraestructura
 from src.kitchan.core.database import Base, get_db
 from src.kitchan.main import app

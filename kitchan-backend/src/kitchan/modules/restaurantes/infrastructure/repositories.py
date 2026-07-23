@@ -2,6 +2,7 @@ import uuid
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.kitchan.modules.restaurantes.application.ports import \
     IRestauranteRepository
 from src.kitchan.modules.restaurantes.domain.entities import Restaurante

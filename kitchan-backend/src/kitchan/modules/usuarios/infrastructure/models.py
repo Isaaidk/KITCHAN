@@ -5,6 +5,7 @@ from sqlalchemy import UUID, Boolean
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.kitchan.core.database import Base
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
 

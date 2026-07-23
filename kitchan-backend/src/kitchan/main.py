@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from src.kitchan.modules.restaurantes.infrastructure.rest_api import \
     router as onboarding_router
 from src.kitchan.modules.usuarios.infrastructure.rest_api import \

@@ -2,6 +2,7 @@ import uuid
 
 from sqlalchemy.exc import \
     IntegrityError  # <- Importante para atrapar duplicados de BD
+
 from src.kitchan.modules.restaurantes.application.ports import \
     IRestauranteRepository
 from src.kitchan.modules.restaurantes.domain.entities import Restaurante

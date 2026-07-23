@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from src.kitchan.modules.usuarios.application.use_cases import (
     EditarUsuarioUCase, ListarUsuariosUCase)
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario

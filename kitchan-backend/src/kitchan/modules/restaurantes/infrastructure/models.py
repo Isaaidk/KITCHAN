@@ -2,6 +2,7 @@ import uuid
 
 from sqlalchemy import UUID, Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.kitchan.core.database import Base
 
 
