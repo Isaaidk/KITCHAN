@@ -18,23 +18,33 @@ async def registrar_restaurante_helper(client):
         },
     }
     res = await client.post("/api/v1/onboarding/", json=payload)
-    return res.json()["restaurante"]["id"]
+    return res.json()["restaurante"]["id"], payload["admin"]["email"]
+
+
+async def login_helper(client, email, password="Password123*"):
+    res = await client.post(
+        "/api/v1/usuarios/login", json={"email": email, "password": password}
+    )
+    token = res.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.mark.asyncio
 async def test_crear_operador_por_admin_exitoso(client):
-    restaurante_id = await registrar_restaurante_helper(client)
+    restaurante_id, admin_email = await registrar_restaurante_helper(client)
+    headers_admin = await login_helper(client, admin_email)
 
     payload_usuario = {
         "nombre": "Mesero Juan",
         "email": "juan.mesero@restaurante.com",
         "password": "PasswordOperador123*",
         "rol": "OPERADOR",
-        "admin_rol_ejecutor": "ADMIN",  # El admin ejecuta la acción con éxito
     }
 
     response = await client.post(
-        f"/api/v1/usuarios/restaurante/{restaurante_id}", json=payload_usuario
+        f"/api/v1/usuarios/restaurante/{restaurante_id}",
+        json=payload_usuario,
+        headers=headers_admin,
     )
     assert response.status_code == 201
     data = response.json()
@@ -45,43 +55,65 @@ async def test_crear_operador_por_admin_exitoso(client):
 
 @pytest.mark.asyncio
 async def test_bloquear_creacion_usuario_si_es_operador(client):
-    restaurante_id = await registrar_restaurante_helper(client)
+    restaurante_id, admin_email = await registrar_restaurante_helper(client)
+    headers_admin = await login_helper(client, admin_email)
 
+    # Un admin crea primero un operador legítimo
+    payload_operador = {
+        "nombre": "Operador Legitimo",
+        "email": "operador.legitimo@restaurante.com",
+        "password": "PasswordOperador123*",
+        "rol": "OPERADOR",
+    }
+    await client.post(
+        f"/api/v1/usuarios/restaurante/{restaurante_id}",
+        json=payload_operador,
+        headers=headers_admin,
+    )
+    headers_operador = await login_helper(
+        client, "operador.legitimo@restaurante.com", "PasswordOperador123*"
+    )
+
+    # El operador intenta crear un usuario -> Debe ser rechazado por rol
     payload_usuario = {
         "nombre": "Intruso",
         "email": "intruso@restaurante.com",
         "password": "Password123*",
         "rol": "OPERADOR",
-        "admin_rol_ejecutor": "OPERADOR",  # Un operador intenta crear usuario -> Debe fallar
     }
 
     response = await client.post(
-        f"/api/v1/usuarios/restaurante/{restaurante_id}", json=payload_usuario
+        f"/api/v1/usuarios/restaurante/{restaurante_id}",
+        json=payload_usuario,
+        headers=headers_operador,
     )
-    assert response.status_code == 400
-    assert "operadores no tienen permisos" in response.json()["detail"].lower()
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_crear_usuario_email_duplicado(client):
-    restaurante_id = await registrar_restaurante_helper(client)
+    restaurante_id, admin_email = await registrar_restaurante_helper(client)
+    headers_admin = await login_helper(client, admin_email)
 
     payload_usuario = {
         "nombre": "Mesero Juan",
-        "email": "juan.mesero@restaurante.com",
+        "email": "juan.mesero.dup@restaurante.com",
         "password": "PasswordOperador123*",
         "rol": "OPERADOR",
-        "admin_rol_ejecutor": "ADMIN",
     }
 
     # Primer registro exitoso
     await client.post(
-        f"/api/v1/usuarios/restaurante/{restaurante_id}", json=payload_usuario
+        f"/api/v1/usuarios/restaurante/{restaurante_id}",
+        json=payload_usuario,
+        headers=headers_admin,
     )
 
     # Intentar registrar otro usuario con el mismo email exacto
     response = await client.post(
-        f"/api/v1/usuarios/restaurante/{restaurante_id}", json=payload_usuario
+        f"/api/v1/usuarios/restaurante/{restaurante_id}",
+        json=payload_usuario,
+        headers=headers_admin,
     )
     assert response.status_code == 400
     assert "registrado" in response.json()["detail"].lower()

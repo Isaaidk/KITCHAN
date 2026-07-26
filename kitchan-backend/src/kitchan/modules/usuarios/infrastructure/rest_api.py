@@ -14,6 +14,10 @@ from src.kitchan.modules.usuarios.application.use_cases import (
     LoginUsuarioUseCase,
 )
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
+from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
+    obtener_usuario_actual,
+    requiere_rol,
+)
 from src.kitchan.modules.usuarios.infrastructure.repository import (
     PostgresUsuarioRepository,
 )
@@ -31,8 +35,6 @@ class CrearUsuarioAdminRequest(BaseModel):
     email: EmailStr
     password: str
     rol: RolUsuario
-    # Temporalmente para pruebas de rol de quien ejecuta la acción
-    admin_rol_ejecutor: RolUsuario = RolUsuario.ADMIN
 
 
 class EditarUsuarioRequest(BaseModel):
@@ -61,6 +63,7 @@ class LoginResponse(BaseModel):
 
 # -------------------------------------------------
 # Creación de ruta para que un Administrador cree un usuario
+# Protegida: solo un token con rol ADMIN puede ejecutar esta acción
 #
 @router.post(
     "/restaurante/{restaurante_id}",
@@ -71,6 +74,7 @@ async def crear_usuario_por_admin(
     restaurante_id: str,
     request: CrearUsuarioAdminRequest,
     db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
 ):
     repo = PostgresUsuarioRepository(session=db)
     hasher_real = BcryptPasswordHasher()
@@ -79,7 +83,7 @@ async def crear_usuario_por_admin(
     try:
         usuario = await caso_uso.ejecutar(
             restaurante_id=restaurante_id,
-            admin_rol=request.admin_rol_ejecutor.value,
+            admin_rol=usuario_actual["rol"],
             datos_nuevo_usuario=request.model_dump(),
         )
 
@@ -97,9 +101,14 @@ async def crear_usuario_por_admin(
 
 # -------------------------------------------------
 # Creación de ruta para la eliminación de usuarios
+# Protegida: solo un token con rol ADMIN puede ejecutar esta acción
 #
 @router.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def eliminar_usuario(usuario_id: str, db: AsyncSession = Depends(get_db)):
+async def eliminar_usuario(
+    usuario_id: str,
+    db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+):
     repo = PostgresUsuarioRepository(session=db)
     caso_uso = EliminarUsuarioUseCase(repository=repo)
 
@@ -109,10 +118,21 @@ async def eliminar_usuario(usuario_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
+# Protegida: cualquier usuario autenticado puede ejecutarla, pero solo sobre su
+# propia cuenta (el email del token debe coincidir con el email de la ruta)
 @router.patch("/{email}", status_code=status.HTTP_204_NO_CONTENT)
 async def editar_contraseña(
-    email: str, data: EditarUsuarioRequest, db: AsyncSession = Depends(get_db)
+    email: str,
+    data: EditarUsuarioRequest,
+    db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(obtener_usuario_actual),
 ):
+    if usuario_actual["sub"] != email:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes editar la contraseña de otro usuario",
+        )
+
     hasher_real = BcryptPasswordHasher()
     repo = PostgresUsuarioRepository(session=db)
     caso_uso = EditarUsuarioUCase(repository=repo, hasher=hasher_real)
@@ -123,6 +143,7 @@ async def editar_contraseña(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
+# Protegida: solo un token con rol ADMIN puede listar los usuarios de un restaurante
 @router.get(
     "/restaurante/{restaurante_id}",
     response_model=list[UsuarioResponse],
@@ -131,6 +152,7 @@ async def editar_contraseña(
 async def listar_usuarios_por_restaurante(
     restaurante_id: str,
     db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
 ):
     repo = PostgresUsuarioRepository(session=db)
     caso_uso = ListarUsuariosPorRestauranteUCase(repository=repo)
@@ -150,9 +172,11 @@ async def listar_usuarios_por_restaurante(
     ]
 
 
+# Protegida: solo un token con rol ADMIN puede listar todos los usuarios
 @router.get("/", response_model=list[UsuarioResponse], status_code=status.HTTP_200_OK)
 async def listar_usuarios(
     db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
 ):
     repo = PostgresUsuarioRepository(session=db)
     caso_uso = ListarUsuariosUCase(repository=repo)
