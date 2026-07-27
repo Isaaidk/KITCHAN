@@ -1,0 +1,61 @@
+<!-- Adaptador de entrada (frontend): pantalla de login exclusiva para ADMIN.
+     Reutiliza el mismo endpoint de login que la pantalla de operador; solo
+     cambia el rol que exige para aceptar la sesión y a dónde redirige. -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kitchan - Login Administrador</title>
+    <script src="auth.js"></script>
+  </head>
+  <body>
+    <h1>Login Administrador</h1>
+
+    <form id="form-login">
+      <label>
+        Email:
+        <input type="email" id="email" required />
+      </label>
+      <br />
+      <label>
+        Password:
+        <input type="password" id="password" required />
+      </label>
+      <br />
+      <button type="submit">Ingresar</button>
+    </form>
+
+    <p id="mensaje-error" style="display: none; color: red"></p>
+
+    <script>
+      document
+        .getElementById("form-login")
+        .addEventListener("submit", async function (evento) {
+          evento.preventDefault();
+
+          const mensajeError = document.getElementById("mensaje-error");
+          mensajeError.style.display = "none";
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          try {
+            const resultado = await login(email, password);
+
+            if (resultado.usuario.rol !== "ADMIN") {
+              mensajeError.textContent =
+                "Este acceso es solo para administradores.";
+              mensajeError.style.display = "block";
+              return;
+            }
+
+            guardarSesion(resultado.access_token, resultado.usuario);
+            window.location.href = "administrador.html";
+          } catch (error) {
+            mensajeError.textContent = error.message || "Credenciales inválidas.";
+            mensajeError.style.display = "block";
+          }
+        });
+    </script>
+  </body>
+</html>
