@@ -59,3 +59,11 @@ class ITokenGenerator(ABC):
     @abstractmethod
     def generar_token(self, data: dict) -> str:
         pass
+
+    @abstractmethod
+    def decodificar_token(self, token: str) -> dict:
+        """Valida la firma/expiración del token y retorna sus claims.
+
+        Debe lanzar ValueError si el token es inválido o expiró.
+        """
+        pass
