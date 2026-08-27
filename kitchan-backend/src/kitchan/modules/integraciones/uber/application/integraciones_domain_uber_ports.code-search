@@ -1,0 +1,38 @@
+# Query: integraciones.domain.uber_ports
+# ContextLines: 1
+
+8 resultados - Archivos de 6
+
+kitchan-backend/src/kitchan/modules/integraciones/infrastructure/adapters/uber_http_adapter.py:
+  2  from fastapi import HTTPException
+  3: from src.kitchan.modules.integraciones.uber.domain.ports import UberApiPort
+  4  
+
+kitchan-backend/src/kitchan/modules/integraciones/uber/application/order_use_cases.py:
+  1: from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort, UberApiPort
+  2  from src.kitchan.modules.integraciones.uber.domain.models import KitchanOrderDTO, KitchanOrderItem
+  3  from src.kitchan.modules.integraciones.domain.inter_module_ports import OrderDispatcherPort
+  4: from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort, UberApiPort
+  5  from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload, KitchanOrderDTO, KitchanOrderItem
+
+kitchan-backend/src/kitchan/modules/integraciones/uber/application/webhook_use_cases.py:
+  1  from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload
+  2: from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort, UberApiPort
+  3  from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload, KitchanOrderDTO
+  4: from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort, UberApiPort
+  5  from src.kitchan.modules.integraciones.domain.inter_module_ports import OrderDispatcherPort
+
+kitchan-backend/src/kitchan/modules/integraciones/uber/infrastructure/adapters/http_order_adapter.py:
+  2  from fastapi import HTTPException
+  3: from src.kitchan.modules.integraciones.uber.domain.ports import UberApiPort
+  4  
+
+kitchan-backend/src/kitchan/modules/integraciones/uber/infrastructure/adapters/redis_token_adapter.py:
+  3  
+  4: from src.kitchan.modules.integraciones.uber.domain.ports import (
+  5      UberTokenCachePort,
+
+kitchan-backend/src/kitchan/modules/integraciones/uber/infrastructure/controllers/oauth_api.py:
+  10  
+  11: from src.kitchan.modules.integraciones.uber.domain.ports import (
+  12      UberTokenCachePort,
