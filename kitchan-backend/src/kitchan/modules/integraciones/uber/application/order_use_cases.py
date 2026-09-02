@@ -41,7 +41,7 @@ class UberOrderUseCase:
     async def accept_order_in_uber(self, order_id: str, restaurante_id: str) -> bool:
         """Flujo cuando el usuario presiona 'Aceptar' en el frontend de Kitchan."""
         # 1. Recuperamos el token de Redis
-        token = await self.token_cache.get_token(restaurante_id)
+        token = await self.token_cache.get_app_token(restaurante_id)
         if not token:
             raise ValueError("Token de Uber no encontrado o expirado. Vuelva a conectar la tienda.")
 
@@ -80,4 +80,31 @@ class UberOrderUseCase:
         print(f"❌ [NEGOCIO] Orden {order_id} rechazada en Uber. Razón: {explanation}")
         
         # (Futuro: Aquí actualizarás el estado interno a CANCELADA)
+        return True
+
+    async def mark_order_ready_in_uber(
+        self,
+        order_id: str,
+        restaurante_id: str
+    ) -> bool:
+
+        token = await self.token_cache.get_app_token(
+            restaurante_id
+        )
+
+        if not token:
+            raise ValueError(
+                "App Token de Uber no encontrado o expirado."
+            )
+
+        await self.uber_api.mark_order_ready(
+            order_id=order_id,
+            access_token=token
+        )
+
+        print(
+            f"✅ [NEGOCIO] Orden {order_id} "
+            "marcada como READY en Uber."
+        )
+
         return True

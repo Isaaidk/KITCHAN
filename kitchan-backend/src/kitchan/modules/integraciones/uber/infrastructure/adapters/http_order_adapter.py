@@ -22,7 +22,7 @@ class UberHttpAdapter(UberApiPort):
         return respuesta.json()
 
     async def accept_order(self, order_id: str, access_token: str, reason: str = "Accepted") -> bool:
-        url = f"https://test-api.uber.com/v2/eats/order/{order_id}/accept_pos_order"
+        url = f"https://test-api.uber.com/v1/eats/orders/{order_id}/accept_pos_order"
         headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         
         async with httpx.AsyncClient() as client:
@@ -55,4 +55,43 @@ class UberHttpAdapter(UberApiPort):
             print(f"❌ Error al rechazar orden {order_id}: {respuesta.text}")
             raise HTTPException(status_code=respuesta.status_code, detail="No se pudo rechazar la orden en Uber")
             
+        return True
+
+    async def mark_order_ready(
+        self,
+        order_id: str,
+        access_token: str
+    ) -> bool:
+
+        url = (
+            f"https://test-api.uber.com"
+            f"/v1/delivery/order/{order_id}/ready"
+        )
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+
+        async with httpx.AsyncClient() as client:
+            respuesta = await client.post(
+                url,
+                headers=headers,
+                json={}
+            )
+
+        if respuesta.status_code != 200:
+            print(
+                f"❌ Error al marcar orden {order_id} "
+                f"como READY: {respuesta.text}"
+            )
+
+            raise HTTPException(
+                status_code=respuesta.status_code,
+                detail=(
+                    "No se pudo marcar la orden "
+                    "como lista en Uber"
+                )
+            )
+
         return True

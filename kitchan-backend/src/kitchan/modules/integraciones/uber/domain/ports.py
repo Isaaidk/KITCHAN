@@ -69,3 +69,11 @@ class UberApiPort(ABC):
     @abstractmethod
     async def deny_order(self, order_id: str, access_token: str, reason: str, explanation: str) -> bool:
         pass
+
+    @abstractmethod
+    async def mark_order_ready(
+        self,
+        order_id: str,
+        access_token: str
+    ) -> bool:
+        pass

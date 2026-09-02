@@ -1,6 +1,7 @@
 import os
 from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
+import logging
 
 # Importamos nuestro Caso de Uso y los Adaptadores
 from src.kitchan.modules.integraciones.uber.application.order_use_cases import UberOrderUseCase
@@ -9,6 +10,7 @@ from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_a
 from src.kitchan.modules.pedidos.application.crear_pedido_service import CrearPedidoUseCase
 from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import PedidosIntegracionesAdapter
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/v1/integraciones/uber/orders",
@@ -76,3 +78,45 @@ async def deny_uber_order(
         raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error interno al rechazar el pedido.")
+
+@router.post("/{order_id}/ready")
+async def ready_uber_order(
+    order_id: str,
+    restaurante_id: str = Query(
+        ...,
+        description="ID del restaurante en Kitchan"
+    ),
+    use_case: UberOrderUseCase = Depends(
+        get_order_use_case
+    )
+):
+    try:
+        await use_case.mark_order_ready_in_uber(
+            order_id=order_id,
+            restaurante_id=restaurante_id
+        )
+
+        return {
+            "status": "success",
+            "message": (
+                f"Pedido {order_id} "
+                "marcado como listo para pickup en Uber Eats."
+            )
+        }
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=401,
+            detail=str(e)
+        )
+
+    except Exception as error:
+        logger.exception(
+            "❌ Error marcando pedido Uber %s como READY",
+            order_id
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Error interno al marcar el pedido como listo."
+        )
