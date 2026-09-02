@@ -91,6 +91,7 @@ class UberOrderUseCase:
         token = await self.token_cache.get_app_token(
             restaurante_id
         )
+        print("🔥 TOKEN UBER:", token)
 
         if not token:
             raise ValueError(
@@ -108,3 +109,23 @@ class UberOrderUseCase:
         )
 
         return True
+
+    async def get_delivery_order_status(
+            self,
+            order_id: str,
+            restaurante_id: str
+        ) -> dict:
+
+            token = await self.token_cache.get_app_token(
+                restaurante_id
+            )
+
+            if not token:
+                raise ValueError(
+                    "App Token de Uber no encontrado o expirado."
+                )
+
+            return await self.uber_api.get_delivery_order_details(
+                order_id=order_id,
+                access_token=token
+            )

@@ -77,3 +77,11 @@ class UberApiPort(ABC):
         access_token: str
     ) -> bool:
         pass
+
+    @abstractmethod
+    async def get_delivery_order_details(
+            self,
+            order_id: str,
+            access_token: str
+        ) -> dict:
+            pass

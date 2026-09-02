@@ -3,9 +3,19 @@ from typing import Optional
 
 class UberWebhookMeta(BaseModel):
     """Metadatos del evento de Uber"""
-    resource_id: str
+    resource_id: Optional[str] = None
+
     status: Optional[str] = None
+
     user_id: Optional[str] = None
+
+    order_id: Optional[str] = None
+
+    courier_trip_id: Optional[str] = None
+
+    external_order_id: Optional[str] = None
+
+    store_id: Optional[str] = None
 
 class UberWebhookPayload(BaseModel):
     """Estructura esperada del Webhook de Uber Eats"""

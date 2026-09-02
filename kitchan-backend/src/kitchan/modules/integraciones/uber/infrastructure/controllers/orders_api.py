@@ -120,3 +120,37 @@ async def ready_uber_order(
             status_code=500,
             detail="Error interno al marcar el pedido como listo."
         )
+
+@router.get("/{order_id}/delivery-status")
+async def get_delivery_order_status(
+    order_id: str,
+    restaurante_id: str = Query(
+        ...,
+        description="ID del restaurante en Kitchan"
+    ),
+    use_case: UberOrderUseCase = Depends(
+        get_order_use_case
+    )
+):
+    try:
+        return await use_case.get_delivery_order_status(
+            order_id=order_id,
+            restaurante_id=restaurante_id
+        )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=401,
+            detail=str(e)
+        )
+
+    except Exception:
+        logger.exception(
+            "❌ Error obteniendo estado delivery de Uber %s",
+            order_id
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Error obteniendo estado del pedido en Uber."
+        )

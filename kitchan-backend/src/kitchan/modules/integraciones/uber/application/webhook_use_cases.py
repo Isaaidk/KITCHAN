@@ -35,6 +35,41 @@ class UberWebhookUseCase:
         Procesa el payload validado del webhook de Uber.
         """
         # 1. Ignorar eventos que no nos interesan por ahora
+        # 1. Procesar estados del delivery/courier
+        
+        if payload.event_type == "delivery.state_changed":
+            order_id = payload.meta.order_id
+            courier_trip_id = payload.meta.courier_trip_id
+            status = payload.meta.status
+
+            print(
+                f"🚚 [UBER DELIVERY] "
+                f"Orden: {order_id} | "
+                f"Courier Trip: {courier_trip_id} | "
+                f"Estado: {status}"
+            )
+
+            if not order_id:
+                print(
+                    "⚠️ [UBER DELIVERY] "
+                    "El webhook no contiene order_id."
+                )
+                return
+
+            # --------------------------------------------------------
+            # 1. Buscar el pedido en Uber
+            # --------------------------------------------------------
+            print(
+                f"📥 [UBER DELIVERY] "
+                f"Consultando pedido {order_id} en Uber..."
+            )
+
+            # Para esta consulta necesitamos identificar primero
+            # el restaurante. En el webhook delivery.state_changed
+            # store_id puede venir como null.
+        
+
+        # 2. Ignorar otros eventos que todavía no procesamos
         if payload.event_type != "orders.notification":
             print(f"ℹ️ Ignorando evento de tipo: {payload.event_type}")
             return
