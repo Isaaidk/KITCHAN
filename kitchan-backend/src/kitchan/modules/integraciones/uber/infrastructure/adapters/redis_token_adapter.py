@@ -139,6 +139,23 @@ class RedisUberTokenAdapter(
         Guarda la relación uber_store_mapping:{store_id} -> {restaurante_id}
         """
         key = f"uber_store_mapping:{store_id}"
+
+        # Un store_id de Uber solo puede pertenecer a UN restaurante KITCHAN
+        # a la vez (es una relación 1:1 en Redis, no una lista). Si dos
+        # restaurantes distintos conectan la MISMA tienda de Uber (típico en
+        # sandbox, donde Uber solo entrega una tienda de prueba por cuenta),
+        # este segundo mapeo pisa al primero silenciosamente — a partir de
+        # acá los webhooks de esa tienda dejan de llegarle al restaurante
+        # anterior. Lo dejamos pasar (reconectar es un caso legítimo) pero
+        # se loguea fuerte para que sea visible si es un error de testing.
+        anterior = await self.redis_client.get(key)
+        if anterior and anterior != restaurante_id:
+            print(
+                f"⚠️ [MULTI-TENANT] La tienda {store_id} ya pertenecía al "
+                f"restaurante {anterior}; se reasigna a {restaurante_id}. "
+                "Los pedidos nuevos de esta tienda ya NO llegarán al restaurante anterior."
+            )
+
         # No le ponemos expiración, este mapeo es permanente mientras dure la integración
         await self.redis_client.set(key, restaurante_id)
         print(f"🔗 [MULTI-TENANT] Mapeo creado en Redis: {store_id} pertenece a {restaurante_id}")

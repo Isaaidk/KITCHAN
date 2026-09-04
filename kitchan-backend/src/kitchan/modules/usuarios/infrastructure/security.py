@@ -1,9 +1,6 @@
-import os
-from datetime import datetime, timedelta, timezone
-
 import bcrypt
-from jose import JWTError, jwt
 
+from src.kitchan.core.security import crear_access_token, decodificar_access_token
 from src.kitchan.modules.usuarios.application.ports import (
     IPasswordHasher,
     ITokenGenerator,
@@ -25,24 +22,11 @@ class BcryptPasswordHasher(IPasswordHasher):
         )
 
 
-# Adaptador de salida: genera tokens de acceso JWT firmados con la SECRET_KEY
-# configurada en el .env, usando python-jose
+# Adaptador de salida: envuelve el shared kernel de JWT (src.kitchan.core.security)
+# para cumplir el puerto ITokenGenerator del módulo usuarios.
 class JWTTokenGenerator(ITokenGenerator):
     def generar_token(self, data: dict) -> str:
-        secret_key = os.getenv("SECRET_KEY")
-        algorithm = os.getenv("ALGORITHM", "HS256")
-        expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
-
-        payload = data.copy()
-        payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
-
-        return jwt.encode(payload, secret_key, algorithm=algorithm)
+        return crear_access_token(data)
 
     def decodificar_token(self, token: str) -> dict:
-        secret_key = os.getenv("SECRET_KEY")
-        algorithm = os.getenv("ALGORITHM", "HS256")
-
-        try:
-            return jwt.decode(token, secret_key, algorithms=[algorithm])
-        except JWTError:
-            raise ValueError("Token inválido o expirado")
+        return decodificar_access_token(token)

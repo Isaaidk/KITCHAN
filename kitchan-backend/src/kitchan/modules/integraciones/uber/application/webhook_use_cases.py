@@ -49,27 +49,36 @@ class UberWebhookUseCase:
                 f"Estado: {status}"
             )
 
-            if not order_id:
+            if not order_id or not status:
                 print(
                     "⚠️ [UBER DELIVERY] "
-                    "El webhook no contiene order_id."
+                    "El webhook no contiene order_id o status."
                 )
                 return
 
-            # --------------------------------------------------------
-            # 1. Buscar el pedido en Uber
-            # --------------------------------------------------------
-            print(
-                f"📥 [UBER DELIVERY] "
-                f"Consultando pedido {order_id} en Uber..."
+            actualizado = await self.order_dispatcher.dispatch_delivery_status_update(
+                origen="UBER_EATS", id_externo=order_id, estado_entrega=status
             )
+            if not actualizado:
+                print(f"⚠️ [UBER DELIVERY] No se encontró en KITCHAN el pedido {order_id}.")
+            return
 
-            # Para esta consulta necesitamos identificar primero
-            # el restaurante. En el webhook delivery.state_changed
-            # store_id puede venir como null.
-        
+        if payload.event_type == "orders.cancel":
+            order_id = payload.meta.resource_id
+            print(f"🛑 [UBER CANCEL] Orden cancelada en Uber: {order_id}")
 
-        # 2. Ignorar otros eventos que todavía no procesamos
+            if not order_id:
+                print("⚠️ [UBER CANCEL] El webhook no contiene resource_id.")
+                return
+
+            actualizado = await self.order_dispatcher.dispatch_order_status_update(
+                origen="UBER_EATS", id_externo=order_id, nuevo_estado="CANCELADA"
+            )
+            if not actualizado:
+                print(f"⚠️ [UBER CANCEL] No se encontró en KITCHAN el pedido {order_id}.")
+            return
+
+        # Ignorar otros eventos que todavía no procesamos
         if payload.event_type != "orders.notification":
             print(f"ℹ️ Ignorando evento de tipo: {payload.event_type}")
             return

@@ -3,13 +3,21 @@ import json
 
 from fastapi import APIRouter, Request, Header, HTTPException, Depends
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.kitchan.core.database import get_db
 from src.kitchan.modules.pedidos.application.crear_pedido_service import (
     CrearPedidoUseCase
 )
+from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
+    ActualizarEstadoPedidoUseCase
+)
 
-from src.kitchan.modules.pedidos.infrastructure.adapters.memory_repository import (
-    MemoryPedidoRepository
+from src.kitchan.modules.pedidos.infrastructure.repository import (
+    PostgresPedidoRepository
+)
+from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
+    RedisPublisherAdapter
 )
 
 from src.kitchan.modules.integraciones.uber.infrastructure.security.hmac_validator import (
@@ -108,21 +116,28 @@ async def validate_webhook_signature(
 # ============================================================
 # DEPENDENCY INJECTION
 # ============================================================
-def get_webhook_use_case() -> UberWebhookUseCase:
+def get_webhook_use_case(
+    db: AsyncSession = Depends(get_db),
+) -> UberWebhookUseCase:
     token_adapter = RedisUberTokenAdapter(
         redis_url=REDIS_URL
     )
 
     api_adapter = UberHttpAdapter()
 
-    repo_pedidos = MemoryPedidoRepository()
+    repo_pedidos = PostgresPedidoRepository(session=db)
+    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
 
     crear_pedido_use_case = CrearPedidoUseCase(
-        repository=repo_pedidos
+        repository=repo_pedidos, notificador=notificador
+    )
+    actualizar_estado_use_case = ActualizarEstadoPedidoUseCase(
+        repository=repo_pedidos, notificador=notificador
     )
 
     dispatcher_adapter = PedidosIntegracionesAdapter(
-        use_case=crear_pedido_use_case
+        use_case=crear_pedido_use_case,
+        actualizar_estado_use_case=actualizar_estado_use_case,
     )
 
     return UberWebhookUseCase(
@@ -196,11 +211,18 @@ async def receive_uber_webhook(
         )
 
 
+    event_type = payload_dict.get("event_type")
     print("EVENT TYPE:")
-    print(
-        payload_dict.get("event_type")
-    )
+    print(event_type)
 
+    # Uber envía muchas familias de eventos a esta misma URL (store.provisioned,
+    # menu updates, etc.) con una forma distinta a UberWebhookPayload. Solo
+    # los eventos de pedidos nos interesan; el resto se reconoce con 200 sin
+    # intentar validarlo, para no fallar con 422 en algo que no vamos a usar.
+    EVENTOS_MANEJADOS = {"orders.notification", "orders.cancel", "delivery.state_changed"}
+    if event_type not in EVENTOS_MANEJADOS:
+        print(f"ℹ️ Evento '{event_type}' no es de pedidos, se reconoce sin procesar.")
+        return {"status": "ignored", "event_type": event_type}
 
     # ========================================================
     # VALIDAR MODELO

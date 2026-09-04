@@ -1,0 +1,28 @@
+.topbar {
+  height: 56px;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 20px;
+}
+
+.usuario {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.logout {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.logout:hover {
+  background: var(--color-bg);
+}

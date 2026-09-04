@@ -1,0 +1,76 @@
+.contenedor {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  width: 300px;
+}
+
+.toast {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 12px 14px;
+  font-size: 0.85rem;
+}
+
+.critica {
+  border-color: var(--color-danger);
+  background: #fef2f2;
+}
+
+.accionesRapidas {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.accionesRapidas button {
+  flex: 1;
+  padding: 5px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.accionesRapidas button:disabled {
+  opacity: 0.6;
+}
+
+.botonAceptarRapido {
+  background: var(--color-primary);
+}
+
+.botonCancelarRapido {
+  background: var(--color-danger);
+}
+
+.barra {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-primary);
+  animation: consumir 10s linear forwards;
+}
+
+.critica .barra {
+  background: var(--color-danger);
+}
+
+@keyframes consumir {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

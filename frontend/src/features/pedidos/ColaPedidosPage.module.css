@@ -1,0 +1,47 @@
+.filtros {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.filtros select {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  background: var(--color-surface);
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.columna {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.columnaTitulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vacio {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 12px 0;
+}

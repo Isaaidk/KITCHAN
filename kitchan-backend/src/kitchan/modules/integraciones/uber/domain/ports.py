@@ -71,6 +71,14 @@ class UberApiPort(ABC):
         pass
 
     @abstractmethod
+    async def cancel_order(
+        self, order_id: str, access_token: str, reason: str, details: str | None = None
+    ) -> bool:
+        """Cancela un pedido YA ACEPTADO (deny_order solo aplica a pedidos
+        que todavía no fueron aceptados)."""
+        pass
+
+    @abstractmethod
     async def mark_order_ready(
         self,
         order_id: str,
@@ -85,3 +93,5 @@ class UberApiPort(ABC):
             access_token: str
         ) -> dict:
             pass
+
+    

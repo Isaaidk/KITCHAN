@@ -21,10 +21,13 @@ class PedidoItem(BaseModel):
 class Pedido(BaseModel):
     """La entidad core. Todo en el sistema gira en torno a esto."""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    restaurante_id: str
     origen: str  # Ej: "UBER_EATS", "RAPPI", "LOCAL"
     id_externo: Optional[str] = None  # El ID largo que nos manda Uber
     cliente: str
+    nota_cliente: Optional[str] = None
     items: List[PedidoItem]
     total: float
     estado: EstadoPedido = EstadoPedido.NUEVA
+    estado_entrega: Optional[str] = None
     fecha_creacion: datetime = Field(default_factory=datetime.utcnow)

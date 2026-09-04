@@ -86,6 +86,39 @@ class PostgresUsuarioRepository(IUsuarioRepository):
 
         return modelo.to_domain()
 
+    async def actualizar_datos(
+        self, usuario_id: str, nombre: str, rol
+    ) -> Optional[Usuario]:
+        stmt = select(UsuarioModel).where(UsuarioModel.id == uuid.UUID(str(usuario_id)))
+        resultado = await self.session.execute(stmt)
+        modelo = resultado.scalar_one_or_none()
+
+        if modelo is None:
+            return None
+
+        modelo.nombre = nombre
+        modelo.rol = rol.value
+
+        await self.session.commit()
+        await self.session.refresh(modelo)
+
+        return modelo.to_domain()
+
+    async def cambiar_estado(self, usuario_id: str, estado: bool) -> Optional[Usuario]:
+        stmt = select(UsuarioModel).where(UsuarioModel.id == uuid.UUID(str(usuario_id)))
+        resultado = await self.session.execute(stmt)
+        modelo = resultado.scalar_one_or_none()
+
+        if modelo is None:
+            return None
+
+        modelo.estado = estado
+
+        await self.session.commit()
+        await self.session.refresh(modelo)
+
+        return modelo.to_domain()
+
     async def listar_por_restaurante(self, restaurante_id: str) -> list[Usuario]:
         uuid_val = (
             uuid.UUID(str(restaurante_id))

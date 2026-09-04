@@ -6,11 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
 from src.kitchan.modules.usuarios.application.use_cases import (
+    CambiarEstadoUsuarioUseCase,
     CrearUsuarioPorAdminUseCase,
+    EditarUsuarioPorAdminUseCase,
     EditarUsuarioUCase,
     EliminarUsuarioUseCase,
     ListarUsuariosPorRestauranteUCase,
-    ListarUsuariosUCase,
     LoginUsuarioUseCase,
 )
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
@@ -39,6 +40,15 @@ class CrearUsuarioAdminRequest(BaseModel):
 
 class EditarUsuarioRequest(BaseModel):
     password_hash: str
+
+
+class EditarUsuarioPorAdminRequest(BaseModel):
+    nombre: str
+    rol: RolUsuario
+
+
+class CambiarEstadoUsuarioRequest(BaseModel):
+    estado: bool
 
 
 class UsuarioResponse(BaseModel):
@@ -76,6 +86,14 @@ async def crear_usuario_por_admin(
     db: AsyncSession = Depends(get_db),
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
 ):
+    # Aislamiento multi-tenant: un admin solo puede crear usuarios para su
+    # propio restaurante, sin importar qué restaurante_id venga en la URL.
+    if restaurante_id != usuario_actual["restaurante_id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes crear usuarios para otro restaurante",
+        )
+
     repo = PostgresUsuarioRepository(session=db)
     hasher_real = BcryptPasswordHasher()
     caso_uso = CrearUsuarioPorAdminUseCase(repository=repo, hasher=hasher_real)
@@ -113,7 +131,80 @@ async def eliminar_usuario(
     caso_uso = EliminarUsuarioUseCase(repository=repo)
 
     try:
-        await caso_uso.ejecutar(usuario_id=usuario_id)
+        await caso_uso.ejecutar(
+            usuario_id=usuario_id, admin_restaurante_id=usuario_actual["restaurante_id"]
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+# -------------------------------------------------
+# Edición de nombre/rol por parte de un Administrador (CRUD de usuarios)
+# Protegida: solo un token con rol ADMIN puede ejecutar esta acción
+#
+@router.put(
+    "/{usuario_id}", response_model=UsuarioResponse, status_code=status.HTTP_200_OK
+)
+async def editar_usuario_por_admin(
+    usuario_id: str,
+    request: EditarUsuarioPorAdminRequest,
+    db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+):
+    repo = PostgresUsuarioRepository(session=db)
+    caso_uso = EditarUsuarioPorAdminUseCase(repository=repo)
+
+    try:
+        usuario = await caso_uso.ejecutar(
+            usuario_id=usuario_id,
+            nombre=request.nombre,
+            rol=request.rol.value,
+            admin_restaurante_id=usuario_actual["restaurante_id"],
+        )
+        return UsuarioResponse(
+            id=str(usuario.id),
+            restaurante_id=str(usuario.restaurante_id),
+            nombre=usuario.nombre,
+            email=usuario.email,
+            rol=usuario.rol.value,
+            estado=usuario.estado,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# -------------------------------------------------
+# Activar/desactivar usuario sin eliminarlo (CRUD de usuarios)
+# Protegida: solo un token con rol ADMIN puede ejecutar esta acción
+#
+@router.patch(
+    "/{usuario_id}/estado",
+    response_model=UsuarioResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def cambiar_estado_usuario(
+    usuario_id: str,
+    request: CambiarEstadoUsuarioRequest,
+    db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+):
+    repo = PostgresUsuarioRepository(session=db)
+    caso_uso = CambiarEstadoUsuarioUseCase(repository=repo)
+
+    try:
+        usuario = await caso_uso.ejecutar(
+            usuario_id=usuario_id,
+            estado=request.estado,
+            admin_restaurante_id=usuario_actual["restaurante_id"],
+        )
+        return UsuarioResponse(
+            id=str(usuario.id),
+            restaurante_id=str(usuario.restaurante_id),
+            nombre=usuario.nombre,
+            email=usuario.email,
+            rol=usuario.rol.value,
+            estado=usuario.estado,
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
@@ -172,16 +263,19 @@ async def listar_usuarios_por_restaurante(
     ]
 
 
-# Protegida: solo un token con rol ADMIN puede listar todos los usuarios
+# Protegida: solo un token con rol ADMIN puede ejecutarla. Multi-tenant:
+# a pesar del path "/", solo devuelve los usuarios del PROPIO restaurante
+# del admin (nunca de otros tenants) — mantenida por compatibilidad, el
+# frontend usa /restaurante/{id} directamente.
 @router.get("/", response_model=list[UsuarioResponse], status_code=status.HTTP_200_OK)
 async def listar_usuarios(
     db: AsyncSession = Depends(get_db),
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
 ):
     repo = PostgresUsuarioRepository(session=db)
-    caso_uso = ListarUsuariosUCase(repository=repo)
+    caso_uso = ListarUsuariosPorRestauranteUCase(repository=repo)
 
-    usuarios = await caso_uso.ejecutar()
+    usuarios = await caso_uso.ejecutar(usuario_actual["restaurante_id"])
 
     return [
         UsuarioResponse(

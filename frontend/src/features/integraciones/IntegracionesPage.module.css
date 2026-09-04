@@ -1,0 +1,45 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.tarjeta {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+
+.canal {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.estado {
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+}
+
+.conectado {
+  color: var(--color-success);
+}
+
+.desconectado {
+  color: var(--color-text-muted);
+}
+
+.boton {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.boton:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}

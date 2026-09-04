@@ -65,10 +65,16 @@ UBER_API_BASE = "https://test-api.uber.com"
 # REDIRECT URI
 # ============================================================
 
-UBER_REDIRECT_URI = (
+UBER_REDIRECT_URI = os.getenv(
+    "UBER_REDIRECT_URI",
     "https://automatic-funicular-ww9xx7p66jxhvvwr-8000.app.github.dev"
-    "/api/v1/integraciones/uber/auth/callback"
+    "/api/v1/integraciones/uber/auth/callback",
 )
+
+# URL base del frontend (React) al que se redirige tras completar el
+# intercambio del authorization code, para que continúe el flujo
+# app-token -> provision -> menu/upload con su propia UI de progreso.
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 # ============================================================
@@ -277,7 +283,11 @@ async def uber_callback(
         )
 
     if respuesta.status_code != 200:
-        raise HTTPException(status_code=400, detail="Uber rechazó el authorization code")
+        return RedirectResponse(
+            url=f"{FRONTEND_URL}/integraciones/uber/callback?"
+            + urlencode({"restaurante_id": restaurante_id, "status": "error"}),
+            status_code=302,
+        )
 
     tokens = respuesta.json()
     access_token = tokens.get("access_token")
@@ -316,13 +326,21 @@ async def uber_callback(
                 # CREAMOS EL PUENTE: store_id -> restaurante_id
                 await token_adapter.save_store_mapping(store_id, restaurante_id)
                 tiendas_mapeadas += 1
+                # Un restaurante KITCHAN se corresponde con una única tienda
+                # Uber (confirmado con el negocio); si Uber llegara a devolver
+                # más de una, nos quedamos con la primera.
+                if tiendas_mapeadas == 1:
+                    primer_store_id = store_id
 
-    return {
-        "mensaje": "Restaurante autorizado y mapeado correctamente",
-        "restaurante_id": restaurante_id,
-        "tiendas_vinculadas": tiendas_mapeadas,
-        "expires_in": expires_in
-    }
+    # Redirige al frontend para que continúe el flujo con su propia UI de
+    # progreso: app-token -> provision -> menu/upload.
+    params = {"restaurante_id": restaurante_id, "status": "success"}
+    if tiendas_mapeadas >= 1:
+        params["store_id"] = primer_store_id
+    return RedirectResponse(
+        url=f"{FRONTEND_URL}/integraciones/uber/callback?{urlencode(params)}",
+        status_code=302,
+    )
 
 # ============================================================
 # CLIENT CREDENTIALS
@@ -502,7 +520,9 @@ async def diagnosticar_tienda_uber(
     # Obtener token desde Redis
     # --------------------------------------------------------
 
-    token = await token_adapter.get_token(
+    # get_token() leía una clave que nunca se escribe (bug); el token del
+    # merchant que sí se guarda tras el OAuth es el de provisioning.
+    token = await token_adapter.get_provisioning_token(
         restaurante_id
     )
 
@@ -612,7 +632,9 @@ async def obtener_tiendas_uber(
     utilizando el access token generado mediante OAuth.
     """
 
-    token = await token_adapter.get_token(
+    # get_token() leía una clave que nunca se escribe (bug); el token del
+    # merchant que sí se guarda tras el OAuth es el de provisioning.
+    token = await token_adapter.get_provisioning_token(
         restaurante_id
     )
 
@@ -684,9 +706,16 @@ async def provisionar_tienda_uber(
     url = f"{UBER_API_BASE}/v1/eats/stores/{data.store_id}/pos_data"
 
     # 3. Payload oficial para enlazar KITCHAN
+    # "is_order_manager": True nomina a KITCHAN como la app responsable de
+    # aceptar/rechazar/cancelar pedidos de esta tienda. Sin este flag, Uber
+    # rechaza accept_pos_order con 403 "User not allowed to access the
+    # order" aunque el resto del provisioning (lectura de la tienda/orden)
+    # funcione con normalidad — confirmado contra developer.uber.com
+    # (POST /eats/stores/{store_id}/pos_data).
     payload = {
         "integrator_store_id": data.restaurante_id,
         "integrator_brand_id": "KITCHAN",
+        "is_order_manager": True,
         "store_configuration_data": f'{{"kitchan_restaurante_id": "{data.restaurante_id}"}}'
     }
 

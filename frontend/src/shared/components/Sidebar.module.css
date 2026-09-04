@@ -1,0 +1,35 @@
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+  gap: 4px;
+}
+
+.marca {
+  color: var(--sidebar-text-active);
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0 12px 20px;
+}
+
+.link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.linkActivo {
+  background: var(--color-primary);
+  color: var(--sidebar-text-active);
+}

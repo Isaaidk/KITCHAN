@@ -9,11 +9,12 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.1
 bcrypt==4.2.0
+redis==5.0.1
+httpx==0.26.0
 
 # --- Dependencias de Pruebas y Calidad de Código (CI/CD) ---
 pytest==8.0.0
 pytest-asyncio==0.23.5
-httpx==0.26.0
 aiosqlite==0.19.0
 black==24.1.0
 isort==5.13.2

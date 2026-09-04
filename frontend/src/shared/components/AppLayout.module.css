@@ -1,0 +1,17 @@
+.contenedor {
+  display: flex;
+  height: 100vh;
+}
+
+.principal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.contenido {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
