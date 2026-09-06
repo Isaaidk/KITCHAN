@@ -12,8 +12,12 @@ from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido, Pe
 from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
     RedisPublisherAdapter,
 )
-from src.kitchan.modules.pedidos.infrastructure.repository import PostgresPedidoRepository
-from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import obtener_usuario_actual
+from src.kitchan.modules.pedidos.infrastructure.repository import (
+    PostgresPedidoRepository,
+)
+from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
+    obtener_usuario_actual,
+)
 
 import os
 
@@ -72,8 +76,12 @@ class PedidosPaginadosResponse(BaseModel):
 
 @router.get("", response_model=PedidosPaginadosResponse)
 async def listar_pedidos(
-    estado: Optional[str] = Query(None, description="Filtra por un único estado (CSV soportado con `estados`)"),
-    estados: Optional[str] = Query(None, description="Lista de estados separados por coma"),
+    estado: Optional[str] = Query(
+        None, description="Filtra por un único estado (CSV soportado con `estados`)"
+    ),
+    estados: Optional[str] = Query(
+        None, description="Lista de estados separados por coma"
+    ),
     canal: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     page: Optional[int] = Query(None, ge=1),
@@ -129,7 +137,9 @@ async def completar_pedido(
     repo = PostgresPedidoRepository(session=db)
     pedido = await repo.buscar_por_id(pedido_id)
     if pedido is None or pedido.restaurante_id != usuario_actual["restaurante_id"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado"
+        )
 
     notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
@@ -153,7 +163,9 @@ async def cancelar_pedido_interno(
     repo = PostgresPedidoRepository(session=db)
     pedido = await repo.buscar_por_id(pedido_id)
     if pedido is None or pedido.restaurante_id != usuario_actual["restaurante_id"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado"
+        )
 
     notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)

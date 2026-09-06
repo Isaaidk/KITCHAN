@@ -4,7 +4,9 @@ from src.kitchan.core.security import crear_access_token
 from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
     ActualizarEstadoPedidoUseCase,
 )
-from src.kitchan.modules.pedidos.application.crear_pedido_service import CrearPedidoUseCase
+from src.kitchan.modules.pedidos.application.crear_pedido_service import (
+    CrearPedidoUseCase,
+)
 from src.kitchan.modules.pedidos.application.ports import NotificadorEventosPort
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido, PedidoItem
 from src.kitchan.modules.pedidos.infrastructure.adapters.memory_repository import (
@@ -90,7 +92,9 @@ async def test_cancelar_pedido_listo_no_lo_degrada():
     notificador = NotificadorFake()
     await CrearPedidoUseCase(repository=repo).ejecutar(_pedido_de_prueba())
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
-    await caso_uso.ejecutar_por_id_externo("UBER_EATS", "uber-order-1", EstadoPedido.LISTA)
+    await caso_uso.ejecutar_por_id_externo(
+        "UBER_EATS", "uber-order-1", EstadoPedido.LISTA
+    )
 
     pedido = await caso_uso.ejecutar_por_id_externo(
         "UBER_EATS", "uber-order-1", EstadoPedido.CANCELADA
@@ -98,7 +102,9 @@ async def test_cancelar_pedido_listo_no_lo_degrada():
 
     assert pedido is not None
     assert pedido.estado == EstadoPedido.LISTA
-    assert notificador.eventos[-1][0] == "PEDIDO_ACTUALIZADO"  # el de LISTA, no uno nuevo
+    assert (
+        notificador.eventos[-1][0] == "PEDIDO_ACTUALIZADO"
+    )  # el de LISTA, no uno nuevo
 
 
 @pytest.mark.asyncio
@@ -108,7 +114,9 @@ async def test_cancelar_pedido_en_preparacion_si_se_cancela():
     notificador = NotificadorFake()
     await CrearPedidoUseCase(repository=repo).ejecutar(_pedido_de_prueba())
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
-    await caso_uso.ejecutar_por_id_externo("UBER_EATS", "uber-order-1", EstadoPedido.EN_PREPARACION)
+    await caso_uso.ejecutar_por_id_externo(
+        "UBER_EATS", "uber-order-1", EstadoPedido.EN_PREPARACION
+    )
 
     pedido = await caso_uso.ejecutar_por_id_externo(
         "UBER_EATS", "uber-order-1", EstadoPedido.CANCELADA
@@ -140,7 +148,12 @@ def test_ws_pedidos_rechaza_token_invalido(ws_client):
 
 def test_ws_pedidos_acepta_token_valido(ws_client):
     token = crear_access_token(
-        {"sub": "kds@test.com", "id": "1", "rol": "OPERADOR", "restaurante_id": "rest-1"}
+        {
+            "sub": "kds@test.com",
+            "id": "1",
+            "rol": "OPERADOR",
+            "restaurante_id": "rest-1",
+        }
     )
     with ws_client.websocket_connect(f"/api/v1/pedidos/ws/pedidos?token={token}") as ws:
         # La conexión se acepta (no se cierra inmediatamente); no hay

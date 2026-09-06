@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from src.kitchan.modules.integraciones.uber.domain.models import KitchanOrderDTO
 
+
 class OrderDispatcherPort(ABC):
     """
     Puerto de salida. Integraciones usará esto para enviar pedidos limpios
@@ -12,6 +13,7 @@ class OrderDispatcherPort(ABC):
     este cambio para minimizar el diff; queda documentado para una futura
     limpieza cuando se agregue una segunda integración real (Rappi/PedidosYa).
     """
+
     @abstractmethod
     async def dispatch_new_order(self, order: KitchanOrderDTO) -> str:
         """Debe enviar la orden y retornar el ID interno generado en Kitchan"""

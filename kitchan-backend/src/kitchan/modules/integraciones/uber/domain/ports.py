@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+
 class UberTokenCachePort(ABC):
     """
     Puerto para gestionar el almacenamiento de los tokens de Uber.
@@ -8,7 +9,9 @@ class UberTokenCachePort(ABC):
     """
 
     @abstractmethod
-    async def save_provisioning_token(self, restaurante_id: str, token: str, expires_in: int) -> None:
+    async def save_provisioning_token(
+        self, restaurante_id: str, token: str, expires_in: int
+    ) -> None:
         pass
 
     @abstractmethod
@@ -16,7 +19,9 @@ class UberTokenCachePort(ABC):
         pass
 
     @abstractmethod
-    async def save_app_token(self, restaurante_id: str, token: str, expires_in: int) -> None:
+    async def save_app_token(
+        self, restaurante_id: str, token: str, expires_in: int
+    ) -> None:
         pass
 
     @abstractmethod
@@ -41,7 +46,9 @@ class UberOAuthStatePort(ABC):
     """
 
     @abstractmethod
-    async def save_state(self, state: str, restaurante_id: str, expires_in: int = 600) -> None:
+    async def save_state(
+        self, state: str, restaurante_id: str, expires_in: int = 600
+    ) -> None:
         pass
 
     @abstractmethod
@@ -63,11 +70,15 @@ class UberApiPort(ABC):
         pass
 
     @abstractmethod
-    async def accept_order(self, order_id: str, access_token: str, reason: str = "Accepted") -> bool:
+    async def accept_order(
+        self, order_id: str, access_token: str, reason: str = "Accepted"
+    ) -> bool:
         pass
 
     @abstractmethod
-    async def deny_order(self, order_id: str, access_token: str, reason: str, explanation: str) -> bool:
+    async def deny_order(
+        self, order_id: str, access_token: str, reason: str, explanation: str
+    ) -> bool:
         pass
 
     @abstractmethod
@@ -79,19 +90,11 @@ class UberApiPort(ABC):
         pass
 
     @abstractmethod
-    async def mark_order_ready(
-        self,
-        order_id: str,
-        access_token: str
-    ) -> bool:
+    async def mark_order_ready(self, order_id: str, access_token: str) -> bool:
         pass
 
     @abstractmethod
     async def get_delivery_order_details(
-            self,
-            order_id: str,
-            access_token: str
-        ) -> dict:
-            pass
-
-    
+        self, order_id: str, access_token: str
+    ) -> dict:
+        pass

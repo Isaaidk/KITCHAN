@@ -31,7 +31,9 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
         await self.session.commit()
         return True
 
-    async def actualizar_estado_entrega(self, pedido_id: str, estado_entrega: str) -> bool:
+    async def actualizar_estado_entrega(
+        self, pedido_id: str, estado_entrega: str
+    ) -> bool:
         modelo = await self._buscar_modelo_por_id(pedido_id)
         if modelo is None:
             return False
@@ -39,7 +41,9 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
         await self.session.commit()
         return True
 
-    async def buscar_por_id_externo(self, origen: str, id_externo: str) -> Optional[Pedido]:
+    async def buscar_por_id_externo(
+        self, origen: str, id_externo: str
+    ) -> Optional[Pedido]:
         stmt = select(PedidoModel).where(
             PedidoModel.origen == origen, PedidoModel.id_externo == id_externo
         )
@@ -78,7 +82,10 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
         if search:
             patron = f"%{search}%"
             condiciones.append(
-                or_(PedidoModel.cliente.ilike(patron), PedidoModel.id_externo.ilike(patron))
+                or_(
+                    PedidoModel.cliente.ilike(patron),
+                    PedidoModel.id_externo.ilike(patron),
+                )
             )
 
         stmt_total = select(func.count()).select_from(PedidoModel).where(*condiciones)

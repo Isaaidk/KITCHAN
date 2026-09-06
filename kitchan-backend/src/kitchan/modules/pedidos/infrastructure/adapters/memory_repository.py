@@ -26,13 +26,17 @@ class MemoryPedidoRepository(PedidoRepositoryPort):
             return True
         return False
 
-    async def actualizar_estado_entrega(self, pedido_id: str, estado_entrega: str) -> bool:
+    async def actualizar_estado_entrega(
+        self, pedido_id: str, estado_entrega: str
+    ) -> bool:
         if pedido_id in self.db:
             self.db[pedido_id].estado_entrega = estado_entrega
             return True
         return False
 
-    async def buscar_por_id_externo(self, origen: str, id_externo: str) -> Optional[Pedido]:
+    async def buscar_por_id_externo(
+        self, origen: str, id_externo: str
+    ) -> Optional[Pedido]:
         for pedido in self.db.values():
             if pedido.origen == origen and pedido.id_externo == id_externo:
                 return pedido
@@ -68,8 +72,10 @@ class MemoryPedidoRepository(PedidoRepositoryPort):
         if search:
             s = search.lower()
             pedidos = [
-                p for p in pedidos
-                if s in p.cliente.lower() or (p.id_externo and s in p.id_externo.lower())
+                p
+                for p in pedidos
+                if s in p.cliente.lower()
+                or (p.id_externo and s in p.id_externo.lower())
             ]
         total = len(pedidos)
         if page and page_size:

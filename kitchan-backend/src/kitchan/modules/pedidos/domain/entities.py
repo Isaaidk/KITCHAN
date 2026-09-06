@@ -4,13 +4,16 @@ from enum import Enum
 from datetime import datetime
 import uuid
 
+
 class EstadoPedido(str, Enum):
     """El ciclo de vida oficial de un pedido en KITCHAN"""
+
     NUEVA = "NUEVA"
     EN_PREPARACION = "EN_PREPARACION"
     LISTA = "LISTA"
     ENTREGADA = "ENTREGADA"
     CANCELADA = "CANCELADA"
+
 
 class PedidoItem(BaseModel):
     nombre: str
@@ -18,8 +21,10 @@ class PedidoItem(BaseModel):
     precio_unitario: float
     notas: Optional[str] = None
 
+
 class Pedido(BaseModel):
     """La entidad core. Todo en el sistema gira en torno a esto."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     restaurante_id: str
     origen: str  # Ej: "UBER_EATS", "RAPPI", "LOCAL"

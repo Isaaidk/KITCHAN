@@ -20,10 +20,14 @@ class PedidoModel(Base):
         UUID(as_uuid=True), ForeignKey("restaurantes.id"), nullable=False, index=True
     )
     origen: Mapped[str] = mapped_column(String(30), nullable=False)
-    id_externo: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    id_externo: Mapped[str | None] = mapped_column(
+        String(100), nullable=True, index=True
+    )
     cliente: Mapped[str] = mapped_column(String(150), nullable=False)
     nota_cliente: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    items: Mapped[list] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    items: Mapped[list] = mapped_column(
+        JSON().with_variant(JSONB, "postgresql"), nullable=False
+    )
     total: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     estado: Mapped[EstadoPedido] = mapped_column(
         SQLEnum(EstadoPedido, name="estado_pedido_enum"), nullable=False

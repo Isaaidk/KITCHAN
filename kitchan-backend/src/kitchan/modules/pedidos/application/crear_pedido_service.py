@@ -10,6 +10,7 @@ class CrearPedidoUseCase:
     Orquesta la creación de un nuevo pedido en el restaurante y notifica
     automáticamente (WS) a quien esté escuchando ese restaurante.
     """
+
     def __init__(
         self,
         repository: PedidoRepositoryPort,

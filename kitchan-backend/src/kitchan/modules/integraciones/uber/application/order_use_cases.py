@@ -1,33 +1,64 @@
-from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort, UberApiPort
-from src.kitchan.modules.integraciones.uber.domain.models import KitchanOrderDTO, KitchanOrderItem
-from src.kitchan.modules.integraciones.core.domain.inter_module_ports import OrderDispatcherPort
-from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort, UberApiPort
-from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload, KitchanOrderDTO, KitchanOrderItem
+from src.kitchan.modules.integraciones.uber.domain.ports import (
+    UberTokenCachePort,
+    UberApiPort,
+)
+from src.kitchan.modules.integraciones.uber.domain.models import (
+    KitchanOrderDTO,
+    KitchanOrderItem,
+)
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
+)
+from src.kitchan.modules.integraciones.uber.domain.ports import (
+    UberTokenCachePort,
+    UberApiPort,
+)
+from src.kitchan.modules.integraciones.uber.domain.models import (
+    KitchanOrderDTO,
+    KitchanOrderItem,
+)
+
+
 class UberOrderUseCase:
-    def __init__(self, token_cache: UberTokenCachePort, uber_api: UberApiPort, order_dispatcher: OrderDispatcherPort):
+    def __init__(
+        self,
+        token_cache: UberTokenCachePort,
+        uber_api: UberApiPort,
+        order_dispatcher: OrderDispatcherPort,
+    ):
         self.token_cache = token_cache
         self.uber_api = uber_api
         self.order_dispatcher = order_dispatcher
-        
 
-    def map_uber_to_kitchan(self, uber_json: dict, restaurante_id: str) -> KitchanOrderDTO:
+    def map_uber_to_kitchan(
+        self, uber_json: dict, restaurante_id: str
+    ) -> KitchanOrderDTO:
         """Capa Anticorrupción: Traduce el JSON caótico de Uber a nuestro modelo limpio."""
-        
+
         # Extraemos al cliente (Uber lo anida bajo 'eater')
         cliente = uber_json.get("eater", {}).get("first_name", "Cliente Desconocido")
-        
+
         # Extraemos el total (Uber lo anida bajo 'payment' -> 'charges' -> 'total' y viene como objeto)
         # Nota: Ajustar esto según el payload exacto de tu país, usualmente viene en formato string o entero centavos.
-        total_price = float(uber_json.get("payment", {}).get("charges", {}).get("total", {}).get("amount", 0.0))
-        
+        total_price = float(
+            uber_json.get("payment", {})
+            .get("charges", {})
+            .get("total", {})
+            .get("amount", 0.0)
+        )
+
         items_kitchan = []
         for item in uber_json.get("cart", {}).get("items", []):
-            items_kitchan.append(KitchanOrderItem(
-                nombre=item.get("title", "Item Desconocido"),
-                cantidad=item.get("quantity", 1),
-                precio_unitario=float(item.get("price", {}).get("unit_price", {}).get("amount", 0.0)),
-                notas_especiales=item.get("special_instructions", "")
-            ))
+            items_kitchan.append(
+                KitchanOrderItem(
+                    nombre=item.get("title", "Item Desconocido"),
+                    cantidad=item.get("quantity", 1),
+                    precio_unitario=float(
+                        item.get("price", {}).get("unit_price", {}).get("amount", 0.0)
+                    ),
+                    notas_especiales=item.get("special_instructions", ""),
+                )
+            )
 
         return KitchanOrderDTO(
             id_externo=uber_json.get("id"),
@@ -35,7 +66,7 @@ class UberOrderUseCase:
             nombre_cliente=cliente,
             items=items_kitchan,
             total=total_price,
-            estado="PENDING"
+            estado="PENDING",
         )
 
     async def accept_order_in_uber(self, order_id: str, restaurante_id: str) -> bool:
@@ -43,7 +74,9 @@ class UberOrderUseCase:
         # 1. Recuperamos el token de Redis
         token = await self.token_cache.get_app_token(restaurante_id)
         if not token:
-            raise ValueError("Token de Uber no encontrado o expirado. Vuelva a conectar la tienda.")
+            raise ValueError(
+                "Token de Uber no encontrado o expirado. Vuelva a conectar la tienda."
+            )
 
         # 2. Llamamos a Uber para aceptar la orden
         await self.uber_api.accept_order(order_id, token)
@@ -56,21 +89,9 @@ class UberOrderUseCase:
         )
         return True
 
-    async def process_notification(self, payload: UberWebhookPayload, restaurante_id: str) -> None:
-        if payload.event_type == "orders.notification":
-            # ... (Aquí hacías la descarga con get_order_details) ...
-            order_details = await self.uber_api.get_order_details(order_id, token)
-            
-            # 1. Traducimos la orden caótica a nuestro modelo limpio
-            kitchan_dto = self.map_uber_to_kitchan(order_details, restaurante_id)
-            
-            # 2. Despachamos la orden al módulo central
-            print(f"🚀 [NEGOCIO] Enviando orden {kitchan_dto.id_externo} al módulo central de pedidos...")
-            id_interno = await self.order_dispatcher.dispatch_new_order(kitchan_dto)
-            
-            print(f"✅ [NEGOCIO] Orden guardada en DB principal con ID: {id_interno}")
-
-    async def deny_order_in_uber(self, order_id: str, restaurante_id: str, reason: str, explanation: str) -> bool:
+    async def deny_order_in_uber(
+        self, order_id: str, restaurante_id: str, reason: str, explanation: str
+    ) -> bool:
         # 1. Recuperamos el token (mismo bug que accept: get_token() leía una
         # clave que nunca se escribe; el correcto es el app token).
         token = await self.token_cache.get_app_token(restaurante_id)
@@ -89,7 +110,11 @@ class UberOrderUseCase:
         return True
 
     async def cancel_order_in_uber(
-        self, order_id: str, restaurante_id: str, reason: str, details: str | None = None
+        self,
+        order_id: str,
+        restaurante_id: str,
+        reason: str,
+        details: str | None = None,
     ) -> bool:
         """Cancela un pedido YA ACEPTADO. deny_order_in_uber solo sirve
         antes de la aceptación; para cancelar después hay que usar el
@@ -111,30 +136,18 @@ class UberOrderUseCase:
         return True
 
     async def mark_order_ready_in_uber(
-        self,
-        order_id: str,
-        restaurante_id: str
+        self, order_id: str, restaurante_id: str
     ) -> bool:
 
-        token = await self.token_cache.get_app_token(
-            restaurante_id
-        )
+        token = await self.token_cache.get_app_token(restaurante_id)
         print("🔥 TOKEN UBER:", token)
 
         if not token:
-            raise ValueError(
-                "App Token de Uber no encontrado o expirado."
-            )
+            raise ValueError("App Token de Uber no encontrado o expirado.")
 
-        await self.uber_api.mark_order_ready(
-            order_id=order_id,
-            access_token=token
-        )
+        await self.uber_api.mark_order_ready(order_id=order_id, access_token=token)
 
-        print(
-            f"✅ [NEGOCIO] Orden {order_id} "
-            "marcada como READY en Uber."
-        )
+        print(f"✅ [NEGOCIO] Orden {order_id} " "marcada como READY en Uber.")
 
         # Sincronizamos el estado en KITCHAN (dispara el evento WS del KDS)
         await self.order_dispatcher.dispatch_order_status_update(
@@ -144,21 +157,14 @@ class UberOrderUseCase:
         return True
 
     async def get_delivery_order_status(
-            self,
-            order_id: str,
-            restaurante_id: str
-        ) -> dict:
+        self, order_id: str, restaurante_id: str
+    ) -> dict:
 
-            token = await self.token_cache.get_app_token(
-                restaurante_id
-            )
+        token = await self.token_cache.get_app_token(restaurante_id)
 
-            if not token:
-                raise ValueError(
-                    "App Token de Uber no encontrado o expirado."
-                )
+        if not token:
+            raise ValueError("App Token de Uber no encontrado o expirado.")
 
-            return await self.uber_api.get_delivery_order_details(
-                order_id=order_id,
-                access_token=token
-            )
+        return await self.uber_api.get_delivery_order_details(
+            order_id=order_id, access_token=token
+        )

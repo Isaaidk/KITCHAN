@@ -61,7 +61,9 @@ class ActualizarEstadoPedidoUseCase:
             )
             return pedido
 
-        actualizado = await self.repository.actualizar_estado(pedido.id, nuevo_estado.value)
+        actualizado = await self.repository.actualizar_estado(
+            pedido.id, nuevo_estado.value
+        )
         if not actualizado:
             return pedido
 
@@ -77,7 +79,9 @@ class ActualizarEstadoPedidoUseCase:
         if pedido is None:
             return None
 
-        actualizado = await self.repository.actualizar_estado_entrega(pedido.id, estado_entrega)
+        actualizado = await self.repository.actualizar_estado_entrega(
+            pedido.id, estado_entrega
+        )
         if not actualizado:
             return None
 

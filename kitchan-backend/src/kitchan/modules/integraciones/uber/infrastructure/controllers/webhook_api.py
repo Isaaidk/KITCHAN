@@ -7,40 +7,38 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.core.database import get_db
 from src.kitchan.modules.pedidos.application.crear_pedido_service import (
-    CrearPedidoUseCase
+    CrearPedidoUseCase,
 )
 from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
-    ActualizarEstadoPedidoUseCase
+    ActualizarEstadoPedidoUseCase,
 )
 
 from src.kitchan.modules.pedidos.infrastructure.repository import (
-    PostgresPedidoRepository
+    PostgresPedidoRepository,
 )
 from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter
+    RedisPublisherAdapter,
 )
 
 from src.kitchan.modules.integraciones.uber.infrastructure.security.hmac_validator import (
-    verify_uber_signature
+    verify_uber_signature,
 )
-from src.kitchan.modules.integraciones.uber.domain.models import (
-    UberWebhookPayload
-)
+from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload
 
 from src.kitchan.modules.integraciones.uber.application.webhook_use_cases import (
-    UberWebhookUseCase
+    UberWebhookUseCase,
 )
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_adapter import (
-    RedisUberTokenAdapter
+    RedisUberTokenAdapter,
 )
 
 
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import (
-    UberHttpAdapter
+    UberHttpAdapter,
 )
 
 from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
-    PedidosIntegracionesAdapter
+    PedidosIntegracionesAdapter,
 )
 
 load_dotenv()
@@ -48,28 +46,25 @@ load_dotenv()
 
 router = APIRouter(
     prefix="/api/v1/integraciones/uber/webhook",
-    tags=["Integraciones - Uber Eats Webhook"]
+    tags=["Integraciones - Uber Eats Webhook"],
 )
 
 
 UBER_WEBHOOK_SECRET = os.getenv("UBER_WEBHOOK_SECRET")
 
-REDIS_URL = os.getenv(
-    "REDIS_URL",
-    "redis://localhost:6379/0"
-)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 
 # ============================================================
 # VALIDACIÓN HMAC
 # ============================================================
 
+
 async def validate_webhook_signature(
     request: Request,
     x_uber_signature: str | None = Header(
-        default=None,
-        description="Firma criptográfica enviada por Uber"
-    )
+        default=None, description="Firma criptográfica enviada por Uber"
+    ),
 ):
     """
     Valida la firma HMAC enviada por Uber.
@@ -79,36 +74,24 @@ async def validate_webhook_signature(
     """
 
     if not x_uber_signature:
-        raise HTTPException(
-            status_code=401,
-            detail="Firma de Uber faltante"
-        )
+        raise HTTPException(status_code=401, detail="Firma de Uber faltante")
 
     if not UBER_WEBHOOK_SECRET:
         raise HTTPException(
-            status_code=500,
-            detail="Falta configurar UBER_WEBHOOK_SECRET"
+            status_code=500, detail="Falta configurar UBER_WEBHOOK_SECRET"
         )
 
     raw_body = await request.body()
 
     is_valid = verify_uber_signature(
-        client_secret=UBER_WEBHOOK_SECRET,
-        raw_body=raw_body,
-        signature=x_uber_signature
+        client_secret=UBER_WEBHOOK_SECRET, raw_body=raw_body, signature=x_uber_signature
     )
 
     if not is_valid:
 
-        print(
-            "🚨 ALERTA: "
-            "Intento de webhook falsificado detectado."
-        )
+        print("🚨 ALERTA: " "Intento de webhook falsificado detectado.")
 
-        raise HTTPException(
-            status_code=403,
-            detail="Firma de Uber inválida"
-        )
+        raise HTTPException(status_code=403, detail="Firma de Uber inválida")
 
     return raw_body
 
@@ -119,9 +102,7 @@ async def validate_webhook_signature(
 def get_webhook_use_case(
     db: AsyncSession = Depends(get_db),
 ) -> UberWebhookUseCase:
-    token_adapter = RedisUberTokenAdapter(
-        redis_url=REDIS_URL
-    )
+    token_adapter = RedisUberTokenAdapter(redis_url=REDIS_URL)
 
     api_adapter = UberHttpAdapter()
 
@@ -143,23 +124,20 @@ def get_webhook_use_case(
     return UberWebhookUseCase(
         token_cache=token_adapter,
         uber_api=api_adapter,
-        order_dispatcher=dispatcher_adapter
+        order_dispatcher=dispatcher_adapter,
     )
+
+
 # ============================================================
 # WEBHOOK UBER
 # ============================================================
 
+
 @router.post("")
 async def receive_uber_webhook(
-    valid_body: bytes = Depends(
-        validate_webhook_signature
-    ),
-
-    use_case: UberWebhookUseCase = Depends(
-        get_webhook_use_case
-    )
+    valid_body: bytes = Depends(validate_webhook_signature),
+    use_case: UberWebhookUseCase = Depends(get_webhook_use_case),
 ):
-
     """
     Endpoint receptor de eventos de Uber Eats.
 
@@ -178,15 +156,9 @@ async def receive_uber_webhook(
 
     print("BODY RAW:")
 
-    print(
-        valid_body.decode(
-            "utf-8",
-            errors="replace"
-        )
-    )
+    print(valid_body.decode("utf-8", errors="replace"))
 
     print("=" * 60)
-
 
     # ========================================================
     # PARSEAR JSON
@@ -194,22 +166,15 @@ async def receive_uber_webhook(
 
     try:
 
-        payload_dict = json.loads(
-            valid_body
-        )
+        payload_dict = json.loads(valid_body)
 
     except json.JSONDecodeError as error:
 
-        print(
-            "❌ Error convirtiendo webhook a JSON:",
-            error
-        )
+        print("❌ Error convirtiendo webhook a JSON:", error)
 
         raise HTTPException(
-            status_code=422,
-            detail="El payload recibido no es JSON válido"
+            status_code=422, detail="El payload recibido no es JSON válido"
         )
-
 
     event_type = payload_dict.get("event_type")
     print("EVENT TYPE:")
@@ -219,7 +184,11 @@ async def receive_uber_webhook(
     # menu updates, etc.) con una forma distinta a UberWebhookPayload. Solo
     # los eventos de pedidos nos interesan; el resto se reconoce con 200 sin
     # intentar validarlo, para no fallar con 422 en algo que no vamos a usar.
-    EVENTOS_MANEJADOS = {"orders.notification", "orders.cancel", "delivery.state_changed"}
+    EVENTOS_MANEJADOS = {
+        "orders.notification",
+        "orders.cancel",
+        "delivery.state_changed",
+    }
     if event_type not in EVENTOS_MANEJADOS:
         print(f"ℹ️ Evento '{event_type}' no es de pedidos, se reconoce sin procesar.")
         return {"status": "ignored", "event_type": event_type}
@@ -230,16 +199,11 @@ async def receive_uber_webhook(
 
     try:
 
-        payload_model = UberWebhookPayload(
-            **payload_dict
-        )
+        payload_model = UberWebhookPayload(**payload_dict)
 
     except Exception as error:
 
-        print(
-            "❌ Payload incompatible con "
-            "UberWebhookPayload:"
-        )
+        print("❌ Payload incompatible con " "UberWebhookPayload:")
 
         print(error)
 
@@ -248,12 +212,10 @@ async def receive_uber_webhook(
             detail={
                 "error": "INVALID_UBER_PAYLOAD",
                 "mensaje": (
-                    "El payload recibido de Uber "
-                    "no coincide con UberWebhookPayload"
-                )
-            }
+                    "El payload recibido de Uber " "no coincide con UberWebhookPayload"
+                ),
+            },
         )
-
 
     # ========================================================
     # PROCESAR EVENTO
@@ -261,29 +223,20 @@ async def receive_uber_webhook(
 
     try:
 
-        await use_case.process_notification(
-            payload_model
-        )
+        await use_case.process_notification(payload_model)
 
     except Exception as error:
 
-        print(
-            "❌ Error procesando evento Uber:"
-        )
+        print("❌ Error procesando evento Uber:")
 
         print(error)
 
         raise
 
-
     # ========================================================
     # RESPUESTA A UBER
     # ========================================================
 
-    print(
-        "✅ Evento Uber procesado correctamente"
-    )
+    print("✅ Evento Uber procesado correctamente")
 
-    return {
-        "status": "success"
-    }
+    return {"status": "success"}

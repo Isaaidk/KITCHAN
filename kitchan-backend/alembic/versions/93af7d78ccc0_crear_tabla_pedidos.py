@@ -44,14 +44,28 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("estado_entrega", sa.String(length=50), nullable=True),
-        sa.Column("fecha_creacion", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("fecha_actualizacion", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "fecha_creacion",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "fecha_actualizacion",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["restaurante_id"], ["restaurantes.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_pedidos_id"), "pedidos", ["id"], unique=False)
-    op.create_index(op.f("ix_pedidos_restaurante_id"), "pedidos", ["restaurante_id"], unique=False)
-    op.create_index(op.f("ix_pedidos_id_externo"), "pedidos", ["id_externo"], unique=False)
+    op.create_index(
+        op.f("ix_pedidos_restaurante_id"), "pedidos", ["restaurante_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_pedidos_id_externo"), "pedidos", ["id_externo"], unique=False
+    )
 
 
 def downgrade() -> None:

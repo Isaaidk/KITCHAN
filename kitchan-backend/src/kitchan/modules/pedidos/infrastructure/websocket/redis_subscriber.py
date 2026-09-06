@@ -4,7 +4,9 @@ import json
 import redis.asyncio as redis
 
 from src.kitchan.core.websockets_manager import ConnectionManager
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import CANAL_PREFIX
+from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
+    CANAL_PREFIX,
+)
 
 
 async def escuchar_eventos(redis_url: str, manager: ConnectionManager) -> None:

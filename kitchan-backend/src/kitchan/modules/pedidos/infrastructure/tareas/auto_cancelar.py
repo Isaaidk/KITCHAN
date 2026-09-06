@@ -6,7 +6,9 @@ from src.kitchan.modules.pedidos.domain.entities import EstadoPedido
 from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
     RedisPublisherAdapter,
 )
-from src.kitchan.modules.pedidos.infrastructure.repository import PostgresPedidoRepository
+from src.kitchan.modules.pedidos.infrastructure.repository import (
+    PostgresPedidoRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,9 @@ async def _barrer_una_vez(redis_url: str) -> None:
 
         estancados = await repo.listar_estancados(MINUTOS_LIMITE)
         for pedido in estancados:
-            actualizado = await repo.actualizar_estado(pedido.id, EstadoPedido.CANCELADA.value)
+            actualizado = await repo.actualizar_estado(
+                pedido.id, EstadoPedido.CANCELADA.value
+            )
             if not actualizado:
                 continue
             pedido.estado = EstadoPedido.CANCELADA
