@@ -20,6 +20,13 @@ from src.kitchan.modules.integraciones.uber.infrastructure.controllers import (
     orders_api
 )
 
+# Composition root: registra las rutas de infraestructura de la integración
+# PedidosYa (dispatch de pedidos + acciones del KDS), igual que ya hace con Uber.
+from src.kitchan.modules.integraciones.pedidosya.infrastructure.controllers import (
+    order_dispatch_api as pedidosya_dispatch_api,
+    orders_api as pedidosya_orders_api,
+)
+
 from src.kitchan.modules.restaurantes.infrastructure.rest_api import (
     router as onboarding_router
 )
@@ -98,6 +105,14 @@ app.include_router(
 
 app.include_router(
     orders_api.router
+)
+
+app.include_router(
+    pedidosya_dispatch_api.router
+)
+
+app.include_router(
+    pedidosya_orders_api.router
 )
 
 app.include_router(

@@ -1,5 +1,10 @@
+"""Infraestructura de Pedidos: adaptador puente que implementa el puerto
+compartido de integraciones (OrderDispatcherPort), traduciendo el DTO neutral
+al modelo de dominio de Pedidos. Es el único punto donde una integración
+(Uber, PedidosYa, ...) toca el modelo genérico del sistema.
+"""
 from src.kitchan.modules.integraciones.core.domain.inter_module_ports import OrderDispatcherPort
-from src.kitchan.modules.integraciones.uber.domain.models import KitchanOrderDTO
+from src.kitchan.modules.integraciones.core.domain.entities import KitchanOrderDTO
 
 from src.kitchan.modules.pedidos.domain.entities import Pedido, PedidoItem, EstadoPedido
 from src.kitchan.modules.pedidos.application.crear_pedido_service import CrearPedidoUseCase
@@ -64,4 +69,8 @@ class PedidosIntegracionesAdapter(OrderDispatcherPort):
         pedido = await self.actualizar_estado_use_case.actualizar_estado_entrega(
             origen, id_externo, estado_entrega
         )
+        return pedido is not None
+
+    async def order_already_exists(self, origen: str, id_externo: str) -> bool:
+        pedido = await self.use_case.repository.buscar_por_id_externo(origen, id_externo)
         return pedido is not None
