@@ -27,6 +27,13 @@ from src.kitchan.modules.integraciones.pedidosya.infrastructure.controllers impo
     orders_api as pedidosya_orders_api,
 )
 
+# Composition root: registra las rutas de infraestructura de la integración
+# Rappi (webhooks NEW_ORDER/ORDER_EVENT_CANCEL + acciones del KDS).
+from src.kitchan.modules.integraciones.rappi.infrastructure.controllers import (
+    webhook_api as rappi_webhook_api,
+    orders_api as rappi_orders_api,
+)
+
 from src.kitchan.modules.restaurantes.infrastructure.rest_api import (
     router as onboarding_router
 )
@@ -113,6 +120,14 @@ app.include_router(
 
 app.include_router(
     pedidosya_orders_api.router
+)
+
+app.include_router(
+    rappi_webhook_api.router
+)
+
+app.include_router(
+    rappi_orders_api.router
 )
 
 app.include_router(
