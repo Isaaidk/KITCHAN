@@ -24,6 +24,10 @@ from src.kitchan.modules.integraciones.uber.infrastructure.security.hmac_validat
     verify_uber_signature,
 )
 from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload
+from src.kitchan.modules.integraciones.uber.domain.exceptions import (
+    UberOrdenNoDisponibleError,
+    UberTokenNoDisponibleError,
+)
 
 from src.kitchan.modules.integraciones.uber.application.webhook_use_cases import (
     UberWebhookUseCase,
@@ -224,6 +228,12 @@ async def receive_uber_webhook(
     try:
 
         await use_case.process_notification(payload_model)
+
+    except UberTokenNoDisponibleError as error:
+        raise HTTPException(status_code=500, detail=str(error))
+
+    except UberOrdenNoDisponibleError as error:
+        raise HTTPException(status_code=502, detail=str(error))
 
     except Exception as error:
 

@@ -1,18 +1,18 @@
 import logging
-from fastapi import HTTPException
 
-# Importamos los modelos y puertos de la capa de dominio de Uber
+# Importamos los modelos, puertos y errores de la capa de dominio de Uber
+from src.kitchan.modules.integraciones.uber.domain.exceptions import (
+    UberOrdenNoDisponibleError,
+    UberTokenNoDisponibleError,
+)
 from src.kitchan.modules.integraciones.uber.domain.models import UberWebhookPayload
-from src.kitchan.modules.integraciones.uber.domain.ports import UberTokenCachePort
+from src.kitchan.modules.integraciones.uber.domain.ports import (
+    UberApiPort,
+    UberTokenCachePort,
+)
 from src.kitchan.modules.integraciones.uber.domain.models import (
     KitchanOrderDTO,
     KitchanOrderItem,
-)
-from src.kitchan.modules.integraciones.uber.domain.models import KitchanOrderDTO
-
-# El adaptador HTTP para ir a buscar el pedido
-from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import (
-    UberHttpAdapter,
 )
 
 # El puerto compartido para comunicarnos con el módulo de Pedidos (Anti-Corruption Layer)
@@ -31,7 +31,7 @@ class UberWebhookUseCase:
     def __init__(
         self,
         token_cache: UberTokenCachePort,
-        uber_api: UberHttpAdapter,  # O su interfaz/puerto si tienes uno (ej. UberApiPort)
+        uber_api: UberApiPort,
         order_dispatcher: OrderDispatcherPort,
     ):
         self.token_cache = token_cache
@@ -125,8 +125,8 @@ class UberWebhookUseCase:
             print(
                 f"🚨 ERROR: No se encontró App Token para el restaurante {restaurante_id}"
             )
-            raise HTTPException(
-                status_code=500, detail="Token no disponible para descargar la orden"
+            raise UberTokenNoDisponibleError(
+                "Token no disponible para descargar la orden"
             )
 
         print(f"📥 Descargando detalles de la orden {order_id_uber}...")
@@ -137,9 +137,7 @@ class UberWebhookUseCase:
 
         if not orden_uber_detalles:
             print(f"🚨 ERROR: No se pudo descargar la orden {order_id_uber} desde Uber")
-            raise HTTPException(
-                status_code=502, detail="Error descargando detalles de la orden"
-            )
+            raise UberOrdenNoDisponibleError("Error descargando detalles de la orden")
 
         # ========================================================
         # 5. TRANSFORMAR A DTO Y ENVIAR AL MÓDULO DE PEDIDOS
