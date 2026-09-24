@@ -23,6 +23,16 @@ from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
 logger = logging.getLogger(__name__)
 
 
+def _centavos_a_unidades(monto) -> float:
+    """Convierte un monto de Uber ({"amount": 1000, ...} o un número) de
+    centavos a unidades de moneda (1000 -> 10.0)."""
+    valor = monto.get("amount", 0) if isinstance(monto, dict) else monto
+    try:
+        return round(float(valor or 0) / 100, 2)
+    except (ValueError, TypeError):
+        return 0.0
+
+
 class UberWebhookUseCase:
     """
     Caso de uso encargado de procesar los webhooks entrantes de Uber Eats.
@@ -151,16 +161,10 @@ class UberWebhookUseCase:
         apellido = cliente_info.get("last_name", "Uber")
         nombre_cliente = f"{nombre} {apellido}".strip()
 
-        # B. Extraer Total
-        try:
-            total_orden = float(
-                orden_uber_detalles.get("payment", {})
-                .get("charges", {})
-                .get("total", {})
-                .get("amount", 0.0)
-            )
-        except (ValueError, TypeError):
-            total_orden = 0.0
+        # B. Extraer Total (Uber manda los montos en centavos: 1000 = $10.00)
+        total_orden = _centavos_a_unidades(
+            orden_uber_detalles.get("payment", {}).get("charges", {}).get("total", {})
+        )
 
         # C. Extraer y mapear los Items
         items_dto = []
@@ -169,14 +173,9 @@ class UberWebhookUseCase:
         for item in cart_items:
             precio_info = item.get("price", {})
 
-            # 1. Obtenemos el unit_price (Uber lo manda como diccionario: {"amount": 1500, "currency_code": "USD"})
-            unit_price_data = precio_info.get("unit_price", {})
-
-            # 2. Validamos si es un diccionario para extraer el "amount" correctamente
-            if isinstance(unit_price_data, dict):
-                precio_unitario = float(unit_price_data.get("amount", 0.0))
-            else:
-                precio_unitario = float(unit_price_data) if unit_price_data else 0.0
+            # Uber manda el unit_price como {"amount": 1500, "currency_code": "USD"},
+            # con el monto en centavos (1500 = $15.00)
+            precio_unitario = _centavos_a_unidades(precio_info.get("unit_price", {}))
 
             items_dto.append(
                 KitchanOrderItem(
