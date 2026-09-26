@@ -1,83 +1,268 @@
+/* Estilos compartidos por Login, Registro y AuthLayout */
+
 .pantalla {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(380px, 5fr) 7fr;
   background: var(--color-bg);
 }
 
-.tarjeta {
-  width: 360px;
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  padding: 32px;
+/* ---------- Panel de marca ---------- */
+.panelMarca {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 44px 48px;
+  color: #e2e8f0;
+  background:
+    radial-gradient(80% 60% at 100% 0%, rgba(124, 58, 237, 0.45), transparent 60%),
+    radial-gradient(70% 60% at 0% 100%, rgba(37, 99, 235, 0.5), transparent 60%),
+    #0b1224;
 }
 
-.marca {
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.4rem;
-  margin-bottom: 24px;
+/* Retícula sutil de fondo */
+.panelMarca::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  pointer-events: none;
 }
 
-.campo {
-  margin-bottom: 14px;
+.orbe1,
+.orbe2 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: flotar 14s ease-in-out infinite alternate;
 }
 
-.campo label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-bottom: 4px;
+.orbe1 {
+  width: 280px;
+  height: 280px;
+  background: rgba(79, 70, 229, 0.35);
+  top: 30%;
+  right: -80px;
 }
 
-.campo input {
-  width: 100%;
-  padding: 9px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+.orbe2 {
+  width: 220px;
+  height: 220px;
+  background: rgba(37, 99, 235, 0.3);
+  bottom: 10%;
+  left: -60px;
+  animation-delay: -7s;
+}
+
+@keyframes flotar {
+  to {
+    transform: translate(-30px, 40px) scale(1.1);
+  }
+}
+
+.marcaFila,
+.mensaje,
+.canales {
+  position: relative;
+  z-index: 1;
+}
+
+.marcaFila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: kt-fade-up 600ms var(--ease-out) both;
+}
+
+.logo {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--gradient-brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.2rem;
+  box-shadow:
+    0 10px 24px -6px rgba(79, 70, 229, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.marcaNombre {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+
+.mensaje {
+  animation: kt-fade-up 700ms var(--ease-out) 120ms both;
+}
+
+.titular {
+  font-size: clamp(2rem, 3.2vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.bajada {
+  margin: 0 0 28px;
+  max-width: 420px;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+.beneficios {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   font-size: 0.9rem;
+}
+
+.beneficios li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.beneficios svg {
+  color: #a5b4fc;
+  padding: 7px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.canales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.canal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  animation: kt-fade-up 500ms var(--ease-out) both;
+  animation-delay: calc(300ms + var(--i) * 90ms);
+}
+
+.canalPunto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px var(--c);
+}
+
+/* ---------- Panel del formulario ---------- */
+.panelForm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow-y: auto;
+}
+
+.tarjeta {
+  width: 100%;
+  animation: kt-scale-in 500ms var(--ease-out) 80ms both;
+}
+
+.logoMovil {
+  display: none;
+  margin-bottom: 20px;
+}
+
+.formTitulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.formBajada {
+  margin: 0 0 28px;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
 }
 
 .filaPassword {
   position: relative;
 }
 
-.togglePassword {
-  position: absolute;
-  right: 8px;
-  top: 6px;
-  background: none;
-  border: none;
-  font-size: 0.75rem;
-  color: var(--color-primary);
+.filaPassword :global(.input) {
+  padding-right: 44px;
 }
 
-.error {
-  color: var(--color-danger);
-  font-size: 0.8rem;
-  margin-bottom: 12px;
+.togglePassword {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--color-text-subtle);
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+
+.togglePassword:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .submit {
-  width: 100%;
-  padding: 10px;
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 0.9rem;
+  min-height: 46px;
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+.alternativa {
+  text-align: center;
+  margin: 22px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.alternativa a {
+  color: var(--color-primary);
   font-weight: 600;
+  text-decoration: none;
 }
 
-.submit:hover {
-  background: var(--color-primary-hover);
-}
-
-.submit:disabled {
-  opacity: 0.6;
-  cursor: default;
+.alternativa a:hover {
+  text-decoration: underline;
 }
 
 .demo {
@@ -88,15 +273,86 @@
 
 .demoBoton {
   flex: 1;
-  padding: 8px;
+  padding: 9px;
   background: none;
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   color: var(--color-text-muted);
+  transition: all var(--dur-fast) ease;
 }
 
 .demoBoton:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* ---------- Registro ---------- */
+.seccionForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.seccionForm::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.seccionNumero {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 14px;
+  margin-bottom: 8px;
+}
+
+.completo {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .pantalla {
+    grid-template-columns: 1fr;
+  }
+
+  .panelMarca {
+    display: none;
+  }
+
+  .logoMovil {
+    display: block;
+  }
+}
+
+@media (max-width: 520px) {
+  .grilla {
+    grid-template-columns: 1fr;
+  }
+
+  .panelForm {
+    padding: 28px 18px;
+    align-items: flex-start;
+  }
 }

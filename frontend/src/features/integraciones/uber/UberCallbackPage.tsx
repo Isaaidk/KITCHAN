@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { httpClient } from "../../../shared/api/httpClient";
+import Icon from "../../../shared/components/Icon";
+import { LogoCanal } from "../IntegracionesPage";
 import {
   EstadoPaso,
   PasoProvisioning,
@@ -12,13 +14,6 @@ const ETIQUETAS: Record<PasoProvisioning, string> = {
   app_token: "Generando token de aplicación",
   provision: "Provisionando tienda en Uber Eats",
   menu_upload: "Subiendo menú",
-};
-
-const ICONO: Record<EstadoPaso, string> = {
-  pendiente: "•",
-  en_curso: "…",
-  hecho: "✓",
-  error: "✕",
 };
 
 export default function UberCallbackPage() {
@@ -70,49 +65,77 @@ export default function UberCallbackPage() {
 
   return (
     <div className={styles.pantalla}>
-      <div className={styles.titulo}>Conectando Uber Eats</div>
+      <div className={styles.cabecera}>
+        <LogoCanal canal="UBER_EATS" />
+        <div>
+          <div className={styles.titulo}>Conectando Uber Eats</div>
+          <div className={styles.subtitulo}>Configurando tu tienda, no cierres esta ventana.</div>
+        </div>
+      </div>
 
       {statusCallback === "error" && (
-        <div className={styles.errorGlobal}>
-          Uber rechazó la autorización. Intenta conectar la tienda nuevamente desde
-          Integraciones.
+        <div className="alert alert-error">
+          <Icon name="alerta" size={16} />
+          Uber rechazó la autorización. Intenta conectar la tienda nuevamente desde Integraciones.
         </div>
       )}
 
-      {statusCallback === "success" && buscandoTienda && <div>Buscando tienda vinculada...</div>}
+      {statusCallback === "success" && buscandoTienda && (
+        <div className={styles.buscando}>
+          <span className="spinner" />
+          Buscando tienda vinculada...
+        </div>
+      )}
 
       {statusCallback === "success" && !buscandoTienda && !storeId && (
-        <div className={styles.errorGlobal}>
+        <div className="alert alert-error">
+          <Icon name="alerta" size={16} />
           No se encontró ninguna tienda vinculada para este restaurante.
         </div>
       )}
 
       {statusCallback === "success" && storeId && (
         <>
-          {(["app_token", "provision", "menu_upload"] as PasoProvisioning[]).map((paso) => (
-            <div key={paso} className={styles.paso}>
-              <span className={`${styles.icono} ${styles[camel(estado[paso])]}`}>
-                {ICONO[estado[paso]]}
-              </span>
-              <span className={styles.etiqueta}>{ETIQUETAS[paso]}</span>
-              {estado[paso] === "error" && (
-                <button className={styles.reintentar} onClick={() => reintentarPaso(paso)}>
-                  Reintentar
-                </button>
-              )}
-            </div>
-          ))}
+          <div className={styles.pasos}>
+            {(["app_token", "provision", "menu_upload"] as PasoProvisioning[]).map((paso, i) => (
+              <div key={paso} className={`${styles.paso} animate-in`} style={{ ["--i" as string]: i }}>
+                <span className={`${styles.icono} ${styles[camel(estado[paso])]}`}>
+                  <IconoPaso estado={estado[paso]} numero={i + 1} />
+                </span>
+                <span className={styles.etiqueta}>{ETIQUETAS[paso]}</span>
+                {estado[paso] === "error" && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => reintentarPaso(paso)}>
+                    <Icon name="sync" size={14} />
+                    Reintentar
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
 
           {todoListo && (
-            <button className={styles.continuar} onClick={() => navigate("/integraciones")}>
+            <button className="btn btn-success btn-block animate-scale" onClick={() => navigate("/integraciones")}>
+              <Icon name="check" size={16} strokeWidth={2.5} />
               Listo, ir a Integraciones
             </button>
           )}
-          {ejecutando && <p>Procesando...</p>}
+          {ejecutando && (
+            <p className={styles.procesando}>
+              <span className="spinner" style={{ width: 14, height: 14 }} />
+              Procesando...
+            </p>
+          )}
         </>
       )}
     </div>
   );
+}
+
+function IconoPaso({ estado, numero }: { estado: EstadoPaso; numero: number }) {
+  if (estado === "hecho") return <Icon name="check" size={14} strokeWidth={3} />;
+  if (estado === "error") return <Icon name="cerrar" size={14} strokeWidth={3} />;
+  if (estado === "en_curso") return <span className={styles.giro} />;
+  return <>{numero}</>;
 }
 
 function camel(estado: EstadoPaso): "pendiente" | "enCurso" | "hecho" | "error" {

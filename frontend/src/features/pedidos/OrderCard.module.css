@@ -1,72 +1,141 @@
 .tarjeta {
+  position: relative;
   background: var(--color-surface);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 14px;
+  padding: 14px 16px 16px 18px;
   cursor: pointer;
-  border-left: 4px solid var(--borde-estado, var(--color-primary));
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  overflow: hidden;
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) ease;
+  /* Entrada: aparece cuando llega un pedido o cuando cambia de columna */
+  animation: tarjeta-entrada 460ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Franja lateral con el color del estado */
+.tarjeta::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--borde-estado, var(--color-primary));
+  transition: width var(--dur) var(--ease-out);
+}
+
+.tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-border-strong);
+}
+
+.tarjeta:hover::before {
+  width: 5px;
+}
+
+.tarjeta:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.tarjeta:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@keyframes tarjeta-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .encabezado {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .cliente {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
 .timer {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .timerVencido {
+  background: var(--color-danger-soft);
+  border-color: #fecaca;
   color: var(--color-danger);
-  font-weight: 700;
+  --pulse-color: rgba(220, 38, 38, 0.35);
+  animation: kt-pulse-ring 1.6s ease-out infinite;
+}
+
+.resumen {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.78rem;
+  align-items: center;
+  gap: 8px;
+}
+
+.detalle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+.total {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .acciones {
   display: flex;
   gap: 8px;
-  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
 }
 
-.boton {
+.acciones :global(.btn) {
   flex: 1;
-  padding: 6px;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #fff;
-}
-
-.aceptar {
-  background: var(--color-primary);
-}
-
-.listo {
-  background: var(--color-success);
-}
-
-.cancelar {
-  background: var(--color-danger);
-}
-
-.boton:disabled {
-  opacity: 0.6;
 }

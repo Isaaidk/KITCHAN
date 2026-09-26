@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
 import { motivosCancelacionPara } from "./integracionesApi";
@@ -26,11 +27,19 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
   };
 
   return (
-    <Modal titulo={`Cancelar pedido de ${pedido.cliente}`} onClose={onClose}>
-      <div style={{ marginBottom: 10 }}>
-        <label>Motivo</label>
+    <Modal titulo={`Cancelar pedido de ${pedido.cliente}`} onClose={onClose} ancho={460}>
+      <div className="alert alert-warning" style={{ animation: "none" }}>
+        <Icon name="alerta" size={16} />
+        Esta acción no se puede deshacer.
+      </div>
+
+      <div className="field">
+        <label className="label" htmlFor="motivo-cancelacion">
+          Motivo
+        </label>
         <select
-          style={{ width: "100%", padding: 8 }}
+          id="motivo-cancelacion"
+          className="select"
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
         >
@@ -41,18 +50,32 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
           ))}
         </select>
       </div>
-      <div style={{ marginBottom: 14 }}>
-        <label>Detalle (opcional)</label>
+
+      <div className="field">
+        <label className="label" htmlFor="detalle-cancelacion">
+          Detalle <span className="label-hint">(opcional)</span>
+        </label>
         <input
-          style={{ width: "100%", padding: 8 }}
+          id="detalle-cancelacion"
+          className="input"
           value={explicacion}
           onChange={(e) => setExplicacion(e.target.value)}
           placeholder="Ej. Nos quedamos sin ingredientes"
         />
       </div>
-      <button onClick={confirmar} disabled={enviando} style={{ color: "var(--color-danger)" }}>
-        {enviando ? "Cancelando..." : "Confirmar cancelación"}
-      </button>
+
+      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
+        <button className="btn btn-secondary" onClick={onClose} disabled={enviando}>
+          Volver
+        </button>
+        <button
+          className={`btn btn-danger ${enviando ? "is-loading" : ""}`}
+          onClick={confirmar}
+          disabled={enviando}
+        >
+          {enviando ? "Cancelando..." : "Confirmar cancelación"}
+        </button>
+      </div>
     </Modal>
   );
 }

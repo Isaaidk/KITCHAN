@@ -1,8 +1,10 @@
+import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
 import { useOdooSyncStub } from "../integraciones/useOdooSyncStub";
+import CanalBadge from "./CanalBadge";
 import CancelarPedidoModal from "./CancelarPedidoModal";
-import { ETIQUETA_ESTADO } from "./estadoUtils";
+import { colorVarEstado, ETIQUETA_ESTADO } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
 import styles from "./OrderDetailModal.module.css";
 
@@ -17,6 +19,8 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
   const { estado: estadoOdoo, ejecutar } = useOdooSyncStub();
   const cancelado = pedido.estado === "CANCELADA";
   const indiceActual = PASOS.indexOf(pedido.estado);
+  // Porcentaje de la línea de progreso entre el primer y el último paso.
+  const progreso = Math.max(0, indiceActual) / (PASOS.length - 1);
 
   const {
     procesando,
@@ -32,47 +36,77 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
     confirmarCancelacion,
   } = usePedidoAcciones(pedido);
 
+  const cargando = procesando ? "is-loading" : "";
+
   return (
-    <Modal titulo={`Pedido de ${pedido.cliente}`} onClose={onClose}>
-      <div className={styles.timeline}>
-        {cancelado ? (
-          <div className={`${styles.paso} ${styles.cancelada}`}>
-            <div className={styles.punto} />
-            Cancelada
+    <Modal titulo={`Pedido de ${pedido.cliente}`} onClose={onClose} ancho={560}>
+      <div className={styles.resumen}>
+        <CanalBadge origen={pedido.origen} />
+        <span
+          className="badge badge-dot"
+          style={{ ["--badge-color" as string]: colorVarEstado(pedido.estado) }}
+        >
+          {ETIQUETA_ESTADO[pedido.estado]}
+        </span>
+        <span className={styles.fecha}>
+          <Icon name="reloj" size={13} />
+          {new Date(pedido.fecha_creacion).toLocaleString()}
+        </span>
+      </div>
+
+      {cancelado ? (
+        <div className="alert alert-error" style={{ animation: "none" }}>
+          <Icon name="prohibido" size={16} />
+          Este pedido fue cancelado.
+        </div>
+      ) : (
+        <div
+          className={styles.timeline}
+          style={{ ["--progreso" as string]: progreso }}
+        >
+          <div className={styles.linea}>
+            <div className={styles.lineaRelleno} />
           </div>
-        ) : (
-          PASOS.map((paso, i) => (
+          {PASOS.map((paso, i) => (
             <div
               key={paso}
-              className={`${styles.paso} ${i <= indiceActual ? styles.pasoActivo : ""}`}
+              className={`${styles.paso} ${i <= indiceActual ? styles.pasoActivo : ""} ${
+                i === indiceActual ? styles.pasoActual : ""
+              }`}
+              style={{ ["--i" as string]: i }}
             >
-              <div className={styles.punto} />
-              {ETIQUETA_ESTADO[paso]}
+              <div className={styles.punto}>
+                {i < indiceActual && <Icon name="check" size={12} strokeWidth={3} />}
+              </div>
+              <span className={styles.pasoTexto}>{ETIQUETA_ESTADO[paso]}</span>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {(puedeAceptar || puedeMarcarListo || puedeCompletar || puedeCancelar) && (
         <div className={styles.acciones}>
           {puedeAceptar && (
-            <button className={styles.botonAceptar} disabled={procesando} onClick={aceptar}>
+            <button className={`btn btn-primary ${cargando}`} disabled={procesando} onClick={aceptar}>
+              <Icon name="check" size={16} strokeWidth={2.5} />
               Aceptar
             </button>
           )}
           {puedeMarcarListo && (
-            <button className={styles.botonListo} disabled={procesando} onClick={marcarListo}>
+            <button className={`btn btn-success ${cargando}`} disabled={procesando} onClick={marcarListo}>
+              <Icon name="check" size={16} strokeWidth={2.5} />
               Listo
             </button>
           )}
           {puedeCompletar && (
-            <button className={styles.botonListo} disabled={procesando} onClick={marcarEntregado}>
+            <button className={`btn btn-success ${cargando}`} disabled={procesando} onClick={marcarEntregado}>
+              <Icon name="check" size={16} strokeWidth={2.5} />
               Entregado
             </button>
           )}
           {puedeCancelar && (
             <button
-              className={styles.botonCancelar}
+              className="btn btn-danger-soft"
               disabled={procesando}
               onClick={() => setMostrarCancelar(true)}
             >
@@ -82,39 +116,62 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
         </div>
       )}
 
-      <table className={styles.tablaItems}>
-        <thead>
-          <tr>
-            <th>Ítem</th>
-            <th>Cant.</th>
-            <th>Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pedido.items.map((item, i) => (
-            <tr key={i}>
-              <td>{item.nombre}</td>
-              <td>{item.cantidad}</td>
-              <td>${(item.precio_unitario * item.cantidad).toFixed(2)}</td>
+      <div className={styles.items}>
+        <table className={styles.tablaItems}>
+          <thead>
+            <tr>
+              <th>Ítem</th>
+              <th>Cant.</th>
+              <th>Subtotal</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className={styles.total}>Total: ${pedido.total.toFixed(2)}</div>
+          </thead>
+          <tbody>
+            {pedido.items.map((item, i) => (
+              <tr key={i}>
+                <td>
+                  {item.nombre}
+                  {item.notas && <div className={styles.itemNota}>{item.notas}</div>}
+                </td>
+                <td>
+                  <span className={styles.cantidad}>{item.cantidad}</span>
+                </td>
+                <td>${(item.precio_unitario * item.cantidad).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className={styles.total}>
+          <span>Total</span>
+          <span className={styles.totalValor}>${pedido.total.toFixed(2)}</span>
+        </div>
+      </div>
 
-      {pedido.nota_cliente && <div className={styles.notaCliente}>{pedido.nota_cliente}</div>}
+      {pedido.nota_cliente && (
+        <div className={styles.notaCliente}>
+          <Icon name="nota" size={16} />
+          <div>
+            <div className={styles.notaTitulo}>Nota del cliente</div>
+            {pedido.nota_cliente}
+          </div>
+        </div>
+      )}
 
       <div className={styles.odoo}>
-        <div>
-          <div className={styles.odooTitulo}>Sincronización ODOO</div>
-          <div className={styles.odooEstado}>
-            {estadoOdoo === "idle" && "Sin sincronizar"}
-            {estadoOdoo === "sincronizando" && "Sincronizando..."}
-            {estadoOdoo === "no_disponible" && "Disponible próximamente"}
+        <div className={styles.odooInfo}>
+          <div className={styles.odooIcono}>
+            <Icon name="sync" size={16} />
+          </div>
+          <div>
+            <div className={styles.odooTitulo}>Sincronización ODOO</div>
+            <div className={styles.odooEstado}>
+              {estadoOdoo === "idle" && "Sin sincronizar"}
+              {estadoOdoo === "sincronizando" && "Sincronizando..."}
+              {estadoOdoo === "no_disponible" && "Disponible próximamente"}
+            </div>
           </div>
         </div>
         <button
-          className={styles.odooBoton}
+          className={`btn btn-secondary btn-sm ${estadoOdoo === "sincronizando" ? "is-loading" : ""}`}
           disabled={estadoOdoo === "sincronizando"}
           onClick={ejecutar}
         >

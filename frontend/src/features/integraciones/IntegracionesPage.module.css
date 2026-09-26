@@ -1,45 +1,75 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
 }
 
 .tarjeta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--color-surface);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 16px;
+  padding: 20px;
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) ease;
+}
+
+.tarjeta:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-border-strong);
+}
+
+.tarjetaActiva {
+  border-color: #bbf7d0;
+  background: linear-gradient(180deg, #f6fef9 0%, var(--color-surface) 45%);
+}
+
+.tarjetaInactiva .logo {
+  filter: saturate(0.75);
+}
+
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.logo {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 65%, #0f172a));
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  box-shadow: 0 10px 20px -10px var(--c);
+  transition: transform var(--dur) var(--ease-spring);
+}
+
+.tarjeta:hover .logo {
+  transform: scale(1.06) rotate(-3deg);
 }
 
 .canal {
+  font-size: 1.02rem;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
-.estado {
-  font-size: 0.8rem;
-  margin-bottom: 12px;
-}
-
-.conectado {
-  color: var(--color-success);
-}
-
-.desconectado {
-  color: var(--color-text-muted);
-}
-
-.boton {
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 8px 12px;
-  font-size: 0.8rem;
-  width: 100%;
-}
-
-.boton:disabled {
-  background: var(--color-border);
+.descripcion {
+  flex: 1;
+  margin: 0 0 18px;
+  font-size: 0.84rem;
+  line-height: 1.5;
   color: var(--color-text-muted);
 }

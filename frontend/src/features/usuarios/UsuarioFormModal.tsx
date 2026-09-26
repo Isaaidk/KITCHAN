@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { RolUsuario, Usuario } from "../../shared/types/usuario";
 
@@ -39,33 +40,44 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
   };
 
   return (
-    <Modal titulo={esEdicion ? "Editar usuario" : "Nuevo usuario"} onClose={onClose}>
+    <Modal titulo={esEdicion ? "Editar usuario" : "Nuevo usuario"} onClose={onClose} ancho={480}>
       <form onSubmit={onSubmit}>
-        <div style={{ marginBottom: 10 }}>
-          <label>Nombre</label>
+        <div className="field">
+          <label className="label" htmlFor="usuario-nombre">
+            Nombre
+          </label>
           <input
-            style={{ width: "100%", padding: 8 }}
+            id="usuario-nombre"
+            className="input"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej. María López"
             required
           />
         </div>
-        <div style={{ marginBottom: 10 }}>
-          <label>Email</label>
+        <div className="field">
+          <label className="label" htmlFor="usuario-email">
+            Email
+          </label>
           <input
-            style={{ width: "100%", padding: 8 }}
+            id="usuario-email"
+            className="input"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={esEdicion}
+            placeholder="maria@restaurante.com"
             required
           />
         </div>
         {!esEdicion && (
-          <div style={{ marginBottom: 10 }}>
-            <label>Contraseña</label>
+          <div className="field">
+            <label className="label" htmlFor="usuario-password">
+              Contraseña
+            </label>
             <input
-              style={{ width: "100%", padding: 8 }}
+              id="usuario-password"
+              className="input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -73,10 +85,13 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
             />
           </div>
         )}
-        <div style={{ marginBottom: 14 }}>
-          <label>Rol</label>
+        <div className="field">
+          <label className="label" htmlFor="usuario-rol">
+            Rol
+          </label>
           <select
-            style={{ width: "100%", padding: 8 }}
+            id="usuario-rol"
+            className="select"
             value={rol}
             onChange={(e) => setRol(e.target.value as RolUsuario)}
           >
@@ -84,10 +99,26 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
             <option value="OPERADOR">OPERADOR</option>
           </select>
         </div>
-        {error && <div style={{ color: "var(--color-danger)", marginBottom: 10 }}>{error}</div>}
-        <button type="submit" disabled={guardando}>
-          {guardando ? "Guardando..." : "Guardar"}
-        </button>
+
+        {error && (
+          <div className="alert alert-error">
+            <Icon name="alerta" size={16} />
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={guardando}>
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className={`btn btn-primary ${guardando ? "is-loading" : ""}`}
+            disabled={guardando}
+          >
+            {guardando ? "Guardando..." : "Guardar"}
+          </button>
+        </div>
       </form>
     </Modal>
   );

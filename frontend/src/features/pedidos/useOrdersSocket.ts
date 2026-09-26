@@ -64,6 +64,7 @@ export function useOrdersSocket() {
       socket.onopen = () => {
         if (!esVigente()) return;
         backoffRef.current = BACKOFF_INICIAL_MS;
+        useOrdersStore.getState().setConectado(true);
       };
 
       socket.onmessage = (event) => {
@@ -78,6 +79,7 @@ export function useOrdersSocket() {
 
       socket.onclose = () => {
         if (!activoRef.current || !esVigente()) return;
+        useOrdersStore.getState().setConectado(false);
         timerRef.current = setTimeout(conectar, backoffRef.current);
         backoffRef.current = Math.min(backoffRef.current * 2, BACKOFF_MAX_MS);
       };

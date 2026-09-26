@@ -1,39 +1,73 @@
 .pantalla {
-  max-width: 480px;
-  margin: 60px auto;
+  max-width: 520px;
+  margin: 40px auto;
   background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-hover);
   padding: 28px;
+  animation: kt-scale-in 420ms var(--ease-out) both;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
 .titulo {
+  font-size: 1.15rem;
   font-weight: 700;
+}
+
+.subtitulo {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.buscando,
+.procesando {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.procesando {
+  justify-content: center;
+  margin: 14px 0 0;
+}
+
+.pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
 .paso {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.paso:last-child {
-  border-bottom: none;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
 }
 
 .icono {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   font-size: 0.75rem;
+  font-weight: 700;
   color: #fff;
   flex-shrink: 0;
+  transition: background-color var(--dur) ease;
 }
 
 .pendiente {
@@ -43,42 +77,37 @@
 
 .enCurso {
   background: var(--color-primary);
+  --pulse-color: rgba(37, 99, 235, 0.4);
+  animation: kt-pulse-ring 1.4s ease-out infinite;
 }
 
 .hecho {
   background: var(--color-success);
+  animation: kt-scale-in 300ms var(--ease-spring) both;
 }
 
 .error {
   background: var(--color-danger);
 }
 
+.giro {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: kt-spin 0.7s linear infinite;
+}
+
 .etiqueta {
   flex: 1;
   font-size: 0.88rem;
+  font-weight: 500;
 }
 
-.reintentar {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 4px 10px;
-  font-size: 0.75rem;
-}
-
-.errorGlobal {
-  color: var(--color-danger);
-  font-size: 0.85rem;
-  margin-bottom: 16px;
-}
-
-.continuar {
-  margin-top: 20px;
-  width: 100%;
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 10px;
-  font-weight: 600;
+@media (max-width: 560px) {
+  .pantalla {
+    margin: 0;
+    padding: 20px;
+  }
 }

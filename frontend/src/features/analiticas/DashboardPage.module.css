@@ -1,83 +1,195 @@
-.encabezado {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
   margin-bottom: 20px;
 }
 
-.exportar {
-  background: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 8px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
-}
-
 .kpi {
+  position: relative;
+  overflow: hidden;
   background: var(--color-surface);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 16px;
+  padding: 18px 20px 20px;
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) ease;
 }
 
-.kpiValor {
-  font-size: 1.6rem;
-  font-weight: 700;
+/* Brillo de color en la esquina, discreto */
+.kpi::after {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  top: -70px;
+  right: -50px;
+  border-radius: 50%;
+  background: var(--kpi-color, transparent);
+  opacity: 0.07;
+  transition:
+    opacity var(--dur) ease,
+    transform var(--dur-slow) var(--ease-out);
+}
+
+.kpi:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-border-strong);
+}
+
+.kpi:hover::after {
+  opacity: 0.12;
+  transform: scale(1.15);
+}
+
+.kpiCabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .kpiLabel {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--color-text-muted);
-  margin-top: 4px;
+}
+
+.kpiIcono {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--kpi-color);
+  background: color-mix(in srgb, var(--kpi-color) 12%, white);
+  transition: transform var(--dur) var(--ease-spring);
+}
+
+.kpi:hover .kpiIcono {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.kpiValor {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiDetalle {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
 }
 
 .graficos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .panel {
   background: var(--color-surface);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 16px;
+  padding: 20px 20px 12px;
+  min-width: 0;
+  transition: box-shadow var(--dur) var(--ease-out);
+}
+
+.panel:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.panelCabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
 
 .panelTitulo {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  margin-bottom: 12px;
 }
 
-.tabla {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--color-surface);
-  border-radius: var(--radius);
+.panelSub {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.participacion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.barraFondo {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
   overflow: hidden;
-  font-size: 0.85rem;
 }
 
-.tabla th,
-.tabla td {
-  text-align: left;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border);
+.barraRelleno {
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left;
+  animation: barra-crece 900ms var(--ease-out) 400ms both;
+}
+
+@keyframes barra-crece {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.porcentaje {
+  width: 40px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sinDatos {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 28px !important;
+}
+
+@media (max-width: 1180px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
   .graficos {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .kpiValor {
+    font-size: 1.6rem;
   }
 }

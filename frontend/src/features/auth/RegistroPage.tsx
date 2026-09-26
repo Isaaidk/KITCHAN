@@ -1,8 +1,10 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
+import Icon from "../../shared/components/Icon";
 import { useAuthStore } from "../../shared/stores/authStore";
 import type { LoginResponse } from "../../shared/types/usuario";
+import AuthLayout from "./AuthLayout";
 import styles from "./LoginPage.module.css";
 
 interface FormState {
@@ -76,62 +78,106 @@ export default function RegistroPage() {
   };
 
   return (
-    <div className={styles.pantalla}>
-      <div className={styles.tarjeta} style={{ width: 440 }}>
-        <div className={styles.marca}>Crear restaurante</div>
-
-        <form onSubmit={onSubmit}>
-          <div className={styles.campo}>
-            <label>Nombre comercial</label>
-            <input value={form.nombre_comercial} onChange={set("nombre_comercial")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Razón social</label>
-            <input value={form.razon_social} onChange={set("razon_social")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Identificación fiscal (RUC/NIT)</label>
-            <input value={form.identificacion_fiscal} onChange={set("identificacion_fiscal")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Dirección</label>
-            <input value={form.direccion} onChange={set("direccion")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Teléfono</label>
-            <input value={form.telefono} onChange={set("telefono")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Email corporativo</label>
-            <input type="email" value={form.email_corporativo} onChange={set("email_corporativo")} required />
-          </div>
-
-          <hr style={{ margin: "16px 0", border: "none", borderTop: "1px solid var(--color-border)" }} />
-
-          <div className={styles.campo}>
-            <label>Nombre del administrador</label>
-            <input value={form.admin_nombre} onChange={set("admin_nombre")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Email del administrador</label>
-            <input type="email" value={form.admin_email} onChange={set("admin_email")} required />
-          </div>
-          <div className={styles.campo}>
-            <label>Contraseña</label>
-            <input type="password" value={form.admin_password} onChange={set("admin_password")} required />
-          </div>
-
-          {error && <div className={styles.error}>{error}</div>}
-
-          <button type="submit" className={styles.submit} disabled={cargando}>
-            {cargando ? "Creando..." : "Crear restaurante"}
-          </button>
-        </form>
-
-        <p style={{ textAlign: "center", marginTop: 16, fontSize: "0.82rem" }}>
-          <Link to="/login">Ya tengo cuenta, ingresar</Link>
-        </p>
+    <AuthLayout ancho={560}>
+      <div className={styles.logoMovil}>
+        <div className={styles.logo}>K</div>
       </div>
-    </div>
+      <h2 className={styles.formTitulo}>Crear restaurante</h2>
+      <p className={styles.formBajada}>Configura tu restaurante y la cuenta del administrador.</p>
+
+      <form onSubmit={onSubmit}>
+        <div className={styles.seccionForm}>
+          <span className={styles.seccionNumero}>1</span>
+          Datos del restaurante
+        </div>
+        <div className={styles.grilla}>
+          <div className="field">
+            <label className="label">Nombre comercial</label>
+            <input className="input" value={form.nombre_comercial} onChange={set("nombre_comercial")} required />
+          </div>
+          <div className="field">
+            <label className="label">Razón social</label>
+            <input className="input" value={form.razon_social} onChange={set("razon_social")} required />
+          </div>
+          <div className="field">
+            <label className="label">Identificación fiscal (RUC/NIT)</label>
+            <input
+              className="input"
+              value={form.identificacion_fiscal}
+              onChange={set("identificacion_fiscal")}
+              required
+            />
+          </div>
+          <div className="field">
+            <label className="label">Teléfono</label>
+            <input className="input" value={form.telefono} onChange={set("telefono")} required />
+          </div>
+          <div className={`field ${styles.completo}`}>
+            <label className="label">Dirección</label>
+            <input className="input" value={form.direccion} onChange={set("direccion")} required />
+          </div>
+          <div className={`field ${styles.completo}`}>
+            <label className="label">Email corporativo</label>
+            <input
+              className="input"
+              type="email"
+              value={form.email_corporativo}
+              onChange={set("email_corporativo")}
+              required
+            />
+          </div>
+        </div>
+
+        <div className={styles.seccionForm}>
+          <span className={styles.seccionNumero}>2</span>
+          Cuenta del administrador
+        </div>
+        <div className={styles.grilla}>
+          <div className={`field ${styles.completo}`}>
+            <label className="label">Nombre del administrador</label>
+            <input className="input" value={form.admin_nombre} onChange={set("admin_nombre")} required />
+          </div>
+          <div className="field">
+            <label className="label">Email del administrador</label>
+            <input
+              className="input"
+              type="email"
+              value={form.admin_email}
+              onChange={set("admin_email")}
+              required
+            />
+          </div>
+          <div className="field">
+            <label className="label">Contraseña</label>
+            <input
+              className="input"
+              type="password"
+              value={form.admin_password}
+              onChange={set("admin_password")}
+              required
+            />
+          </div>
+        </div>
+
+        {error && (
+          <div className="alert alert-error">
+            <Icon name="alerta" size={16} />
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className={`btn btn-primary btn-block ${styles.submit} ${cargando ? "is-loading" : ""}`}
+          disabled={cargando}
+        >
+          {cargando ? "Creando..." : "Crear restaurante"}
+        </button>
+      </form>
+
+      <p className={styles.alternativa}>
+        ¿Ya tienes cuenta? <Link to="/login">Ingresar</Link>
+      </p>
+    </AuthLayout>
   );
 }

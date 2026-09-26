@@ -1,47 +1,120 @@
 .filtros {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.filtros select {
-  padding: 7px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  font-size: 0.85rem;
-  background: var(--color-surface);
+.filtros :global(.select) {
+  width: auto;
+  min-width: 190px;
 }
 
 .tablero {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 20px;
   align-items: start;
 }
 
 .columna {
-  background: var(--color-bg);
-  border-radius: var(--radius);
-  padding: 12px;
+  background: linear-gradient(180deg, #eef1f7 0%, rgba(238, 241, 247, 0.55) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  min-height: 220px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Filete superior con el color del estado */
+.columna::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--color-columna);
+  opacity: 0.85;
 }
 
 .columnaTitulo {
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin-bottom: 12px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  padding: 4px 4px 14px;
+}
+
+.columnaNombre {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.columnaPunto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-columna);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-columna) 18%, transparent);
+}
+
+.contador {
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-xs);
+  /* key={items.length}: el número "rebota" cada vez que cambia */
+  animation: contador-bump 360ms var(--ease-spring) both;
+}
+
+@keyframes contador-bump {
+  from {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }
 
 .tarjetas {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.vacio {
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-  text-align: center;
-  padding: 12px 0;
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 640px) {
+  .filtros {
+    width: 100%;
+  }
+
+  .filtros :global(.select) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tablero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }

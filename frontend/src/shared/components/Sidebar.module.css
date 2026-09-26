@@ -1,35 +1,165 @@
 .sidebar {
-  width: 220px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
-  background: var(--sidebar-bg);
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(79, 70, 229, 0.22), transparent 60%),
+    var(--sidebar-bg);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
-  padding: 20px 12px;
-  gap: 4px;
+  padding: 20px 14px;
+  gap: 2px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-y: auto;
+  z-index: 60;
 }
 
 .marca {
-  color: var(--sidebar-text-active);
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px 22px;
+}
+
+.logo {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--gradient-brand);
+  color: #fff;
+  font-weight: 800;
   font-size: 1.1rem;
-  padding: 0 12px 20px;
+  box-shadow:
+    0 8px 20px -6px rgba(79, 70, 229, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.marcaNombre {
+  color: var(--sidebar-text-active);
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: 0.04em;
+}
+
+.marcaSub {
+  font-size: 0.72rem;
+  color: var(--sidebar-text);
+}
+
+.seccion {
+  padding: 16px 12px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
 }
 
 .link {
-  display: block;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 10px 12px;
   border-radius: var(--radius);
   color: var(--sidebar-text);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur) var(--ease-out);
 }
 
 .link:hover {
   background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  transform: translateX(2px);
 }
 
-.linkActivo {
-  background: var(--color-primary);
+.link:active {
+  transform: scale(0.98);
+}
+
+.icono {
+  opacity: 0.85;
+  transition: transform var(--dur) var(--ease-spring);
+}
+
+.link:hover .icono {
+  transform: scale(1.08);
+}
+
+.texto {
+  flex: 1;
+}
+
+.linkActivo,
+.linkActivo:hover {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.95), rgba(79, 70, 229, 0.9));
   color: var(--sidebar-text-active);
+  box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.8);
+  transform: none;
+}
+
+.linkActivo .icono {
+  opacity: 1;
+}
+
+.contador {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  --pulse-color: rgba(239, 68, 68, 0.55);
+  animation: kt-pulse-ring 1.6s ease-out infinite;
+}
+
+.linkActivo .contador {
+  background: #fff;
+  color: var(--color-primary);
+  --pulse-color: rgba(255, 255, 255, 0.5);
+}
+
+.pie {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  color: var(--sidebar-text);
+}
+
+.pie svg {
+  color: #a5b4fc;
+}
+
+/* Tablet / móvil: el sidebar pasa a ser un drawer lateral. */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    transform: translateX(-100%);
+    transition: transform 320ms var(--ease-out);
+    box-shadow: var(--shadow-pop);
+  }
+
+  .abierto {
+    transform: none;
+  }
 }

@@ -1,30 +1,78 @@
+/* ============================================================
+   KITCHAN — design system
+   Tokens (colores, radios, sombras, movimiento) + clases utilitarias
+   compartidas por todas las pantallas (botones, campos, badges,
+   tablas, skeletons, animaciones). Los CSS Modules de cada feature se
+   apoyan en estas variables para mantener un mismo lenguaje visual.
+   ============================================================ */
+
 :root {
-  --color-bg: #f4f5f7;
+  /* Superficies y texto */
+  --color-bg: #f5f7fb;
   --color-surface: #ffffff;
-  --color-border: #e2e4e9;
-  --color-text: #1f2430;
-  --color-text-muted: #6b7280;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e5e8ef;
+  --color-border-strong: #d4d9e3;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+
+  /* Marca */
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
-  --color-danger: #dc2626;
-  --color-success: #16a34a;
+  --color-primary-soft: #eff4ff;
+  --color-primary-ring: rgba(37, 99, 235, 0.22);
+  --gradient-brand: linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%);
 
+  /* Semánticos */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-soft: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-soft: #fffbeb;
+
+  /* Estados de pedido */
   --color-estado-nueva: #2563eb;
   --color-estado-en-preparacion: #d97706;
   --color-estado-lista: #16a34a;
-  --color-estado-entregada: #6b7280;
+  --color-estado-entregada: #64748b;
   --color-estado-cancelada: #dc2626;
 
-  --sidebar-bg: #1f2430;
-  --sidebar-text: #cbd2e0;
+  /* Sidebar */
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #94a3b8;
   --sidebar-text-active: #ffffff;
+  --sidebar-width: 248px;
 
-  --radius: 8px;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* Forma y profundidad */
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-hover: 0 4px 6px -2px rgba(15, 23, 42, 0.05), 0 12px 24px -6px rgba(15, 23, 42, 0.12);
+  --shadow-pop: 0 24px 56px -12px rgba(15, 23, 42, 0.3);
+
+  /* Movimiento */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -32,7 +80,19 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 button {
@@ -40,11 +100,594 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+}
+
 input,
-select {
+select,
+textarea {
   font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
 
 a {
   color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-primary-ring);
+}
+
+/* ============================================================
+   Botones: .btn + variante (.btn-primary, .btn-success, .btn-danger,
+   .btn-danger-soft, .btn-secondary, .btn-ghost) + tamaño opcional
+   (.btn-sm, .btn-block). Estados hover / active / disabled / loading.
+   ============================================================ */
+.btn {
+  --btn-bg: var(--color-surface);
+  --btn-bg-hover: var(--color-surface-muted);
+  --btn-fg: var(--color-text);
+  --btn-border: var(--color-border);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 16px;
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    box-shadow var(--dur) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+}
+
+.btn svg {
+  flex-shrink: 0;
+}
+
+.btn-primary {
+  --btn-bg: var(--color-primary);
+  --btn-bg-hover: var(--color-primary-hover);
+  --btn-fg: #fff;
+  --btn-border: transparent;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 18px -6px rgba(37, 99, 235, 0.55);
+}
+
+.btn-success {
+  --btn-bg: var(--color-success);
+  --btn-bg-hover: var(--color-success-hover);
+  --btn-fg: #fff;
+  --btn-border: transparent;
+}
+
+.btn-success:hover:not(:disabled) {
+  box-shadow: 0 8px 18px -6px rgba(22, 163, 74, 0.5);
+}
+
+.btn-danger {
+  --btn-bg: var(--color-danger);
+  --btn-bg-hover: var(--color-danger-hover);
+  --btn-fg: #fff;
+  --btn-border: transparent;
+}
+
+.btn-danger:hover:not(:disabled) {
+  box-shadow: 0 8px 18px -6px rgba(220, 38, 38, 0.5);
+}
+
+.btn-danger-soft {
+  --btn-bg: var(--color-danger-soft);
+  --btn-bg-hover: #fee2e2;
+  --btn-fg: var(--color-danger);
+  --btn-border: transparent;
+}
+
+.btn-danger-soft:hover:not(:disabled) {
+  box-shadow: none;
+}
+
+.btn-secondary {
+  --btn-bg: var(--color-surface);
+  --btn-bg-hover: var(--color-surface-muted);
+  --btn-fg: var(--color-text);
+  --btn-border: var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-ghost {
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--color-surface-muted);
+  --btn-fg: var(--color-text-muted);
+  --btn-border: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-text);
+  box-shadow: none;
+}
+
+.btn-sm {
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-icon {
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+}
+
+/* Estado de carga: el texto queda transparente y aparece un spinner. */
+.btn.is-loading {
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--btn-fg);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: kt-spin 0.7s linear infinite;
+}
+
+/* ============================================================
+   Campos de formulario: .field > .label + .input/.select/.textarea
+   ============================================================ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.label-hint {
+  font-weight: 400;
+  color: var(--color-text-subtle);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+  font-size: 0.9rem;
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur) var(--ease-out),
+    background-color var(--dur-fast) ease;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.input:hover:not(:disabled):not(:focus),
+.select:hover:not(:disabled):not(:focus),
+.textarea:hover:not(:disabled):not(:focus) {
+  border-color: #b8c0cf;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-ring);
+}
+
+.input:disabled,
+.select:disabled {
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* Validación visual nativa: solo se marca después de interactuar. */
+.input:user-invalid {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+}
+
+.select {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   Mensajes: .alert + .alert-error / .alert-success / .alert-warning
+   ============================================================ */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  border: 1px solid transparent;
+  margin-bottom: 16px;
+  animation: kt-fade-up var(--dur) var(--ease-out) both;
+}
+
+.alert svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.alert-error {
+  background: var(--color-danger-soft);
+  border-color: #fecaca;
+  color: #991b1b;
+  animation: kt-shake 0.42s var(--ease-out) both;
+}
+
+.alert-success {
+  background: var(--color-success-soft);
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.alert-warning {
+  background: var(--color-warning-soft);
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+/* ============================================================
+   Badges / chips: .badge (+ .badge-dot). Color vía --badge-color.
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--badge-color, #64748b) 12%, white);
+  color: color-mix(in srgb, var(--badge-color, #64748b) 85%, black);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+
+.badge-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--badge-color, currentColor);
+}
+
+/* ============================================================
+   Encabezado de página compartido
+   ============================================================ */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* Superficie genérica tipo tarjeta */
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ============================================================
+   Tablas: <div class="table-wrap"><table class="table">
+   ============================================================ */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  background: var(--color-surface-muted);
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background-color var(--dur-fast) ease;
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-muted);
+}
+
+.table-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right !important;
+}
+
+/* ============================================================
+   Estados vacíos
+   ============================================================ */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  animation: kt-fade-in var(--dur-slow) ease both;
+}
+
+.empty-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-subtle);
+  box-shadow: var(--shadow-xs);
+}
+
+.empty-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ============================================================
+   Loading: .spinner y .skeleton (shimmer)
+   ============================================================ */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: kt-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #eceff5;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  animation: kt-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   Animaciones de entrada reutilizables.
+   .animate-in (fade + slide up), escalonada con --i (índice).
+   ============================================================ */
+.animate-in {
+  animation: kt-fade-up var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+.animate-scale {
+  animation: kt-scale-in var(--dur) var(--ease-out) both;
+}
+
+@keyframes kt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes kt-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes kt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kt-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kt-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes kt-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes kt-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 var(--pulse-color, rgba(37, 99, 235, 0.45));
+  }
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+/* Accesibilidad: sin animaciones si el usuario las desactivó en su sistema. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar discreta */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cfd5df;
+  border-radius: 999px;
+  border: 3px solid var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b5bdca;
 }

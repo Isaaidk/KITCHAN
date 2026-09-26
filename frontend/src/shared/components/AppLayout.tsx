@@ -1,4 +1,5 @@
-import { Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import ToastContainer from "../../features/notificaciones/ToastContainer";
@@ -7,14 +8,28 @@ import styles from "./AppLayout.module.css";
 
 export default function AppLayout() {
   useOrdersSocket();
+  const { pathname } = useLocation();
+  // Drawer del sidebar en tablet/móvil.
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
+  useEffect(() => {
+    setMenuAbierto(false);
+  }, [pathname]);
 
   return (
     <div className={styles.contenedor}>
-      <Sidebar />
+      <Sidebar abierto={menuAbierto} onNavegar={() => setMenuAbierto(false)} />
+      <div
+        className={`${styles.velo} ${menuAbierto ? styles.veloVisible : ""}`}
+        onClick={() => setMenuAbierto(false)}
+      />
       <div className={styles.principal}>
-        <Topbar />
+        <Topbar onMenu={() => setMenuAbierto(true)} />
         <main className={styles.contenido}>
-          <Outlet />
+          {/* key por ruta: cada cambio de página reproduce la transición de entrada. */}
+          <div key={pathname} className={styles.pagina}>
+            <Outlet />
+          </div>
         </main>
       </div>
       <ToastContainer />
