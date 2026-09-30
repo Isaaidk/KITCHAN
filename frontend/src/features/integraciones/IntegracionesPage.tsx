@@ -101,7 +101,7 @@ export default function IntegracionesPage() {
           <p className={styles.descripcion}>{DESCRIPCION.RAPPI}</p>
           <button className="btn btn-secondary btn-block" disabled>
             <Icon name="check" size={16} strokeWidth={2.5} />
-            Configuración por el equipo técnico
+            Configuración manual
           </button>
         </div>
 
