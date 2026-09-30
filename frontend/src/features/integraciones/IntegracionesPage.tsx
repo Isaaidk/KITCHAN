@@ -6,11 +6,12 @@ import { infoCanal } from "../pedidos/estadoUtils";
 import OdooCard from "./OdooCard";
 import styles from "./IntegracionesPage.module.css";
 
-const CANALES_PROXIMAMENTE = ["RAPPI", "PEDIDOSYA", "WHATSAPP"];
+const CANALES_PROXIMAMENTE = ["PEDIDOSYA", "WHATSAPP"];
 
 const DESCRIPCION: Record<string, string> = {
   UBER_EATS: "Recibe y gestiona los pedidos de tu tienda de Uber Eats.",
-  RAPPI: "Integración con la API de Restaurantes de Rappi.",
+  RAPPI:
+    "Recibe pedidos de Rappi y acéptalos, recházalos o márcalos listos desde la cola. Las credenciales las configura el equipo técnico.",
   PEDIDOSYA: "Integración POS con el Middleware de PedidosYa.",
   WHATSAPP: "Pedidos directos desde WhatsApp Business.",
 };
@@ -87,11 +88,28 @@ export default function IntegracionesPage() {
           </button>
         </div>
 
+        {/* Rappi usa client-credentials configuradas en el backend (.env),
+            no un flujo OAuth por restaurante como Uber: no hay botón de conectar. */}
+        <div className={`${styles.tarjeta} animate-in`} style={{ ["--i" as string]: 1 }}>
+          <div className={styles.cabecera}>
+            <LogoCanal canal="RAPPI" />
+            <span className="badge badge-dot" style={{ ["--badge-color" as string]: "#2563eb" }}>
+              Disponible
+            </span>
+          </div>
+          <div className={styles.canal}>Rappi</div>
+          <p className={styles.descripcion}>{DESCRIPCION.RAPPI}</p>
+          <button className="btn btn-secondary btn-block" disabled>
+            <Icon name="check" size={16} strokeWidth={2.5} />
+            Configuración por el equipo técnico
+          </button>
+        </div>
+
         {CANALES_PROXIMAMENTE.map((canal, i) => (
           <div
             key={canal}
             className={`${styles.tarjeta} ${styles.tarjetaInactiva} animate-in`}
-            style={{ ["--i" as string]: i + 1 }}
+            style={{ ["--i" as string]: i + 2 }}
           >
             <div className={styles.cabecera}>
               <LogoCanal canal={canal} />

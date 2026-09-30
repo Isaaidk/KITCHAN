@@ -4,7 +4,7 @@ import type { Pedido } from "../../shared/types/pedido";
 import { useOdooSyncStub } from "../integraciones/useOdooSyncStub";
 import CanalBadge from "./CanalBadge";
 import CancelarPedidoModal from "./CancelarPedidoModal";
-import { colorVarEstado, ETIQUETA_ESTADO } from "./estadoUtils";
+import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
 import styles from "./OrderDetailModal.module.css";
 
@@ -28,6 +28,7 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
     puedeMarcarListo,
     puedeCancelar,
     puedeCompletar,
+    cancelacionSoloPorSoporte,
     mostrarCancelar,
     setMostrarCancelar,
     aceptar,
@@ -37,6 +38,7 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
   } = usePedidoAcciones(pedido);
 
   const cargando = procesando ? "is-loading" : "";
+  const nombreCanal = infoCanal(pedido.origen).nombre;
 
   return (
     <Modal titulo={`Pedido de ${pedido.cliente}`} onClose={onClose} ancho={560}>
@@ -113,6 +115,16 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
               Cancelar
             </button>
           )}
+        </div>
+      )}
+
+      {cancelacionSoloPorSoporte && (
+        <div className="alert alert-warning" style={{ animation: "none" }}>
+          <Icon name="alerta" size={16} />
+          <span>
+            {nombreCanal} no permite cancelar un pedido ya aceptado desde KITCHAN. Si necesitas
+            cancelarlo, comunícate con el soporte de {nombreCanal}.
+          </span>
         </div>
       )}
 

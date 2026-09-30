@@ -5,6 +5,7 @@ import {
   cancelarPedido,
   marcarPedidoEntregado,
   marcarPedidoListo,
+  permiteCancelar,
   tieneIntegracionDisponible,
 } from "./integracionesApi";
 
@@ -15,7 +16,10 @@ export function usePedidoAcciones(pedido: Pedido) {
   const integracionDisponible = tieneIntegracionDisponible(pedido.origen);
   const puedeAceptar = pedido.estado === "NUEVA" && integracionDisponible;
   const puedeMarcarListo = pedido.estado === "EN_PREPARACION" && integracionDisponible;
-  const puedeCancelar = pedido.estado === "NUEVA" || pedido.estado === "EN_PREPARACION";
+  const puedeCancelar = permiteCancelar(pedido);
+  // Pedido en preparación de una plataforma que no permite cancelarlo por
+  // API (Rappi): se muestra un aviso en vez del botón.
+  const cancelacionSoloPorSoporte = pedido.estado === "EN_PREPARACION" && !puedeCancelar;
   const puedeCompletar = pedido.estado === "LISTA";
 
   const ejecutar = async (accion: (p: Pedido) => Promise<void>) => {
@@ -36,6 +40,7 @@ export function usePedidoAcciones(pedido: Pedido) {
     puedeMarcarListo,
     puedeCancelar,
     puedeCompletar,
+    cancelacionSoloPorSoporte,
     mostrarCancelar,
     setMostrarCancelar,
     aceptar: () => ejecutar(aceptarPedido),
