@@ -5,15 +5,32 @@ import Icon from "../../../shared/components/Icon";
 import { LogoCanal } from "../IntegracionesPage";
 import {
   EstadoPaso,
+  PASOS,
   PasoProvisioning,
   useUberProvisioning,
 } from "./useUberProvisioning";
 import styles from "./UberCallbackPage.module.css";
 
-const ETIQUETAS: Record<PasoProvisioning, string> = {
-  app_token: "Generando token de aplicación",
-  provision: "Provisionando tienda en Uber Eats",
-  menu_upload: "Subiendo menú",
+// Texto de cada paso según su estado: pendiente / en curso / hecho / error.
+const ETIQUETAS: Record<PasoProvisioning, Record<EstadoPaso, string>> = {
+  app_token: {
+    pendiente: "Generar token de aplicación",
+    en_curso: "Generando token de aplicación…",
+    hecho: "Token de aplicación generado",
+    error: "No se pudo generar el token de aplicación",
+  },
+  provision: {
+    pendiente: "Provisionar tienda en Uber Eats",
+    en_curso: "Provisionando tienda en Uber Eats…",
+    hecho: "Tienda provisionada en Uber Eats",
+    error: "No se pudo provisionar la tienda",
+  },
+  menu_upload: {
+    pendiente: "Subir menú",
+    en_curso: "Subiendo menú…",
+    hecho: "Menú subido",
+    error: "No se pudo subir el menú",
+  },
 };
 
 export default function UberCallbackPage() {
@@ -61,15 +78,34 @@ export default function UberCallbackPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusCallback, storeId, buscandoTienda]);
 
-  const todoListo = estado.app_token === "hecho" && estado.provision === "hecho" && estado.menu_upload === "hecho";
+  const hechos = PASOS.filter((p) => estado[p] === "hecho").length;
+  const todoListo = hechos === PASOS.length;
+  const hayError = PASOS.some((p) => estado[p] === "error");
+  const sinTienda = statusCallback === "success" && !buscandoTienda && !storeId;
+  const fallaInicial = statusCallback === "error" || sinTienda || (statusCallback !== "success" && statusCallback !== "error");
+
+  const volver = () => navigate("/integraciones");
+
+  let titulo = "Conectando Uber Eats";
+  let subtitulo = "Configurando tu tienda. No cierres esta ventana.";
+  if (todoListo) {
+    titulo = "Uber Eats conectado";
+    subtitulo = "Tu tienda quedó vinculada y el menú está sincronizado.";
+  } else if (fallaInicial) {
+    titulo = "No se pudo conectar Uber Eats";
+    subtitulo = "La conexión no se completó.";
+  } else if (hayError && !ejecutando) {
+    titulo = "La conexión quedó incompleta";
+    subtitulo = "Un paso falló. Puedes reintentarlo sin repetir los anteriores.";
+  }
 
   return (
     <div className={styles.pantalla}>
       <div className={styles.cabecera}>
         <LogoCanal canal="UBER_EATS" />
         <div>
-          <div className={styles.titulo}>Conectando Uber Eats</div>
-          <div className={styles.subtitulo}>Configurando tu tienda, no cierres esta ventana.</div>
+          <div className={styles.titulo}>{titulo}</div>
+          <div className={styles.subtitulo}>{subtitulo}</div>
         </div>
       </div>
 
@@ -80,6 +116,13 @@ export default function UberCallbackPage() {
         </div>
       )}
 
+      {statusCallback !== "success" && statusCallback !== "error" && (
+        <div className="alert alert-warning">
+          <Icon name="alerta" size={16} />
+          No recibimos una respuesta de Uber. Vuelve a Integraciones e inicia la conexión de nuevo.
+        </div>
+      )}
+
       {statusCallback === "success" && buscandoTienda && (
         <div className={styles.buscando}>
           <span className="spinner" />
@@ -87,7 +130,7 @@ export default function UberCallbackPage() {
         </div>
       )}
 
-      {statusCallback === "success" && !buscandoTienda && !storeId && (
+      {sinTienda && (
         <div className="alert alert-error">
           <Icon name="alerta" size={16} />
           No se encontró ninguna tienda vinculada para este restaurante.
@@ -96,37 +139,57 @@ export default function UberCallbackPage() {
 
       {statusCallback === "success" && storeId && (
         <>
-          <div className={styles.pasos}>
-            {(["app_token", "provision", "menu_upload"] as PasoProvisioning[]).map((paso, i) => (
-              <div key={paso} className={`${styles.paso} animate-in`} style={{ ["--i" as string]: i }}>
+          <div className={styles.progreso} aria-hidden="true">
+            <div className={styles.progresoBarra} style={{ width: `${(hechos / PASOS.length) * 100}%` }} />
+          </div>
+          <div className={styles.progresoTexto}>
+            {hechos} de {PASOS.length} pasos completados
+          </div>
+
+          <ol className={styles.pasos}>
+            {PASOS.map((paso, i) => (
+              <li
+                key={paso}
+                className={`${styles.paso} ${estado[paso] === "pendiente" ? styles.pasoPendiente : ""} animate-in`}
+                style={{ ["--i" as string]: i }}
+              >
                 <span className={`${styles.icono} ${styles[camel(estado[paso])]}`}>
                   <IconoPaso estado={estado[paso]} numero={i + 1} />
                 </span>
-                <span className={styles.etiqueta}>{ETIQUETAS[paso]}</span>
+                <span className={`${styles.etiqueta} ${estado[paso] === "error" ? styles.etiquetaError : ""}`}>
+                  {ETIQUETAS[paso][estado[paso]]}
+                </span>
                 {estado[paso] === "error" && (
-                  <button className="btn btn-secondary btn-sm" onClick={() => reintentarPaso(paso)}>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => reintentarPaso(paso)}
+                    disabled={ejecutando}
+                  >
                     <Icon name="sync" size={14} />
                     Reintentar
                   </button>
                 )}
-              </div>
+              </li>
             ))}
-          </div>
-
-          {todoListo && (
-            <button className="btn btn-success btn-block animate-scale" onClick={() => navigate("/integraciones")}>
-              <Icon name="check" size={16} strokeWidth={2.5} />
-              Listo, ir a Integraciones
-            </button>
-          )}
-          {ejecutando && (
-            <p className={styles.procesando}>
-              <span className="spinner" style={{ width: 14, height: 14 }} />
-              Procesando...
-            </p>
-          )}
+          </ol>
         </>
       )}
+
+      <div className={styles.acciones}>
+        {todoListo ? (
+          <button className="btn btn-success btn-block animate-scale" onClick={volver}>
+            <Icon name="check" size={16} strokeWidth={2.5} />
+            Listo, ir a Integraciones
+          </button>
+        ) : (
+          (fallaInicial || (hayError && !ejecutando)) && (
+            <button className="btn btn-secondary btn-block" onClick={volver}>
+              <Icon name="flecha" size={14} style={{ transform: "rotate(180deg)" }} />
+              Volver a Integraciones
+            </button>
+          )
+        )}
+      </div>
     </div>
   );
 }

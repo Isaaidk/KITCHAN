@@ -1,33 +1,37 @@
 .pantalla {
-  max-width: 520px;
+  max-width: 540px;
   margin: 40px auto;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-hover);
-  padding: 28px;
+  padding: 30px;
   animation: kt-scale-in 420ms var(--ease-out) both;
 }
 
 .cabecera {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
 .titulo {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .subtitulo {
-  font-size: 0.85rem;
+  margin-top: 2px;
+  font-size: 0.86rem;
+  line-height: 1.45;
   color: var(--color-text-muted);
+  text-wrap: pretty;
 }
 
-.buscando,
-.procesando {
+.buscando {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -35,29 +39,58 @@
   color: var(--color-text-muted);
 }
 
-.procesando {
-  justify-content: center;
-  margin: 14px 0 0;
+/* Progreso global: cuántos de los 3 pasos van completos */
+.progreso {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
 }
 
+.progresoBarra {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gradient-brand);
+  transition: width 600ms var(--ease-out);
+}
+
+.progresoTexto {
+  margin: 8px 0 18px;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+/* Pasos unidos por una línea vertical entre iconos */
 .pasos {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .paso {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface-muted);
+  gap: 14px;
+  min-height: 52px;
+  padding: 8px 0;
+}
+
+.paso:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 40px;
+  bottom: -8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--color-border);
 }
 
 .icono {
+  position: relative;
+  z-index: 1;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -65,6 +98,7 @@
   place-items: center;
   font-size: 0.75rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: #fff;
   flex-shrink: 0;
   transition: background-color var(--dur) ease;
@@ -101,13 +135,34 @@
 
 .etiqueta {
   flex: 1;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.pasoPendiente .etiqueta {
   font-weight: 500;
+  color: var(--color-text-subtle);
+}
+
+.etiquetaError {
+  color: var(--color-danger);
+}
+
+.acciones {
+  margin-top: 8px;
+}
+
+.acciones:empty {
+  display: none;
 }
 
 @media (max-width: 560px) {
   .pantalla {
     margin: 0;
     padding: 20px;
+  }
+
+  .paso {
+    flex-wrap: wrap;
   }
 }

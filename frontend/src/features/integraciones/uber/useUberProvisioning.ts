@@ -10,6 +10,8 @@ export interface EstadoProvisioning {
   menu_upload: EstadoPaso;
 }
 
+export const PASOS: PasoProvisioning[] = ["app_token", "provision", "menu_upload"];
+
 const ESTADO_INICIAL: EstadoProvisioning = {
   app_token: "pendiente",
   provision: "pendiente",
@@ -57,15 +59,22 @@ export function useUberProvisioning(restauranteId: string, storeId: string | nul
     [restauranteId, storeId],
   );
 
-  const ejecutarSecuencia = useCallback(async () => {
-    setEjecutando(true);
-    const pasos: PasoProvisioning[] = ["app_token", "provision", "menu_upload"];
-    for (const paso of pasos) {
-      const ok = await ejecutarPaso(paso);
-      if (!ok) break;
-    }
-    setEjecutando(false);
-  }, [ejecutarPaso]);
+  // Ejecuta `desde` y los pasos que le siguen; se detiene en el primer error.
+  const ejecutarDesde = useCallback(
+    async (desde: PasoProvisioning) => {
+      setEjecutando(true);
+      for (const paso of PASOS.slice(PASOS.indexOf(desde))) {
+        const ok = await ejecutarPaso(paso);
+        if (!ok) break;
+      }
+      setEjecutando(false);
+    },
+    [ejecutarPaso],
+  );
 
-  return { estado, ejecutando, ejecutarSecuencia, reintentarPaso: ejecutarPaso };
+  const ejecutarSecuencia = useCallback(() => ejecutarDesde("app_token"), [ejecutarDesde]);
+
+  // Reintentar un paso que falló continúa con los siguientes: si no, el flujo
+  // quedaría a medias aunque el reintento funcione.
+  return { estado, ejecutando, ejecutarSecuencia, reintentarPaso: ejecutarDesde };
 }
