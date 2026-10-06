@@ -11,6 +11,13 @@ import styles from "./OrderDetailModal.module.css";
 
 const PASOS: Array<Pedido["estado"]> = ["NUEVA", "EN_PREPARACION", "LISTA", "ENTREGADA"];
 
+const formatoFechaHora = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 interface Props {
   pedido: Pedido;
   onClose: () => void;
@@ -51,7 +58,9 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
           <div className={styles.cliente}>{pedido.cliente}</div>
           <div className={styles.origen}>
             {canal.nombre}
-            {pedido.id_externo && <span className={styles.referencia}>#{pedido.id_externo}</span>}
+            {pedido.id_externo && <span className={styles.referencia} translate="no">
+                #{pedido.id_externo}
+              </span>}
           </div>
         </div>
         <span
@@ -65,12 +74,7 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
       <div className={styles.datos}>
         <span className={styles.dato}>
           <Icon name="reloj" size={13} />
-          {new Date(pedido.fecha_creacion).toLocaleString([], {
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          <time dateTime={pedido.fecha_creacion}>{formatoFechaHora.format(new Date(pedido.fecha_creacion))}</time>
         </span>
         {pedido.estado_entrega && (
           <span className={styles.dato}>
@@ -90,23 +94,30 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
           className={styles.timeline}
           style={{ ["--progreso" as string]: progreso }}
         >
-          <div className={styles.linea}>
+          <div className={styles.linea} aria-hidden="true">
             <div className={styles.lineaRelleno} />
           </div>
-          {PASOS.map((paso, i) => (
-            <div
-              key={paso}
-              className={`${styles.paso} ${i <= indiceActual ? styles.pasoActivo : ""} ${
-                i === indiceActual ? styles.pasoActual : ""
-              }`}
-              style={{ ["--i" as string]: i }}
-            >
-              <div className={styles.punto}>
-                {i < indiceActual && <Icon name="check" size={12} strokeWidth={3} />}
-              </div>
-              <span className={styles.pasoTexto}>{ETIQUETA_ESTADO[paso]}</span>
-            </div>
-          ))}
+          <ol className={styles.pasos} aria-label="Progreso del pedido">
+            {PASOS.map((paso, i) => (
+              <li
+                key={paso}
+                aria-current={i === indiceActual ? "step" : undefined}
+                className={`${styles.paso} ${i <= indiceActual ? styles.pasoActivo : ""} ${
+                  i === indiceActual ? styles.pasoActual : ""
+                }`}
+                style={{ ["--i" as string]: i }}
+              >
+                <div className={styles.punto} aria-hidden="true">
+                  {i < indiceActual && <Icon name="check" size={12} strokeWidth={3} />}
+                </div>
+                <span className={styles.pasoTexto}>{ETIQUETA_ESTADO[paso]}</span>
+                {/* El avance no depende solo del color: se dice en texto para lectores de pantalla. */}
+                <span className="sr-only">
+                  {i < indiceActual ? " (completado)" : i === indiceActual ? " (paso actual)" : " (pendiente)"}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 

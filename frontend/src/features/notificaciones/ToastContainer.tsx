@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import { useOrdersStore } from "../../shared/stores/ordersStore";
 import { useToastStore } from "../../shared/stores/toastStore";
@@ -29,19 +29,28 @@ export default function ToastContainer() {
 function ToastItem({ toast, onDone }: { toast: Toast; onDone: (id: string) => void }) {
   const { id, mensaje, variante } = toast;
   const [saliendo, setSaliendo] = useState(false);
+  // El toast se pausa mientras el mouse o el foco están sobre él: tiene botones
+  // y quien lo usa con teclado o lector de pantalla necesita más tiempo.
+  const [pausado, setPausado] = useState(false);
+  const restanteRef = useRef(DURACION_MS);
+  const inicioRef = useRef(0);
   // Usamos el pedido vivo del store (por si ya cambió de estado desde que
   // se creó el toast, ej. otro operador ya lo aceptó) en vez del snapshot.
   const pedidoVivo = useOrdersStore((s) => (toast.pedido ? s.pedidos[toast.pedido.id] : undefined));
   const pedido = pedidoVivo ?? toast.pedido;
 
   useEffect(() => {
-    const salida = setTimeout(() => setSaliendo(true), DURACION_MS - SALIDA_MS);
-    const timer = setTimeout(() => onDone(id), DURACION_MS);
+    if (pausado) return;
+    inicioRef.current = Date.now();
+    const salida = setTimeout(() => setSaliendo(true), Math.max(restanteRef.current - SALIDA_MS, 0));
+    const timer = setTimeout(() => onDone(id), restanteRef.current);
     return () => {
       clearTimeout(salida);
       clearTimeout(timer);
+      // Al pausar se descuenta el tiempo ya transcurrido para retomar desde ahí.
+      restanteRef.current -= Date.now() - inicioRef.current;
     };
-  }, [id, onDone]);
+  }, [id, onDone, pausado]);
 
   const cerrar = () => {
     setSaliendo(true);
@@ -56,8 +65,16 @@ function ToastItem({ toast, onDone }: { toast: Toast; onDone: (id: string) => vo
 
   return (
     <div
-      className={`${styles.toast} ${styles[tono]} ${saliendo ? styles.saliendo : ""}`}
+      className={`${styles.toast} ${styles[tono]} ${saliendo ? styles.saliendo : ""} ${pausado ? styles.pausado : ""}`}
       role="status"
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={(e) => {
+        if (!e.currentTarget.contains(document.activeElement)) setPausado(false);
+      }}
+      onFocus={() => setPausado(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPausado(false);
+      }}
     >
       <div className={styles.cuerpo}>
         <div className={styles.icono}>

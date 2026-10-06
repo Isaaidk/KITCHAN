@@ -31,7 +31,12 @@ function Enlace({
     <NavLink to={to} end={end} className={enlace} onClick={onNavegar}>
       <Icon name={icono} size={18} className={styles.icono} />
       <span className={styles.texto}>{children}</span>
-      {!!contador && <span className={styles.contador}>{contador}</span>}
+      {!!contador && (
+        <span className={styles.contador}>
+          {contador}
+          <span className="sr-only"> {contador === 1 ? "pedido nuevo" : "pedidos nuevos"}</span>
+        </span>
+      )}
     </NavLink>
   );
 }
@@ -44,7 +49,7 @@ export default function Sidebar({ abierto, onNavegar }: Props) {
   );
 
   return (
-    <nav className={`${styles.sidebar} ${abierto ? styles.abierto : ""}`}>
+    <nav className={`${styles.sidebar} ${abierto ? styles.abierto : ""}`} aria-label="Navegación principal">
       <div className={styles.marca}>
         <div className={styles.logo}>K</div>
         <div>

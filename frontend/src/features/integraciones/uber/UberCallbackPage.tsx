@@ -103,7 +103,7 @@ export default function UberCallbackPage() {
     <div className={styles.pantalla}>
       <div className={styles.cabecera}>
         <LogoCanal canal="UBER_EATS" />
-        <div>
+        <div aria-live="polite">
           <div className={styles.titulo}>{titulo}</div>
           <div className={styles.subtitulo}>{subtitulo}</div>
         </div>

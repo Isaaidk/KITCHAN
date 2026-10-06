@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
@@ -84,6 +84,18 @@ export default function RegistroPage() {
 
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
+
+  // Avisa antes de cerrar o recargar la pestaña si hay datos escritos sin enviar.
+  const hayCambios = Object.values(form).some((valor) => valor.trim() !== "");
+  useEffect(() => {
+    if (!hayCambios) return;
+    const avisar = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [hayCambios]);
 
   const set = (campo: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [campo]: e.target.value }));

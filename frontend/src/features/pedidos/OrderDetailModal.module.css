@@ -58,6 +58,16 @@
   padding: 0 4px;
 }
 
+/* Lista ordenada de pasos: sin viñetas y repartida a lo ancho */
+.pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
 .linea {
   position: absolute;
   top: 13px;

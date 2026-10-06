@@ -37,6 +37,7 @@ export default function UsuariosPage() {
   const [porEliminar, setPorEliminarRaw] = useState<Usuario | null>(null);
   const [eliminando, setEliminando] = useState(false);
   const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
+  const [errorLista, setErrorLista] = useState<string | null>(null);
   const restauranteId = useAuthStore((s) => s.usuario?.restaurante_id);
   const yoId = useAuthStore((s) => s.usuario?.id);
 
@@ -49,7 +50,11 @@ export default function UsuariosPage() {
     if (!restauranteId) return;
     httpClient
       .get<Usuario[]>(`/api/v1/usuarios/restaurante/${restauranteId}`)
-      .then(({ data }) => setUsuarios(data))
+      .then(({ data }) => {
+        setUsuarios(data);
+        setErrorLista(null);
+      })
+      .catch(() => setErrorLista("No se pudo cargar el equipo. Revisa la conexión e inténtalo de nuevo."))
       .finally(() => setCargando(false));
   };
 
@@ -74,8 +79,14 @@ export default function UsuariosPage() {
   };
 
   const cambiarEstado = async (usuario: Usuario) => {
-    await httpClient.patch(`/api/v1/usuarios/${usuario.id}/estado`, { estado: !usuario.estado });
-    cargar();
+    try {
+      await httpClient.patch(`/api/v1/usuarios/${usuario.id}/estado`, { estado: !usuario.estado });
+      cargar();
+    } catch {
+      setErrorLista(
+        `No se pudo ${usuario.estado ? "desactivar" : "activar"} a ${usuario.nombre}. Inténtalo de nuevo.`,
+      );
+    }
   };
 
   const confirmarEliminar = async () => {
@@ -100,7 +111,7 @@ export default function UsuariosPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Usuarios</h1>
-          <p className="page-subtitle">
+          <p className="page-subtitle" aria-live="polite">
             {cargando
               ? "Cargando equipo…"
               : `${usuarios.length} en el equipo · ${activos} ${activos === 1 ? "activo" : "activos"} · ${admins} ${admins === 1 ? "administrador" : "administradores"}`}
@@ -112,14 +123,24 @@ export default function UsuariosPage() {
         </button>
       </div>
 
-      <div className="table-wrap animate-in">
+      {errorLista && (
+        <div className="alert alert-error" role="alert">
+          <Icon name="alerta" size={16} />
+          {errorLista}
+        </div>
+      )}
+
+      <div className="table-wrap animate-in" aria-busy={cargando}>
         <table className={`table ${styles.tabla}`}>
+          <caption className="sr-only">Equipo del restaurante</caption>
           <thead>
             <tr>
-              <th>Usuario</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th className={styles.colAcciones}>Acciones</th>
+              <th scope="col">Usuario</th>
+              <th scope="col">Rol</th>
+              <th scope="col">Estado</th>
+              <th scope="col" className={styles.colAcciones}>
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -214,7 +235,7 @@ export default function UsuariosPage() {
           </tbody>
         </table>
 
-        {!cargando && usuarios.length === 0 && (
+        {!cargando && !errorLista && usuarios.length === 0 && (
           <div className="empty">
             <div className="empty-icon">
               <Icon name="usuarios" size={20} />

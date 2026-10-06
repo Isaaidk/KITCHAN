@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
@@ -28,6 +28,9 @@ export default function LoginPage() {
   // Se incrementa en cada error para volver a reproducir la animación.
   const [intentoFallido, setIntentoFallido] = useState(0);
 
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
 
@@ -36,6 +39,8 @@ export default function LoginPage() {
     if (!correo || !clave) {
       setError("Completa email y contraseña.");
       setIntentoFallido((n) => n + 1);
+      // El foco va al primer campo que falta.
+      (!correo ? emailRef : passwordRef).current?.focus();
       return;
     }
     setCargando(true);
@@ -47,8 +52,10 @@ export default function LoginPage() {
       login(data.access_token, data.usuario);
       navigate("/", { replace: true });
     } catch {
-      setError("Credenciales inválidas.");
+      setError("Credenciales inválidas. Revisa tu email y contraseña e inténtalo de nuevo.");
       setIntentoFallido((n) => n + 1);
+      passwordRef.current?.focus();
+      passwordRef.current?.select();
     } finally {
       setCargando(false);
     }
@@ -74,6 +81,7 @@ export default function LoginPage() {
           </label>
           <input
             id="email"
+            ref={emailRef}
             name="email"
             className="input"
             type="email"
@@ -92,6 +100,7 @@ export default function LoginPage() {
           <div className={styles.filaPassword}>
             <input
               id="password"
+              ref={passwordRef}
               name="password"
               className="input"
               type={mostrarPassword ? "text" : "password"}

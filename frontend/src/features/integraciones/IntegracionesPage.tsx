@@ -35,9 +35,9 @@ export default function IntegracionesPage() {
       .catch(() => setUberConectado(false));
   }, [restauranteId]);
 
-  const conectarUber = () => {
-    window.location.href = `${API_URL}/api/v1/integraciones/uber/auth/login?restaurante_id=${restauranteId}`;
-  };
+  // Es una navegación (redirección OAuth a Uber), así que va como enlace real:
+  // permite abrirla en otra pestaña y la anuncia como enlace, no como botón.
+  const urlConectarUber = `${API_URL}/api/v1/integraciones/uber/auth/login?restaurante_id=${restauranteId}`;
 
   return (
     <div className={styles.pagina}>
@@ -60,18 +60,23 @@ export default function IntegracionesPage() {
               <p className={styles.descripcion}>{DESCRIPCION.UBER_EATS}</p>
             </div>
             {uberConectado === null ? (
-              <span className={`skeleton ${styles.estadoSkeleton}`} aria-label="Verificando conexión" />
+              <>
+                <span className={`skeleton ${styles.estadoSkeleton}`} aria-hidden="true" />
+                <span className="sr-only" role="status">
+                  Verificando conexión…
+                </span>
+              </>
             ) : (
-              <span className={`${styles.estado} ${uberConectado ? styles.estadoOk : ""}`}>
+              <span className={`${styles.estado} ${uberConectado ? styles.estadoOk : ""}`} role="status">
                 {uberConectado ? "Conectado" : "No conectado"}
               </span>
             )}
             <div className={styles.accion}>
               {uberConectado === false && (
-                <button className="btn btn-primary btn-sm" onClick={conectarUber}>
-                  Conectar
+                <a className="btn btn-primary btn-sm" href={urlConectarUber}>
+                  Conectar Uber Eats
                   <Icon name="flecha" size={14} />
-                </button>
+                </a>
               )}
             </div>
           </div>

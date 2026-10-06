@@ -148,6 +148,11 @@
   animation: consumir 10s linear forwards;
 }
 
+/* Pausado: la barra de tiempo se detiene junto con el temporizador */
+.pausado .barra {
+  animation-play-state: paused;
+}
+
 @keyframes consumir {
   from {
     transform: scaleX(1);

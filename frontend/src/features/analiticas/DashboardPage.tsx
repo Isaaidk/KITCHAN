@@ -15,7 +15,7 @@ import {
 import { httpClient } from "../../shared/api/httpClient";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import { useCountUp } from "../../shared/hooks/useCountUp";
-import { moneda } from "../../shared/utils/formato";
+import { moneda, numero, porcentaje } from "../../shared/utils/formato";
 import CanalBadge from "../pedidos/CanalBadge";
 import { infoCanal } from "../pedidos/estadoUtils";
 import ExportModal from "./ExportModal";
@@ -62,7 +62,12 @@ function KpiCard({ kpi, indice }: { kpi: Kpi; indice: number }) {
           <Icon name={kpi.icono} size={18} />
         </span>
       </div>
-      <div className={styles.kpiValor}>{kpi.formato(animado)}</div>
+      {/* El número animado se oculta a lectores de pantalla (leerían valores
+          intermedios); ellos reciben el valor final. */}
+      <div className={styles.kpiValor} aria-hidden="true">
+        {kpi.formato(animado)}
+      </div>
+      <span className="sr-only">{kpi.formato(kpi.valor)}</span>
       <div className={styles.kpiDetalle}>{kpi.detalle}</div>
     </div>
   );
@@ -95,12 +100,25 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const [datos, setDatos] = useState<AnaliticasPedidos | null>(null);
   const [mostrarExport, setMostrarExport] = useState(false);
+  const [error, setError] = useState(false);
+  // Se incrementa para volver a pedir los datos tras un error.
+  const [intento, setIntento] = useState(0);
 
   useEffect(() => {
-    httpClient.get<AnaliticasPedidos>("/api/v1/reportes/pedidos/analiticas").then(({ data }) => {
-      setDatos(data);
-    });
-  }, []);
+    let vigente = true;
+    setError(false);
+    httpClient
+      .get<AnaliticasPedidos>("/api/v1/reportes/pedidos/analiticas")
+      .then(({ data }) => {
+        if (vigente) setDatos(data);
+      })
+      .catch(() => {
+        if (vigente) setError(true);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [intento]);
 
   const encabezado = (
     <div className="page-header">
@@ -122,7 +140,18 @@ export default function DashboardPage() {
     return (
       <div>
         {encabezado}
-        <DashboardSkeleton />
+        {error ? (
+          <div className="alert alert-error" role="alert">
+            <Icon name="alerta" size={16} />
+            <span style={{ flex: 1 }}>No se pudieron cargar las analíticas. Revisa la conexión e inténtalo de nuevo.</span>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIntento((n) => n + 1)}>
+              <Icon name="sync" size={14} />
+              Reintentar
+            </button>
+          </div>
+        ) : (
+          <DashboardSkeleton />
+        )}
       </div>
     );
   }
@@ -143,7 +172,7 @@ export default function DashboardPage() {
         ? styles.deltaSube
         : styles.deltaBaja;
   const textoDelta =
-    variacion === null ? "Sin datos de ayer" : `${variacion > 0 ? "+" : ""}${variacion.toFixed(0)}%`;
+    variacion === null ? "Sin datos de ayer" : `${variacion > 0 ? "+" : ""}${porcentaje(variacion)}`;
 
   const kpis: Kpi[] = [
     {
@@ -165,7 +194,7 @@ export default function DashboardPage() {
     {
       etiqueta: "Tiempo prom. preparación",
       valor: datos.tiempo_promedio_preparacion_minutos,
-      formato: (n) => `${n.toFixed(1)} min`,
+      formato: (n) => `${numero(n, 1)} min`,
       icono: "reloj",
       color: "#d97706",
       detalle: "Desde que se acepta hasta lista",
@@ -178,10 +207,16 @@ export default function DashboardPage() {
       color: "#dc2626",
       detalle:
         datos.pedidos_totales_hoy > 0
-          ? `${((datos.pedidos_cancelados_hoy / datos.pedidos_totales_hoy) * 100).toFixed(0)}% del total`
+          ? `${porcentaje((datos.pedidos_cancelados_hoy / datos.pedidos_totales_hoy) * 100)} del total`
           : "Sin pedidos hoy",
     },
   ];
+
+  // Los gráficos son SVG: se describen con texto para lectores de pantalla.
+  const descripcionCanales = `Pedidos de hoy por canal: ${datosPorCanal
+    .map(({ canal, cantidad }) => `${infoCanal(canal).nombre} ${cantidad}`)
+    .join(", ")}`;
+  const descripcionHoras = `Pedidos por hora: ${totalHoy} hoy y ${totalAyer} ayer`;
 
   return (
     <div>
@@ -209,6 +244,7 @@ export default function DashboardPage() {
               Aún no hay pedidos hoy.
             </div>
           ) : (
+            <div role="img" aria-label={descripcionCanales}>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={datosPorCanal} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} vertical={false} />
@@ -234,6 +270,7 @@ export default function DashboardPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
 
@@ -249,6 +286,7 @@ export default function DashboardPage() {
               <span className={`${styles.delta} ${claseDelta}`}>{textoDelta}</span>
             </div>
           </div>
+          <div role="img" aria-label={descripcionHoras}>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={datos.comparacion_hoy_vs_ayer} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
               <defs>
@@ -296,34 +334,38 @@ export default function DashboardPage() {
               />
             </AreaChart>
           </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       <div className="table-wrap animate-in" style={{ ["--i" as string]: 6 }}>
         <table className="table">
+          <caption className="sr-only">Pedidos de hoy por canal</caption>
           <thead>
             <tr>
-              <th>Canal</th>
-              <th>Participación</th>
-              <th className="table-num">Pedidos hoy</th>
+              <th scope="col">Canal</th>
+              <th scope="col">Participación</th>
+              <th scope="col" className="table-num">
+                Pedidos hoy
+              </th>
             </tr>
           </thead>
           <tbody>
             {datosPorCanal.map(({ canal, cantidad }) => {
-              const porcentaje = totalCanales > 0 ? (cantidad / totalCanales) * 100 : 0;
+              const participacion = totalCanales > 0 ? (cantidad / totalCanales) * 100 : 0;
               return (
                 <tr key={canal}>
                   <td>
                     <CanalBadge origen={canal} />
                   </td>
                   <td className={styles.participacion}>
-                    <div className={styles.barraFondo}>
+                    <div className={styles.barraFondo} aria-hidden="true">
                       <div
                         className={styles.barraRelleno}
-                        style={{ width: `${porcentaje}%`, background: infoCanal(canal).color }}
+                        style={{ width: `${participacion}%`, background: infoCanal(canal).color }}
                       />
                     </div>
-                    <span className={styles.porcentaje}>{porcentaje.toFixed(0)}%</span>
+                    <span className={styles.porcentaje}>{porcentaje(participacion)}</span>
                   </td>
                   <td className="table-num">
                     <strong>{cantidad}</strong>
