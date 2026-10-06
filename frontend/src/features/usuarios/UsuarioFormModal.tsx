@@ -1,7 +1,13 @@
 import { FormEvent, useState } from "react";
-import Icon from "../../shared/components/Icon";
+import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { RolUsuario, Usuario } from "../../shared/types/usuario";
+import styles from "./UsuarioFormModal.module.css";
+
+const ROLES: { valor: RolUsuario; titulo: string; descripcion: string; icono: NombreIcono }[] = [
+  { valor: "OPERADOR", titulo: "Operador", descripcion: "Trabaja la cola de pedidos de la cocina.", icono: "cola" },
+  { valor: "ADMIN", titulo: "Administrador", descripcion: "Además gestiona usuarios, canales y analíticas.", icono: "escudo" },
+];
 
 export interface DatosFormUsuario {
   nombre: string;
@@ -85,20 +91,29 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
             />
           </div>
         )}
-        <div className="field">
-          <label className="label" htmlFor="usuario-rol">
-            Rol
-          </label>
-          <select
-            id="usuario-rol"
-            className="select"
-            value={rol}
-            onChange={(e) => setRol(e.target.value as RolUsuario)}
-          >
-            <option value="ADMIN">ADMIN</option>
-            <option value="OPERADOR">OPERADOR</option>
-          </select>
-        </div>
+        <fieldset className={styles.rolGrupo}>
+          <legend className="label">Rol</legend>
+          <div className={styles.rolOpciones}>
+            {ROLES.map((opcion) => (
+              <label
+                key={opcion.valor}
+                className={`${styles.rolOpcion} ${rol === opcion.valor ? styles.rolOpcionActiva : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="usuario-rol"
+                  value={opcion.valor}
+                  checked={rol === opcion.valor}
+                  onChange={() => setRol(opcion.valor)}
+                  className={styles.rolRadio}
+                />
+                <Icon name={opcion.icono} size={18} />
+                <span className={styles.rolTitulo}>{opcion.titulo}</span>
+                <span className={styles.rolDescripcion}>{opcion.descripcion}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         {error && (
           <div className="alert alert-error">
@@ -107,7 +122,7 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
           </div>
         )}
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={guardando}>
             Cancelar
           </button>

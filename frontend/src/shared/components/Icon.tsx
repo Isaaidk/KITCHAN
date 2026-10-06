@@ -188,6 +188,12 @@ const PATHS = {
     </>
   ),
   rayo: <path d="M13 2 3 14h9l-1 8 10-12h-9Z" />,
+  escudo: (
+    <>
+      <path d="M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6L12 3Z" />
+      <path d="m9 12 2 2 4-4" />
+    </>
+  ),
 } as const;
 
 export type NombreIcono = keyof typeof PATHS;

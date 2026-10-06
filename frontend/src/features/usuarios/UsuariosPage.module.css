@@ -3,24 +3,40 @@
   animation-delay: calc(var(--i, 0) * 40ms);
 }
 
+/* Celdas más compactas para que las 3 acciones entren sin scroll horizontal */
+.tabla :global(td),
+.tabla :global(th) {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.filaInactiva .nombre,
+.filaInactiva .email {
+  color: var(--color-text-muted);
+}
+
 .persona {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* Avatar cuadrado redondeado (squircle) en vez de círculo */
 .avatar {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--tono), color-mix(in srgb, var(--tono) 60%, #0f172a));
+  border-radius: 12px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--tono) 85%, white), var(--tono));
   color: #fff;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tono) 14%, white);
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 6px 14px -8px color-mix(in srgb, var(--tono) 75%, #0f172a);
   transition: filter var(--dur) ease;
 }
 
@@ -36,14 +52,75 @@
 }
 
 .nombre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
+}
+
+.tu {
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--color-primary-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 .email {
   font-size: 0.8rem;
   color: var(--color-text-muted);
+  max-width: 200px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Rol: etiqueta con ícono, en sentence case */
+.rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.rolAdmin {
+  background: #f3effe;
+  color: #6d28d9;
+}
+
+.rolOperador {
+  background: #ecf7fa;
+  color: #0e7490;
+}
+
+/* Estado: punto + texto plano */
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.estado::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+}
+
+.estadoActivo {
+  color: #166534;
+}
+
+.estadoActivo::before {
+  background: var(--color-success);
 }
 
 .colAcciones {
@@ -53,12 +130,31 @@
 .acciones {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 4px;
 }
 
 .eliminar:hover:not(:disabled) {
   color: var(--color-danger) !important;
   background: var(--color-danger-soft) !important;
+}
+
+/* Confirmación de eliminación */
+.confirmTexto {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.confirmTexto strong {
+  color: var(--color-text);
+}
+
+.confirmAcciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 /* En pantallas medianas las acciones quedan solo con ícono (el texto va en el title). */

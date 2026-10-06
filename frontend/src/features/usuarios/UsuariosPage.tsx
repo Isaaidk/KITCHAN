@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
+import Modal from "../../shared/components/Modal";
 import { useAuthStore } from "../../shared/stores/authStore";
-import type { Usuario } from "../../shared/types/usuario";
+import type { RolUsuario, Usuario } from "../../shared/types/usuario";
 import UsuarioFormModal, { DatosFormUsuario } from "./UsuarioFormModal";
 import styles from "./UsuariosPage.module.css";
+
+const ETIQUETA_ROL: Record<RolUsuario, string> = {
+  ADMIN: "Administrador",
+  OPERADOR: "Operador",
+};
 
 function iniciales(nombre: string) {
   return nombre
@@ -18,8 +24,9 @@ function iniciales(nombre: string) {
 // Color de avatar estable a partir del nombre.
 const TONOS = ["#2563eb", "#7c3aed", "#0891b2", "#16a34a", "#d97706", "#db2777"];
 function tonoPara(nombre: string) {
-  let h = 0;
-  for (const c of nombre) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  let h = 5381;
+  for (const c of nombre) h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;
+  h = (h ^ (h >>> 15)) >>> 0;
   return TONOS[h % TONOS.length];
 }
 
@@ -27,7 +34,16 @@ export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [editando, setEditando] = useState<Usuario | null | "nuevo">(null);
   const [cargando, setCargando] = useState(true);
+  const [porEliminar, setPorEliminarRaw] = useState<Usuario | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
   const restauranteId = useAuthStore((s) => s.usuario?.restaurante_id);
+  const yoId = useAuthStore((s) => s.usuario?.id);
+
+  const setPorEliminar = (usuario: Usuario | null) => {
+    setErrorEliminar(null);
+    setPorEliminarRaw(usuario);
+  };
 
   const cargar = () => {
     if (!restauranteId) return;
@@ -62,13 +78,22 @@ export default function UsuariosPage() {
     cargar();
   };
 
-  const eliminar = async (usuario: Usuario) => {
-    if (!confirm(`¿Eliminar a ${usuario.nombre}?`)) return;
-    await httpClient.delete(`/api/v1/usuarios/${usuario.id}`);
-    cargar();
+  const confirmarEliminar = async () => {
+    if (!porEliminar) return;
+    setEliminando(true);
+    try {
+      await httpClient.delete(`/api/v1/usuarios/${porEliminar.id}`);
+      setPorEliminar(null);
+      cargar();
+    } catch {
+      setErrorEliminar("No se pudo eliminar el usuario. Inténtalo de nuevo.");
+    } finally {
+      setEliminando(false);
+    }
   };
 
   const activos = usuarios.filter((u) => u.estado).length;
+  const admins = usuarios.filter((u) => u.rol === "ADMIN").length;
 
   return (
     <div>
@@ -76,7 +101,9 @@ export default function UsuariosPage() {
         <div>
           <h1 className="page-title">Usuarios</h1>
           <p className="page-subtitle">
-            {cargando ? "Cargando equipo..." : `${usuarios.length} en el equipo · ${activos} activos`}
+            {cargando
+              ? "Cargando equipo..."
+              : `${usuarios.length} en el equipo · ${activos} ${activos === 1 ? "activo" : "activos"} · ${admins} ${admins === 1 ? "administrador" : "administradores"}`}
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => setEditando("nuevo")}>
@@ -86,7 +113,7 @@ export default function UsuariosPage() {
       </div>
 
       <div className="table-wrap animate-in">
-        <table className="table">
+        <table className={`table ${styles.tabla}`}>
           <thead>
             <tr>
               <th>Usuario</th>
@@ -119,7 +146,11 @@ export default function UsuariosPage() {
               ))}
 
             {usuarios.map((usuario, i) => (
-              <tr key={usuario.id} className={styles.fila} style={{ ["--i" as string]: i }}>
+              <tr
+                key={usuario.id}
+                className={`${styles.fila} ${usuario.estado ? "" : styles.filaInactiva}`}
+                style={{ ["--i" as string]: i }}
+              >
                 <td>
                   <div className={styles.persona}>
                     <div
@@ -129,31 +160,29 @@ export default function UsuariosPage() {
                       {iniciales(usuario.nombre)}
                     </div>
                     <div className={styles.personaDatos}>
-                      <span className={styles.nombre}>{usuario.nombre}</span>
+                      <span className={styles.nombre}>
+                        {usuario.nombre}
+                        {usuario.id === yoId && <span className={styles.tu}>Tú</span>}
+                      </span>
                       <span className={styles.email}>{usuario.email}</span>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <span
-                    className="badge"
-                    style={{ ["--badge-color" as string]: usuario.rol === "ADMIN" ? "#7c3aed" : "#0891b2" }}
-                  >
-                    {usuario.rol}
+                  <span className={`${styles.rol} ${usuario.rol === "ADMIN" ? styles.rolAdmin : styles.rolOperador}`}>
+                    <Icon name={usuario.rol === "ADMIN" ? "escudo" : "cola"} size={13} />
+                    {ETIQUETA_ROL[usuario.rol]}
                   </span>
                 </td>
                 <td>
-                  <span
-                    className="badge badge-dot"
-                    style={{ ["--badge-color" as string]: usuario.estado ? "#16a34a" : "#dc2626" }}
-                  >
+                  <span className={`${styles.estado} ${usuario.estado ? styles.estadoActivo : ""}`}>
                     {usuario.estado ? "Activo" : "Inactivo"}
                   </span>
                 </td>
                 <td>
                   <div className={styles.acciones}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setEditando(usuario)} title="Editar">
-                      <Icon name="editar" size={15} />
+                    <button className="btn btn-secondary btn-sm" onClick={() => setEditando(usuario)} title="Editar">
+                      <Icon name="editar" size={14} />
                       <span className={styles.accionTexto}>Editar</span>
                     </button>
                     <button
@@ -161,16 +190,16 @@ export default function UsuariosPage() {
                       onClick={() => cambiarEstado(usuario)}
                       title={usuario.estado ? "Desactivar" : "Activar"}
                     >
-                      <Icon name="power" size={15} />
+                      <Icon name="power" size={14} />
                       <span className={styles.accionTexto}>{usuario.estado ? "Desactivar" : "Activar"}</span>
                     </button>
                     <button
-                      className={`btn btn-ghost btn-sm ${styles.eliminar}`}
-                      onClick={() => eliminar(usuario)}
+                      className={`btn btn-ghost btn-sm btn-icon ${styles.eliminar}`}
+                      onClick={() => setPorEliminar(usuario)}
                       title="Eliminar"
+                      aria-label={`Eliminar a ${usuario.nombre}`}
                     >
-                      <Icon name="papelera" size={15} />
-                      <span className={styles.accionTexto}>Eliminar</span>
+                      <Icon name="papelera" size={14} />
                     </button>
                   </div>
                 </td>
@@ -196,6 +225,33 @@ export default function UsuariosPage() {
           onClose={() => setEditando(null)}
           onGuardar={guardar}
         />
+      )}
+
+      {porEliminar && (
+        <Modal titulo="Eliminar usuario" onClose={() => setPorEliminar(null)} ancho={440}>
+          <p className={styles.confirmTexto}>
+            Vas a eliminar a <strong>{porEliminar.nombre}</strong> ({porEliminar.email}). Esta acción no se puede
+            deshacer.
+          </p>
+          {errorEliminar && (
+            <div className="alert alert-error">
+              <Icon name="alerta" size={16} />
+              {errorEliminar}
+            </div>
+          )}
+          <div className={styles.confirmAcciones}>
+            <button className="btn btn-secondary" onClick={() => setPorEliminar(null)} disabled={eliminando}>
+              Cancelar
+            </button>
+            <button
+              className={`btn btn-danger ${eliminando ? "is-loading" : ""}`}
+              onClick={confirmarEliminar}
+              disabled={eliminando}
+            >
+              Eliminar
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );
