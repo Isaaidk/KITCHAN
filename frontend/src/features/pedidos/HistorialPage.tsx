@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
 import type { EstadoPedido, Pedido, PedidosPaginados } from "../../shared/types/pedido";
@@ -20,24 +21,59 @@ const formatoHora = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute
 export default function HistorialPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [total, setTotal] = useState(0);
-  const [pagina, setPagina] = useState(1);
-  // `busqueda` es lo que se ve en el campo; `search` es lo que se consulta.
-  const [busqueda, setBusqueda] = useState("");
-  const [search, setSearch] = useState("");
-  const [estado, setEstado] = useState("");
-  const [canal, setCanal] = useState("");
   const [seleccionado, setSeleccionado] = useState<Pedido | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
   // Se incrementa para volver a pedir los datos tras un error.
   const [intento, setIntento] = useState(0);
 
+  // Los filtros y la página viven en la URL (?q=…&estado=…&canal=…&pagina=…):
+  // se pueden compartir, recargar y volver con el botón "atrás".
+  const [params, setParams] = useSearchParams();
+  const search = params.get("q") ?? "";
+  const estadoParam = params.get("estado") ?? "";
+  const estado = Object.keys(ETIQUETA_ESTADO).includes(estadoParam) ? estadoParam : "";
+  const canalParam = params.get("canal") ?? "";
+  const canal = CANALES_FILTRO.includes(canalParam) ? canalParam : "";
+  const paginaParam = Number.parseInt(params.get("pagina") ?? "1", 10);
+  const pagina = Number.isFinite(paginaParam) && paginaParam > 0 ? paginaParam : 1;
+
+  /** Cambia parámetros de la URL; un valor vacío quita el parámetro. */
+  const actualizar = (cambios: Record<string, string>, reemplazar = true) =>
+    setParams(
+      (previos) => {
+        const nuevos = new URLSearchParams(previos);
+        for (const [clave, valor] of Object.entries(cambios)) {
+          if (valor) nuevos.set(clave, valor);
+          else nuevos.delete(clave);
+        }
+        return nuevos;
+      },
+      { replace: reemplazar },
+    );
+
+  // `busqueda` es lo que se ve en el campo; `search` (URL) es lo que se consulta.
+  const [busqueda, setBusqueda] = useState(search);
+  // Último valor que escribimos nosotros en la URL: distingue nuestros cambios
+  // de los de "atrás/adelante" para no pisar lo que la persona sigue tecleando.
+  const qEscritaRef = useRef(search);
+
   useEffect(() => {
+    if (search !== qEscritaRef.current) {
+      qEscritaRef.current = search;
+      setBusqueda(search);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    const nuevo = busqueda.trim();
+    if (nuevo === search) return;
     const espera = setTimeout(() => {
-      setPagina(1);
-      setSearch(busqueda.trim());
+      qEscritaRef.current = nuevo;
+      actualizar({ q: nuevo, pagina: "" });
     }, ESPERA_BUSQUEDA_MS);
     return () => clearTimeout(espera);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busqueda]);
 
   useEffect(() => {
@@ -70,6 +106,10 @@ export default function HistorialPage() {
       vigente = false;
     };
   }, [pagina, search, estado, canal, intento]);
+
+  // Cada página queda en el historial del navegador (el botón "atrás" la recupera);
+  // la página 1 es la predeterminada y no se escribe en la URL.
+  const irAPagina = (n: number) => actualizar({ pagina: n > 1 ? String(n) : "" }, false);
 
   const totalPaginas = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const primeraCarga = cargando && pedidos.length === 0;
@@ -106,10 +146,7 @@ export default function HistorialPage() {
           <select
             className={`select ${styles.selectCanal}`}
             value={canal}
-            onChange={(e) => {
-              setPagina(1);
-              setCanal(e.target.value);
-            }}
+            onChange={(e) => actualizar({ canal: e.target.value, pagina: "" })}
             aria-label="Filtrar por canal"
           >
             <option value="">Todos los canales</option>
@@ -129,10 +166,7 @@ export default function HistorialPage() {
               aria-pressed={estado === valor}
               className={`${styles.chip} ${estado === valor ? styles.chipActivo : ""}`}
               style={valor ? { ["--chip-color" as string]: colorVarEstado(valor as EstadoPedido) } : undefined}
-              onClick={() => {
-                setPagina(1);
-                setEstado(valor);
-              }}
+              onClick={() => actualizar({ estado: valor, pagina: "" })}
             >
               {valor && <span className={styles.chipPunto} aria-hidden="true" />}
               {etiqueta}
@@ -245,7 +279,7 @@ export default function HistorialPage() {
         <button
           className="btn btn-secondary btn-sm"
           disabled={pagina <= 1}
-          onClick={() => setPagina((p) => p - 1)}
+          onClick={() => irAPagina(pagina - 1)}
         >
           <Icon name="flecha" size={14} style={{ transform: "rotate(180deg)" }} />
           Anterior
@@ -256,7 +290,7 @@ export default function HistorialPage() {
         <button
           className="btn btn-secondary btn-sm"
           disabled={pagina >= totalPaginas}
-          onClick={() => setPagina((p) => p + 1)}
+          onClick={() => irAPagina(pagina + 1)}
         >
           Siguiente
           <Icon name="flecha" size={14} />

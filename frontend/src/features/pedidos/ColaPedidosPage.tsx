@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Icon from "../../shared/components/Icon";
 import { useOrdersStore } from "../../shared/stores/ordersStore";
 import type { EstadoPedido, Pedido } from "../../shared/types/pedido";
@@ -16,8 +17,6 @@ const TEXTO_VACIO: Partial<Record<EstadoPedido, string>> = {
 export default function ColaPedidosPage() {
   const pedidosMap = useOrdersStore((s) => s.pedidos);
   const cargado = useOrdersStore((s) => s.cargado);
-  const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | "TODOS">("TODOS");
-  const [filtroCanal, setFiltroCanal] = useState<string>("TODOS");
   const [seleccionado, setSeleccionado] = useState<Pedido | null>(null);
 
   const pedidos = useMemo(() => Object.values(pedidosMap), [pedidosMap]);
@@ -26,6 +25,28 @@ export default function ColaPedidosPage() {
     () => Array.from(new Set(pedidos.map((p) => p.origen))).sort(),
     [pedidos],
   );
+
+  // Los filtros viven en la URL (?estado=…&canal=…): se pueden compartir,
+  // recargar y volver con el botón "atrás". Ausente = "TODOS".
+  const [params, setParams] = useSearchParams();
+  const estadoParam = params.get("estado");
+  const filtroEstado: EstadoPedido | "TODOS" = ESTADOS_ACTIVOS.includes(estadoParam as EstadoPedido)
+    ? (estadoParam as EstadoPedido)
+    : "TODOS";
+  const canalParam = params.get("canal");
+  // Los canales se conocen al cargar los pedidos; hasta entonces se respeta el de la URL.
+  const filtroCanal = canalParam && (!cargado || canales.includes(canalParam)) ? canalParam : "TODOS";
+
+  const cambiarFiltro = (clave: "estado" | "canal", valor: string) =>
+    setParams(
+      (previos) => {
+        const nuevos = new URLSearchParams(previos);
+        if (valor === "TODOS") nuevos.delete(clave);
+        else nuevos.set(clave, valor);
+        return nuevos;
+      },
+      { replace: true },
+    );
 
   const columnas = filtroEstado === "TODOS" ? ESTADOS_ACTIVOS : [filtroEstado];
 
@@ -53,7 +74,7 @@ export default function ColaPedidosPage() {
           <select
             className="select"
             value={filtroEstado}
-            onChange={(e) => setFiltroEstado(e.target.value as EstadoPedido | "TODOS")}
+            onChange={(e) => cambiarFiltro("estado", e.target.value)}
             aria-label="Filtrar por estado"
           >
             <option value="TODOS">Todos los estados</option>
@@ -66,7 +87,7 @@ export default function ColaPedidosPage() {
           <select
             className="select"
             value={filtroCanal}
-            onChange={(e) => setFiltroCanal(e.target.value)}
+            onChange={(e) => cambiarFiltro("canal", e.target.value)}
             aria-label="Filtrar por canal"
           >
             <option value="TODOS">Todos los canales</option>
