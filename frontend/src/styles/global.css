@@ -80,7 +80,7 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family:
-    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
