@@ -10,16 +10,35 @@ import styles from "./HistorialPage.module.css";
 
 const PAGE_SIZE = 20;
 const CANALES_FILTRO = ["UBER_EATS", "RAPPI", "PEDIDOS_YA", "WHATSAPP", "LOCAL"];
+// Espera tras la última tecla antes de consultar: evita una petición por letra.
+const ESPERA_BUSQUEDA_MS = 300;
+
+// Se crean una sola vez (no por fila) y siguen el idioma del navegador.
+const formatoFecha = new Intl.DateTimeFormat(undefined, { dateStyle: "short" });
+const formatoHora = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
 
 export default function HistorialPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [total, setTotal] = useState(0);
   const [pagina, setPagina] = useState(1);
+  // `busqueda` es lo que se ve en el campo; `search` es lo que se consulta.
+  const [busqueda, setBusqueda] = useState("");
   const [search, setSearch] = useState("");
   const [estado, setEstado] = useState("");
   const [canal, setCanal] = useState("");
   const [seleccionado, setSeleccionado] = useState<Pedido | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
+  // Se incrementa para volver a pedir los datos tras un error.
+  const [intento, setIntento] = useState(0);
+
+  useEffect(() => {
+    const espera = setTimeout(() => {
+      setPagina(1);
+      setSearch(busqueda.trim());
+    }, ESPERA_BUSQUEDA_MS);
+    return () => clearTimeout(espera);
+  }, [busqueda]);
 
   useEffect(() => {
     const params: Record<string, string | number> = { page: pagina, page_size: PAGE_SIZE };
@@ -27,15 +46,30 @@ export default function HistorialPage() {
     if (estado) params.estado = estado;
     if (canal) params.canal = canal;
 
+    // `vigente` descarta respuestas de consultas que ya fueron reemplazadas.
+    let vigente = true;
     setCargando(true);
+    setError(false);
     httpClient
       .get<PedidosPaginados>("/api/v1/pedidos", { params })
       .then(({ data }) => {
+        if (!vigente) return;
         setPedidos(data.resultados);
         setTotal(data.total);
       })
-      .finally(() => setCargando(false));
-  }, [pagina, search, estado, canal]);
+      .catch(() => {
+        if (!vigente) return;
+        // Se vacía la tabla: mostrar filas de otra consulta bajo filtros nuevos engaña.
+        setPedidos([]);
+        setError(true);
+      })
+      .finally(() => {
+        if (vigente) setCargando(false);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [pagina, search, estado, canal, intento]);
 
   const totalPaginas = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const primeraCarga = cargando && pedidos.length === 0;
@@ -45,8 +79,10 @@ export default function HistorialPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Historial</h1>
-          <p className="page-subtitle">
-            {total} {total === 1 ? "pedido registrado" : "pedidos registrados"}
+          <p className="page-subtitle" aria-live="polite">
+            {error
+              ? "No se pudo obtener el total"
+              : `${total} ${total === 1 ? "pedido registrado" : "pedidos registrados"}`}
           </p>
         </div>
       </div>
@@ -63,11 +99,8 @@ export default function HistorialPage() {
               autoComplete="off"
               spellCheck={false}
               placeholder="Buscar por cliente o id externo…"
-              value={search}
-              onChange={(e) => {
-                setPagina(1);
-                setSearch(e.target.value);
-              }}
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
           <select
@@ -101,22 +134,40 @@ export default function HistorialPage() {
                 setEstado(valor);
               }}
             >
-              {valor && <span className={styles.chipPunto} />}
+              {valor && <span className={styles.chipPunto} aria-hidden="true" />}
               {etiqueta}
             </button>
           ))}
         </div>
       </div>
 
-      <div className={`table-wrap animate-in ${cargando && !primeraCarga ? styles.actualizando : ""}`} style={{ ["--i" as string]: 1 }}>
+      {error && (
+        <div className="alert alert-error" role="alert">
+          <Icon name="alerta" size={16} />
+          <span className={styles.errorTexto}>No se pudo cargar el historial. Revisa la conexión e inténtalo de nuevo.</span>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIntento((n) => n + 1)}>
+            <Icon name="sync" size={14} />
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      <div
+        className={`table-wrap animate-in ${cargando && !primeraCarga ? styles.actualizando : ""}`}
+        style={{ ["--i" as string]: 1 }}
+        aria-busy={cargando}
+      >
         <table className="table">
+          <caption className="sr-only">Historial de pedidos</caption>
           <thead>
             <tr>
-              <th>Cliente</th>
-              <th>Canal</th>
-              <th>Estado</th>
-              <th className="table-num">Total</th>
-              <th>Fecha</th>
+              <th scope="col">Cliente</th>
+              <th scope="col">Canal</th>
+              <th scope="col">Estado</th>
+              <th scope="col" className="table-num">
+                Total
+              </th>
+              <th scope="col">Fecha</th>
             </tr>
           </thead>
           <tbody>
@@ -131,45 +182,55 @@ export default function HistorialPage() {
                 </tr>
               ))}
 
-            {pedidos.map((pedido) => (
-              <tr key={pedido.id} onClick={() => setSeleccionado(pedido)} className={styles.fila}>
-                <td>
-                  {/* El clic en toda la fila sigue funcionando con mouse; este botón es el
-                      punto de acceso para teclado y lectores de pantalla. */}
-                  <button
-                    type="button"
-                    className={`${styles.cliente} ${styles.clienteBoton}`}
-                    onClick={() => setSeleccionado(pedido)}
-                    aria-haspopup="dialog"
-                  >
-                    {pedido.cliente}
-                  </button>
-                  {pedido.id_externo && <div className={styles.referencia}>#{pedido.id_externo}</div>}
-                </td>
-                <td>
-                  <CanalBadge origen={pedido.origen} />
-                </td>
-                <td>
-                  <span
-                    className="badge badge-dot"
-                    style={{ ["--badge-color" as string]: colorVarEstado(pedido.estado) }}
-                  >
-                    {ETIQUETA_ESTADO[pedido.estado]}
-                  </span>
-                </td>
-                <td className={`table-num ${styles.total}`}>{moneda(pedido.total)}</td>
-                <td className={styles.fecha}>
-                  <div>{new Date(pedido.fecha_creacion).toLocaleDateString()}</div>
-                  <div className={styles.hora}>
-                    {new Date(pedido.fecha_creacion).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {pedidos.map((pedido) => {
+              const fecha = new Date(pedido.fecha_creacion);
+              return (
+                <tr key={pedido.id} onClick={() => setSeleccionado(pedido)} className={styles.fila}>
+                  <td>
+                    {/* El clic en toda la fila sigue funcionando con mouse; este botón es el
+                        punto de acceso para teclado y lectores de pantalla. */}
+                    <button
+                      type="button"
+                      className={`${styles.cliente} ${styles.clienteBoton}`}
+                      onClick={() => setSeleccionado(pedido)}
+                      aria-haspopup="dialog"
+                      title={pedido.cliente}
+                    >
+                      {pedido.cliente}
+                    </button>
+                    {pedido.id_externo && (
+                      <div className={styles.referencia} translate="no">
+                        #{pedido.id_externo}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <CanalBadge origen={pedido.origen} />
+                  </td>
+                  <td>
+                    <span
+                      className="badge badge-dot"
+                      style={{ ["--badge-color" as string]: colorVarEstado(pedido.estado) }}
+                    >
+                      {ETIQUETA_ESTADO[pedido.estado]}
+                    </span>
+                  </td>
+                  <td className={`table-num ${styles.total}`}>{moneda(pedido.total)}</td>
+                  <td className={styles.fecha}>
+                    <time dateTime={pedido.fecha_creacion}>
+                      <span className={styles.bloque}>{formatoFecha.format(fecha)}</span>
+                      <span className={`${styles.bloque} ${styles.hora}`}>{formatoHora.format(fecha)}</span>
+                    </time>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
-        {!cargando && pedidos.length === 0 && (
+        {primeraCarga && <span className="sr-only" role="status">Cargando pedidos…</span>}
+
+        {!cargando && !error && pedidos.length === 0 && (
           <div className="empty">
             <div className="empty-icon">
               <Icon name="buscar" size={20} />
@@ -180,7 +241,7 @@ export default function HistorialPage() {
         )}
       </div>
 
-      <div className={styles.paginacion}>
+      <nav className={styles.paginacion} aria-label="Paginación del historial">
         <button
           className="btn btn-secondary btn-sm"
           disabled={pagina <= 1}
@@ -189,7 +250,7 @@ export default function HistorialPage() {
           <Icon name="flecha" size={14} style={{ transform: "rotate(180deg)" }} />
           Anterior
         </button>
-        <span className={styles.paginaTexto}>
+        <span className={styles.paginaTexto} aria-live="polite">
           Página <strong>{pagina}</strong> de {totalPaginas}
         </span>
         <button
@@ -200,7 +261,7 @@ export default function HistorialPage() {
           Siguiente
           <Icon name="flecha" size={14} />
         </button>
-      </div>
+      </nav>
 
       {seleccionado && (
         <OrderDetailModal pedido={seleccionado} onClose={() => setSeleccionado(null)} />

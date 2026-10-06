@@ -90,9 +90,21 @@
   white-space: nowrap;
 }
 
+.errorTexto {
+  flex: 1;
+}
+
+.bloque {
+  display: block;
+}
+
 /* El nombre es un botón (accesible por teclado) con aspecto de texto */
 .clienteBoton {
   display: block;
+  /* Un nombre muy largo se recorta con "…" en vez de ensanchar la tabla */
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 0;
   border: none;
   background: none;
