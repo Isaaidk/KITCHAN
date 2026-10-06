@@ -19,8 +19,11 @@ function generarCSV(datos: AnaliticasPedidos): string {
   return filas.map((fila) => fila.join(",")).join("\n");
 }
 
+// Fecha local (AAAA-MM-DD): toISOString usa UTC y de noche daría la fecha de mañana.
+const formatoFecha = new Intl.DateTimeFormat("sv-SE", { year: "numeric", month: "2-digit", day: "2-digit" });
+
 function nombreArchivo(): string {
-  return `kitchan-analiticas-${new Date().toISOString().slice(0, 10)}.csv`;
+  return `kitchan-analiticas-${formatoFecha.format(new Date())}.csv`;
 }
 
 export default function ExportModal({ datos, onClose }: Props) {
@@ -57,8 +60,12 @@ export default function ExportModal({ datos, onClose }: Props) {
     const enlace = document.createElement("a");
     enlace.href = url;
     enlace.download = nombreArchivo();
+    // Firefox exige el enlace dentro del documento; y se libera la URL un
+    // poco después para no cancelar la descarga en Safari.
+    document.body.appendChild(enlace);
     enlace.click();
-    URL.revokeObjectURL(url);
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
@@ -98,11 +105,24 @@ export default function ExportModal({ datos, onClose }: Props) {
         className={styles.alternar}
         onClick={() => setVerCsv((v) => !v)}
         aria-expanded={verCsv}
+        aria-controls="export-csv"
       >
         <Icon name="flecha" size={13} className={verCsv ? styles.flechaAbierta : undefined} />
         {verCsv ? "Ocultar CSV" : "Ver CSV"}
       </button>
-      {verCsv && <textarea className={`textarea ${styles.csv}`} readOnly value={csv} rows={Math.min(8, canales.length + 2)} />}
+      {verCsv && (
+        <textarea
+          id="export-csv"
+          name="csv"
+          className={`textarea ${styles.csv}`}
+          aria-label="Contenido del archivo CSV"
+          readOnly
+          spellCheck={false}
+          translate="no"
+          value={csv}
+          rows={Math.min(8, canales.length + 2)}
+        />
+      )}
 
       {error && (
         <div className="alert alert-error" role="alert">
@@ -116,6 +136,10 @@ export default function ExportModal({ datos, onClose }: Props) {
           <Icon name={copiado ? "check" : "copiar"} size={16} />
           {copiado ? "Copiado" : "Copiar"}
         </button>
+        {/* Anuncia el resultado a lectores de pantalla; el botón ya lo muestra visualmente. */}
+        <span className="sr-only" role="status">
+          {copiado ? "CSV copiado al portapapeles" : ""}
+        </span>
         <button className="btn btn-primary" onClick={descargar}>
           <Icon name="descargar" size={16} />
           Descargar CSV
