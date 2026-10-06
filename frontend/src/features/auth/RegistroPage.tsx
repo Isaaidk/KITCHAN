@@ -31,10 +31,45 @@ const VACIO: FormState = {
   admin_password: "",
 };
 
+interface CampoProps {
+  campo: keyof FormState;
+  etiqueta: string;
+  ayuda?: string;
+  completo?: boolean;
+  valor: string;
+  onCambio: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  placeholder?: string;
+  autoComplete?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  children?: React.ReactNode;
+}
+
+function Campo({ campo, etiqueta, ayuda, completo, valor, onCambio, children, ...input }: CampoProps) {
+  const id = `registro-${campo}`;
+  return (
+    <div className={`field ${completo ? styles.completo : ""}`}>
+      <label className="label" htmlFor={id}>
+        {etiqueta} {ayuda && <span className="label-hint">· {ayuda}</span>}
+      </label>
+      {children ?? <input id={id} className="input" value={valor} onChange={onCambio} required {...input} />}
+    </div>
+  );
+}
+
+/** El backend puede devolver `detail` como texto o como lista de errores de validación. */
+function mensajeDeError(err: any): string {
+  const detail = err?.response?.data?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail.length > 0 && typeof detail[0]?.msg === "string") return detail[0].msg;
+  return "No se pudo crear el restaurante.";
+}
+
 export default function RegistroPage() {
   const [form, setForm] = useState<FormState>(VACIO);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
@@ -71,92 +106,124 @@ export default function RegistroPage() {
       login(data.access_token, data.usuario);
       navigate("/", { replace: true });
     } catch (err: any) {
-      setError(err?.response?.data?.detail ?? "No se pudo crear el restaurante.");
+      setError(mensajeDeError(err));
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <AuthLayout ancho={560}>
+    <AuthLayout ancho={600}>
       <div className={styles.logoMovil}>
         <div className={styles.logo}>K</div>
       </div>
-      <h2 className={styles.formTitulo}>Crear restaurante</h2>
-      <p className={styles.formBajada}>Configura tu restaurante y la cuenta del administrador.</p>
+      <h2 className={styles.formTitulo}>Crea tu restaurante</h2>
+      <p className={styles.formBajada}>Dos pasos: los datos del local y la cuenta del administrador.</p>
 
       <form onSubmit={onSubmit}>
         <div className={styles.seccionForm}>
           <span className={styles.seccionNumero}>1</span>
-          Datos del restaurante
+          <span className={styles.seccionTitulo}>Datos del restaurante</span>
         </div>
         <div className={styles.grilla}>
-          <div className="field">
-            <label className="label">Nombre comercial</label>
-            <input className="input" value={form.nombre_comercial} onChange={set("nombre_comercial")} required />
-          </div>
-          <div className="field">
-            <label className="label">Razón social</label>
-            <input className="input" value={form.razon_social} onChange={set("razon_social")} required />
-          </div>
-          <div className="field">
-            <label className="label">Identificación fiscal (RUC/NIT)</label>
-            <input
-              className="input"
-              value={form.identificacion_fiscal}
-              onChange={set("identificacion_fiscal")}
-              required
-            />
-          </div>
-          <div className="field">
-            <label className="label">Teléfono</label>
-            <input className="input" value={form.telefono} onChange={set("telefono")} required />
-          </div>
-          <div className={`field ${styles.completo}`}>
-            <label className="label">Dirección</label>
-            <input className="input" value={form.direccion} onChange={set("direccion")} required />
-          </div>
-          <div className={`field ${styles.completo}`}>
-            <label className="label">Email corporativo</label>
-            <input
-              className="input"
-              type="email"
-              value={form.email_corporativo}
-              onChange={set("email_corporativo")}
-              required
-            />
-          </div>
+          <Campo
+            campo="nombre_comercial"
+            etiqueta="Nombre comercial"
+            valor={form.nombre_comercial}
+            onCambio={set("nombre_comercial")}
+            placeholder="Ej. La Esquina Grill"
+            autoComplete="organization"
+          />
+          <Campo
+            campo="razon_social"
+            etiqueta="Razón social"
+            valor={form.razon_social}
+            onCambio={set("razon_social")}
+            placeholder="Ej. La Esquina S.A."
+          />
+          <Campo
+            campo="identificacion_fiscal"
+            etiqueta="Identificación fiscal"
+            ayuda="RUC o NIT"
+            valor={form.identificacion_fiscal}
+            onCambio={set("identificacion_fiscal")}
+          />
+          <Campo
+            campo="telefono"
+            etiqueta="Teléfono"
+            valor={form.telefono}
+            onCambio={set("telefono")}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+          />
+          <Campo
+            campo="direccion"
+            etiqueta="Dirección"
+            completo
+            valor={form.direccion}
+            onCambio={set("direccion")}
+            autoComplete="street-address"
+          />
+          <Campo
+            campo="email_corporativo"
+            etiqueta="Email corporativo"
+            completo
+            valor={form.email_corporativo}
+            onCambio={set("email_corporativo")}
+            type="email"
+            placeholder="contacto@turestaurante.com"
+          />
         </div>
 
         <div className={styles.seccionForm}>
           <span className={styles.seccionNumero}>2</span>
-          Cuenta del administrador
+          <span className={styles.seccionTitulo}>Cuenta del administrador</span>
         </div>
         <div className={styles.grilla}>
-          <div className={`field ${styles.completo}`}>
-            <label className="label">Nombre del administrador</label>
-            <input className="input" value={form.admin_nombre} onChange={set("admin_nombre")} required />
-          </div>
-          <div className="field">
-            <label className="label">Email del administrador</label>
-            <input
-              className="input"
-              type="email"
-              value={form.admin_email}
-              onChange={set("admin_email")}
-              required
-            />
-          </div>
-          <div className="field">
-            <label className="label">Contraseña</label>
-            <input
-              className="input"
-              type="password"
-              value={form.admin_password}
-              onChange={set("admin_password")}
-              required
-            />
-          </div>
+          <Campo
+            campo="admin_nombre"
+            etiqueta="Nombre completo"
+            completo
+            valor={form.admin_nombre}
+            onCambio={set("admin_nombre")}
+            autoComplete="name"
+          />
+          <Campo
+            campo="admin_email"
+            etiqueta="Email"
+            valor={form.admin_email}
+            onCambio={set("admin_email")}
+            type="email"
+            autoComplete="username"
+          />
+          <Campo
+            campo="admin_password"
+            etiqueta="Contraseña"
+            valor={form.admin_password}
+            onCambio={set("admin_password")}
+          >
+            <div className={styles.filaPassword}>
+              <input
+                id="registro-admin_password"
+                className="input"
+                type={mostrarPassword ? "text" : "password"}
+                value={form.admin_password}
+                onChange={set("admin_password")}
+                autoComplete="new-password"
+                required
+              />
+              <button
+                type="button"
+                className={styles.togglePassword}
+                onClick={() => setMostrarPassword((v) => !v)}
+                aria-label={mostrarPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                title={mostrarPassword ? "Ocultar" : "Ver"}
+              >
+                <Icon name={mostrarPassword ? "ojoOff" : "ojo"} size={17} />
+              </button>
+            </div>
+          </Campo>
         </div>
 
         {error && (
@@ -172,6 +239,7 @@ export default function RegistroPage() {
           disabled={cargando}
         >
           {cargando ? "Creando..." : "Crear restaurante"}
+          {!cargando && <Icon name="flecha" size={16} />}
         </button>
       </form>
 
