@@ -1,0 +1,120 @@
+.intro {
+  margin: 0 0 16px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.vista {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.vistaTitulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.vistaResumen {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.fila:last-child {
+  border-bottom: none;
+}
+
+.canal {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cantidad {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.vacio {
+  padding: 22px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* "Ver CSV" es secundario: texto discreto, no un botón más */
+.alternar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: color var(--dur-fast) ease;
+}
+
+.alternar:hover {
+  color: var(--color-primary);
+}
+
+.alternar svg {
+  transform: rotate(90deg);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.flechaAbierta {
+  transform: rotate(-90deg) !important;
+}
+
+.csv {
+  margin-top: 8px;
+  min-height: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  background: var(--color-surface-muted);
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media (max-width: 440px) {
+  .acciones {
+    flex-direction: column-reverse;
+  }
+}
