@@ -58,7 +58,8 @@ export default function Topbar({ onMenu }: Props) {
       <div className={styles.derecha}>
         <span
           className={`${styles.enVivo} ${conectado ? styles.conectado : ""}`}
-          title={conectado ? "Recibiendo pedidos en tiempo real" : "Reconectando..."}
+          title={conectado ? "Recibiendo pedidos en tiempo real" : "Reconectando…"}
+          role="status"
         >
           <span className={styles.punto} />
           <span className={styles.enVivoTexto}>{conectado ? "En vivo" : "Reconectando"}</span>
@@ -72,7 +73,7 @@ export default function Topbar({ onMenu }: Props) {
           </div>
         </div>
 
-        <button className="btn btn-secondary btn-sm" onClick={salir} title="Cerrar sesión">
+        <button className="btn btn-secondary btn-sm" onClick={salir} title="Cerrar sesión" aria-label="Cerrar sesión">
           <Icon name="salir" size={16} />
           <span className={styles.salirTexto}>Cerrar sesión</span>
         </button>

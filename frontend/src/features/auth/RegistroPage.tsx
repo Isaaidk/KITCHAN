@@ -52,7 +52,18 @@ function Campo({ campo, etiqueta, ayuda, completo, valor, onCambio, children, ..
       <label className="label" htmlFor={id}>
         {etiqueta} {ayuda && <span className="label-hint">· {ayuda}</span>}
       </label>
-      {children ?? <input id={id} className="input" value={valor} onChange={onCambio} required {...input} />}
+      {children ?? (
+        <input
+          id={id}
+          name={campo}
+          className="input"
+          value={valor}
+          onChange={onCambio}
+          spellCheck={input.type === "email" ? false : undefined}
+          required
+          {...input}
+        />
+      )}
     </div>
   );
 }
@@ -131,7 +142,7 @@ export default function RegistroPage() {
             etiqueta="Nombre comercial"
             valor={form.nombre_comercial}
             onCambio={set("nombre_comercial")}
-            placeholder="Ej. La Esquina Grill"
+            placeholder="Ej. La Esquina Grill…"
             autoComplete="organization"
           />
           <Campo
@@ -139,7 +150,7 @@ export default function RegistroPage() {
             etiqueta="Razón social"
             valor={form.razon_social}
             onCambio={set("razon_social")}
-            placeholder="Ej. La Esquina S.A."
+            placeholder="Ej. Inversiones La Esquina…"
           />
           <Campo
             campo="identificacion_fiscal"
@@ -172,7 +183,7 @@ export default function RegistroPage() {
             valor={form.email_corporativo}
             onCambio={set("email_corporativo")}
             type="email"
-            placeholder="contacto@turestaurante.com"
+            placeholder="contacto@turestaurante.com…"
           />
         </div>
 
@@ -206,6 +217,7 @@ export default function RegistroPage() {
             <div className={styles.filaPassword}>
               <input
                 id="registro-admin_password"
+                name="admin_password"
                 className="input"
                 type={mostrarPassword ? "text" : "password"}
                 value={form.admin_password}
@@ -227,7 +239,7 @@ export default function RegistroPage() {
         </div>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="alert alert-error" role="alert">
             <Icon name="alerta" size={16} />
             {error}
           </div>
@@ -238,7 +250,7 @@ export default function RegistroPage() {
           className={`btn btn-primary btn-block ${styles.submit} ${cargando ? "is-loading" : ""}`}
           disabled={cargando}
         >
-          {cargando ? "Creando..." : "Crear restaurante"}
+          {cargando ? "Creando…" : "Crear restaurante"}
           {!cargando && <Icon name="flecha" size={16} />}
         </button>
       </form>

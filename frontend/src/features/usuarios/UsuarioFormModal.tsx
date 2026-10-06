@@ -54,10 +54,12 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
           </label>
           <input
             id="usuario-nombre"
+            name="nombre"
             className="input"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            placeholder="Ej. María López"
+            autoComplete="off"
+            placeholder="Ej. María López…"
             required
           />
         </div>
@@ -67,12 +69,15 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
           </label>
           <input
             id="usuario-email"
+            name="email"
             className="input"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={esEdicion}
-            placeholder="maria@restaurante.com"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="maria@restaurante.com…"
             required
           />
         </div>
@@ -83,10 +88,12 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
             </label>
             <input
               id="usuario-password"
+              name="password"
               className="input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               required
             />
           </div>
@@ -116,7 +123,7 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
         </fieldset>
 
         {error && (
-          <div className="alert alert-error">
+          <div className="alert alert-error" role="alert">
             <Icon name="alerta" size={16} />
             {error}
           </div>
@@ -131,7 +138,7 @@ export default function UsuarioFormModal({ usuario, onClose, onGuardar }: Props)
             className={`btn btn-primary ${guardando ? "is-loading" : ""}`}
             disabled={guardando}
           >
-            {guardando ? "Guardando..." : "Guardar"}
+            {guardando ? "Guardando…" : "Guardar"}
           </button>
         </div>
       </form>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import { useOrdersStore } from "../../shared/stores/ordersStore";
 import { useToastStore } from "../../shared/stores/toastStore";
+import { moneda } from "../../shared/utils/formato";
 import type { Toast } from "../../shared/stores/toastStore";
 import CanalBadge from "../pedidos/CanalBadge";
 import CancelarPedidoModal from "../pedidos/CancelarPedidoModal";
@@ -67,7 +68,7 @@ function ToastItem({ toast, onDone }: { toast: Toast; onDone: (id: string) => vo
           {toast.pedido && (
             <div className={styles.meta}>
               <CanalBadge origen={toast.pedido.origen} />
-              <span className={styles.total}>${toast.pedido.total.toFixed(2)}</span>
+              <span className={styles.total}>{moneda(toast.pedido.total)}</span>
             </div>
           )}
         </div>

@@ -110,14 +110,14 @@ export default function UberCallbackPage() {
       </div>
 
       {statusCallback === "error" && (
-        <div className="alert alert-error">
+        <div className="alert alert-error" role="alert">
           <Icon name="alerta" size={16} />
           Uber rechazó la autorización. Intenta conectar la tienda nuevamente desde Integraciones.
         </div>
       )}
 
       {statusCallback !== "success" && statusCallback !== "error" && (
-        <div className="alert alert-warning">
+        <div className="alert alert-warning" role="alert">
           <Icon name="alerta" size={16} />
           No recibimos una respuesta de Uber. Vuelve a Integraciones e inicia la conexión de nuevo.
         </div>
@@ -126,12 +126,12 @@ export default function UberCallbackPage() {
       {statusCallback === "success" && buscandoTienda && (
         <div className={styles.buscando}>
           <span className="spinner" />
-          Buscando tienda vinculada...
+          Buscando tienda vinculada…
         </div>
       )}
 
       {sinTienda && (
-        <div className="alert alert-error">
+        <div className="alert alert-error" role="alert">
           <Icon name="alerta" size={16} />
           No se encontró ninguna tienda vinculada para este restaurante.
         </div>

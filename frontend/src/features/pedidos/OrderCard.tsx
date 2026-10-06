@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Icon from "../../shared/components/Icon";
 import type { Pedido } from "../../shared/types/pedido";
 import CanalLogo from "../../shared/components/CanalLogo";
+import { moneda } from "../../shared/utils/formato";
 import CancelarPedidoModal from "./CancelarPedidoModal";
 import { colorVarEstado, infoCanal, minutosTranscurridos } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
@@ -100,7 +101,7 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
         <span className={styles.detalle}>
           {unidades} {unidades === 1 ? "ítem" : "ítems"}
         </span>
-        <strong className={styles.total}>${pedido.total.toFixed(2)}</strong>
+        <strong className={styles.total}>{moneda(pedido.total)}</strong>
       </div>
 
       {(puedeAceptar || puedeMarcarListo || puedeCompletar || puedeCancelar) && (

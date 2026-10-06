@@ -3,6 +3,7 @@ import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
+import { moneda } from "../../shared/utils/formato";
 import { infoCanal } from "./estadoUtils";
 import { motivosCancelacionPara, tieneIntegracionDisponible } from "./integracionesApi";
 import styles from "./CancelarPedidoModal.module.css";
@@ -48,7 +49,7 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
             {pedido.id_externo && <span className={styles.referencia}> · #{pedido.id_externo}</span>}
           </div>
         </div>
-        <span className={styles.total}>${pedido.total.toFixed(2)}</span>
+        <span className={styles.total}>{moneda(pedido.total)}</span>
       </div>
 
       <div className={styles.aviso}>
@@ -89,15 +90,17 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
         </label>
         <input
           id="detalle-cancelacion"
+          name="detalle"
           className="input"
           value={explicacion}
           onChange={(e) => setExplicacion(e.target.value)}
-          placeholder="Ej. Nos quedamos sin ingredientes"
+          autoComplete="off"
+          placeholder="Ej. Nos quedamos sin ingredientes…"
         />
       </div>
 
       {error && (
-        <div className="alert alert-error">
+        <div className="alert alert-error" role="alert">
           <Icon name="alerta" size={16} />
           {error}
         </div>

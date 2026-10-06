@@ -20,6 +20,7 @@ const pilaModales: symbol[] = [];
 export default function Modal({ titulo, onClose, children, ancho = 520 }: Props) {
   const [saliendo, setSaliendo] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cajaRef = useRef<HTMLDivElement>(null);
   // Ref para que `cerrar` sea estable aunque el padre pase un onClose inline.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -52,6 +53,14 @@ export default function Modal({ titulo, onClose, children, ancho = 520 }: Props)
     [],
   );
 
+  // Foco: al abrir pasa al modal (si ya hay un campo con autoFocus se respeta)
+  // y al cerrar vuelve al elemento que lo abrió.
+  useEffect(() => {
+    const previo = document.activeElement as HTMLElement | null;
+    if (!cajaRef.current?.contains(document.activeElement)) cajaRef.current?.focus();
+    return () => previo?.focus?.();
+  }, []);
+
   // Portal a <body>: evita que un ancestro con `transform` (tarjetas con
   // hover/animación) rompa el `position: fixed` del modal.
   return createPortal(
@@ -61,6 +70,8 @@ export default function Modal({ titulo, onClose, children, ancho = 520 }: Props)
       role="presentation"
     >
       <div
+        ref={cajaRef}
+        tabIndex={-1}
         className={styles.caja}
         style={{ maxWidth: ancho }}
         onClick={(e) => e.stopPropagation()}
@@ -69,7 +80,7 @@ export default function Modal({ titulo, onClose, children, ancho = 520 }: Props)
         aria-label={titulo}
       >
         <div className={styles.encabezado}>
-          <span className={styles.titulo}>{titulo}</span>
+          <h2 className={styles.titulo}>{titulo}</h2>
           <button className={styles.cerrar} onClick={cerrar} aria-label="Cerrar">
             <Icon name="cerrar" size={18} />
           </button>

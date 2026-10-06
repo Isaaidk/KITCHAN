@@ -2,6 +2,7 @@ import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
+import { moneda } from "../../shared/utils/formato";
 import { useOdooSyncStub } from "../integraciones/useOdooSyncStub";
 import CancelarPedidoModal from "./CancelarPedidoModal";
 import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
@@ -173,16 +174,16 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
                 <span className={styles.itemNombre}>{item.nombre}</span>
                 {item.notas && <span className={styles.itemNota}>{item.notas}</span>}
                 {item.cantidad > 1 && (
-                  <span className={styles.itemUnitario}>${item.precio_unitario.toFixed(2)} c/u</span>
+                  <span className={styles.itemUnitario}>{moneda(item.precio_unitario)} c/u</span>
                 )}
               </div>
-              <span className={styles.itemSubtotal}>${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
+              <span className={styles.itemSubtotal}>{moneda(item.precio_unitario * item.cantidad)}</span>
             </li>
           ))}
         </ul>
         <div className={styles.total}>
           <span>Total</span>
-          <span className={styles.totalValor}>${pedido.total.toFixed(2)}</span>
+          <span className={styles.totalValor}>{moneda(pedido.total)}</span>
         </div>
       </div>
 
@@ -193,7 +194,7 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
             <div className={styles.odooTitulo}>Sincronización con Odoo</div>
             <div className={styles.odooEstado}>
               {estadoOdoo === "idle" && "Sin sincronizar"}
-              {estadoOdoo === "sincronizando" && "Sincronizando..."}
+              {estadoOdoo === "sincronizando" && "Sincronizando…"}
               {estadoOdoo === "no_disponible" && "Disponible próximamente"}
             </div>
           </div>

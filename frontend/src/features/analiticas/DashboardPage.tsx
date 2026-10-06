@@ -15,6 +15,7 @@ import {
 import { httpClient } from "../../shared/api/httpClient";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import { useCountUp } from "../../shared/hooks/useCountUp";
+import { moneda } from "../../shared/utils/formato";
 import CanalBadge from "../pedidos/CanalBadge";
 import { infoCanal } from "../pedidos/estadoUtils";
 import ExportModal from "./ExportModal";
@@ -156,7 +157,7 @@ export default function DashboardPage() {
     {
       etiqueta: "Ticket promedio",
       valor: datos.ticket_promedio,
-      formato: (n) => `$${n.toFixed(2)}`,
+      formato: moneda,
       icono: "dinero",
       color: "#16a34a",
       detalle: "Por pedido del día",

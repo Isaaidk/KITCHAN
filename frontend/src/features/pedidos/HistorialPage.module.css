@@ -90,6 +90,19 @@
   white-space: nowrap;
 }
 
+/* El nombre es un botón (accesible por teclado) con aspecto de texto */
+.clienteBoton {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: left;
+  border-radius: 4px;
+}
+
 .referencia {
   margin-top: 1px;
   font-size: 0.74rem;

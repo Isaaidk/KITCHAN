@@ -105,7 +105,7 @@ export default function ExportModal({ datos, onClose }: Props) {
       {verCsv && <textarea className={`textarea ${styles.csv}`} readOnly value={csv} rows={Math.min(8, canales.length + 2)} />}
 
       {error && (
-        <div className="alert alert-error">
+        <div className="alert alert-error" role="alert">
           <Icon name="alerta" size={16} />
           {error}
         </div>

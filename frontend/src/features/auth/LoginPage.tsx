@@ -74,12 +74,14 @@ export default function LoginPage() {
           </label>
           <input
             id="email"
+            name="email"
             className="input"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="username"
-            placeholder="tu@restaurante.com"
+            spellCheck={false}
+            placeholder="tu@restaurante.com…"
           />
         </div>
 
@@ -90,6 +92,7 @@ export default function LoginPage() {
           <div className={styles.filaPassword}>
             <input
               id="password"
+              name="password"
               className="input"
               type={mostrarPassword ? "text" : "password"}
               value={password}
@@ -110,7 +113,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="alert alert-error" key={intentoFallido}>
+          <div className="alert alert-error" role="alert" key={intentoFallido}>
             <Icon name="alerta" size={16} />
             {error}
           </div>
@@ -121,7 +124,7 @@ export default function LoginPage() {
           className={`btn btn-primary btn-block ${styles.submit} ${cargando ? "is-loading" : ""}`}
           disabled={cargando}
         >
-          {cargando ? "Ingresando..." : "Ingresar"}
+          {cargando ? "Ingresando…" : "Ingresar"}
           {!cargando && <Icon name="flecha" size={16} />}
         </button>
       </form>

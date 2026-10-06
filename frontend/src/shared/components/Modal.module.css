@@ -73,6 +73,14 @@
 .cuerpo {
   padding: 20px 24px 24px;
   overflow-y: auto;
+  /* El scroll del modal no se "escapa" a la página de atrás */
+  overscroll-behavior: contain;
+}
+
+/* La caja recibe el foco al abrir (para teclado y lectores de pantalla);
+   no es interactiva, por eso no necesita anillo de foco propio. */
+.caja:focus {
+  outline: none;
 }
 
 @keyframes modal-fade-out {

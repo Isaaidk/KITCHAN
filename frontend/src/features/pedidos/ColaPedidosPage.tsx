@@ -45,7 +45,7 @@ export default function ColaPedidosPage() {
           <p className="page-subtitle">
             {cargado
               ? `${activos} ${activos === 1 ? "pedido activo" : "pedidos activos"} · se actualiza en tiempo real`
-              : "Cargando pedidos..."}
+              : "Cargando pedidos…"}
           </p>
         </div>
 

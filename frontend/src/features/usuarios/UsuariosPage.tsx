@@ -102,7 +102,7 @@ export default function UsuariosPage() {
           <h1 className="page-title">Usuarios</h1>
           <p className="page-subtitle">
             {cargando
-              ? "Cargando equipo..."
+              ? "Cargando equipo…"
               : `${usuarios.length} en el equipo · ${activos} ${activos === 1 ? "activo" : "activos"} · ${admins} ${admins === 1 ? "administrador" : "administradores"}`}
           </p>
         </div>
@@ -181,7 +181,12 @@ export default function UsuariosPage() {
                 </td>
                 <td>
                   <div className={styles.acciones}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setEditando(usuario)} title="Editar">
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setEditando(usuario)}
+                      title="Editar"
+                      aria-label={`Editar a ${usuario.nombre}`}
+                    >
                       <Icon name="editar" size={14} />
                       <span className={styles.accionTexto}>Editar</span>
                     </button>
@@ -189,6 +194,7 @@ export default function UsuariosPage() {
                       className="btn btn-ghost btn-sm"
                       onClick={() => cambiarEstado(usuario)}
                       title={usuario.estado ? "Desactivar" : "Activar"}
+                      aria-label={`${usuario.estado ? "Desactivar" : "Activar"} a ${usuario.nombre}`}
                     >
                       <Icon name="power" size={14} />
                       <span className={styles.accionTexto}>{usuario.estado ? "Desactivar" : "Activar"}</span>
@@ -234,7 +240,7 @@ export default function UsuariosPage() {
             deshacer.
           </p>
           {errorEliminar && (
-            <div className="alert alert-error">
+            <div className="alert alert-error" role="alert">
               <Icon name="alerta" size={16} />
               {errorEliminar}
             </div>

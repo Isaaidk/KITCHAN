@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
 import type { EstadoPedido, Pedido, PedidosPaginados } from "../../shared/types/pedido";
+import { moneda } from "../../shared/utils/formato";
 import CanalBadge from "./CanalBadge";
 import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
 import OrderDetailModal from "./OrderDetailModal";
@@ -56,7 +57,12 @@ export default function HistorialPage() {
             <Icon name="buscar" size={16} className={styles.buscadorIcono} />
             <input
               className="input"
-              placeholder="Buscar por cliente o id externo..."
+              type="search"
+              name="busqueda"
+              aria-label="Buscar pedidos por cliente o id externo"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="Buscar por cliente o id externo…"
               value={search}
               onChange={(e) => {
                 setPagina(1);
@@ -128,7 +134,16 @@ export default function HistorialPage() {
             {pedidos.map((pedido) => (
               <tr key={pedido.id} onClick={() => setSeleccionado(pedido)} className={styles.fila}>
                 <td>
-                  <div className={styles.cliente}>{pedido.cliente}</div>
+                  {/* El clic en toda la fila sigue funcionando con mouse; este botón es el
+                      punto de acceso para teclado y lectores de pantalla. */}
+                  <button
+                    type="button"
+                    className={`${styles.cliente} ${styles.clienteBoton}`}
+                    onClick={() => setSeleccionado(pedido)}
+                    aria-haspopup="dialog"
+                  >
+                    {pedido.cliente}
+                  </button>
                   {pedido.id_externo && <div className={styles.referencia}>#{pedido.id_externo}</div>}
                 </td>
                 <td>
@@ -142,7 +157,7 @@ export default function HistorialPage() {
                     {ETIQUETA_ESTADO[pedido.estado]}
                   </span>
                 </td>
-                <td className={`table-num ${styles.total}`}>${pedido.total.toFixed(2)}</td>
+                <td className={`table-num ${styles.total}`}>{moneda(pedido.total)}</td>
                 <td className={styles.fecha}>
                   <div>{new Date(pedido.fecha_creacion).toLocaleDateString()}</div>
                   <div className={styles.hora}>
