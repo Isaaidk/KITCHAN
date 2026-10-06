@@ -64,18 +64,6 @@ export default function AuthLayout({ children, ancho = 400 }: { children: ReactN
         <div className={styles.tarjeta} style={{ maxWidth: ancho }}>
           {children}
         </div>
-
-        <div className={styles.pie} style={{ maxWidth: ancho }}>
-          <span className={styles.pieTexto}>Conectado con</span>
-          <div className={styles.pieLogos}>
-            {CANALES.map((c) => (
-              <span key={c.clave} className={styles.pieLogo} title={c.nombre}>
-                <CanalLogo canal={c.clave} color={c.color} nombre={c.nombre} size={26} />
-                {c.nombre}
-              </span>
-            ))}
-          </div>
-        </div>
       </main>
     </div>
   );

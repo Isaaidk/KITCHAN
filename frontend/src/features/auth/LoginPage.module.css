@@ -230,36 +230,6 @@
   opacity: 0.85;
 }
 
-.pie {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  animation: kt-fade-up 600ms var(--ease-out) 300ms both;
-}
-
-.pieTexto {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-}
-
-.pieLogos {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.pieLogo {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #475569;
-}
 
 .logoMovil {
   display: none;
