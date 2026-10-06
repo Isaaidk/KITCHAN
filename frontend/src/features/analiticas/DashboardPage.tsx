@@ -132,6 +132,18 @@ export default function DashboardPage() {
   }));
   const totalCanales = datosPorCanal.reduce((suma, c) => suma + c.cantidad, 0);
 
+  const totalHoy = datos.comparacion_hoy_vs_ayer.reduce((suma, p) => suma + p.hoy, 0);
+  const totalAyer = datos.comparacion_hoy_vs_ayer.reduce((suma, p) => suma + p.ayer, 0);
+  const variacion = totalAyer > 0 ? ((totalHoy - totalAyer) / totalAyer) * 100 : null;
+  const claseDelta =
+    variacion === null || Math.round(variacion) === 0
+      ? styles.deltaIgual
+      : variacion > 0
+        ? styles.deltaSube
+        : styles.deltaBaja;
+  const textoDelta =
+    variacion === null ? "Sin datos de ayer" : `${variacion > 0 ? "+" : ""}${variacion.toFixed(0)}%`;
+
   const kpis: Kpi[] = [
     {
       etiqueta: "Pedidos hoy",
@@ -201,6 +213,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} vertical={false} />
                 <XAxis
                   dataKey="canal"
+                  interval={0}
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
@@ -228,6 +241,11 @@ export default function DashboardPage() {
             <div>
               <div className={styles.panelTitulo}>Pedidos por hora</div>
               <div className={styles.panelSub}>Hoy vs ayer</div>
+            </div>
+            <div className={styles.comparativa}>
+              <strong>{totalHoy}</strong>
+              hoy · {totalAyer} ayer
+              <span className={`${styles.delta} ${claseDelta}`}>{textoDelta}</span>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={260}>

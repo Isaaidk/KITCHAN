@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
-import type { Pedido, PedidosPaginados } from "../../shared/types/pedido";
+import type { EstadoPedido, Pedido, PedidosPaginados } from "../../shared/types/pedido";
 import CanalBadge from "./CanalBadge";
-import { colorVarEstado, ETIQUETA_ESTADO } from "./estadoUtils";
+import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
 import OrderDetailModal from "./OrderDetailModal";
 import styles from "./HistorialPage.module.css";
 
 const PAGE_SIZE = 20;
+const CANALES_FILTRO = ["UBER_EATS", "RAPPI", "PEDIDOS_YA", "WHATSAPP", "LOCAL"];
 
 export default function HistorialPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -49,44 +50,56 @@ export default function HistorialPage() {
         </div>
       </div>
 
-      <div className={`${styles.filtros} surface animate-in`}>
-        <div className={styles.buscador}>
-          <Icon name="buscar" size={16} className={styles.buscadorIcono} />
-          <input
-            className="input"
-            placeholder="Buscar por cliente o id externo..."
-            value={search}
+      <div className={`${styles.filtros} animate-in`}>
+        <div className={styles.filtrosFila}>
+          <div className={styles.buscador}>
+            <Icon name="buscar" size={16} className={styles.buscadorIcono} />
+            <input
+              className="input"
+              placeholder="Buscar por cliente o id externo..."
+              value={search}
+              onChange={(e) => {
+                setPagina(1);
+                setSearch(e.target.value);
+              }}
+            />
+          </div>
+          <select
+            className={`select ${styles.selectCanal}`}
+            value={canal}
             onChange={(e) => {
               setPagina(1);
-              setSearch(e.target.value);
+              setCanal(e.target.value);
             }}
-          />
+            aria-label="Filtrar por canal"
+          >
+            <option value="">Todos los canales</option>
+            {CANALES_FILTRO.map((valor) => (
+              <option key={valor} value={valor}>
+                {infoCanal(valor).nombre}
+              </option>
+            ))}
+          </select>
         </div>
-        <select
-          className="select"
-          value={estado}
-          onChange={(e) => {
-            setPagina(1);
-            setEstado(e.target.value);
-          }}
-          aria-label="Filtrar por estado"
-        >
-          <option value="">Todos los estados</option>
-          {Object.entries(ETIQUETA_ESTADO).map(([valor, etiqueta]) => (
-            <option key={valor} value={valor}>
+
+        <div className={styles.chips} role="group" aria-label="Filtrar por estado">
+          {[["", "Todos"], ...Object.entries(ETIQUETA_ESTADO)].map(([valor, etiqueta]) => (
+            <button
+              key={valor || "todos"}
+              type="button"
+              aria-pressed={estado === valor}
+              className={`${styles.chip} ${estado === valor ? styles.chipActivo : ""}`}
+              style={valor ? { ["--chip-color" as string]: colorVarEstado(valor as EstadoPedido) } : undefined}
+              onClick={() => {
+                setPagina(1);
+                setEstado(valor);
+              }}
+            >
+              {valor && <span className={styles.chipPunto} />}
               {etiqueta}
-            </option>
+            </button>
           ))}
-        </select>
-        <input
-          className="input"
-          placeholder="Canal (ej. UBER_EATS)"
-          value={canal}
-          onChange={(e) => {
-            setPagina(1);
-            setCanal(e.target.value);
-          }}
-        />
+        </div>
       </div>
 
       <div className={`table-wrap animate-in ${cargando && !primeraCarga ? styles.actualizando : ""}`} style={{ ["--i" as string]: 1 }}>
@@ -114,7 +127,10 @@ export default function HistorialPage() {
 
             {pedidos.map((pedido) => (
               <tr key={pedido.id} onClick={() => setSeleccionado(pedido)} className={styles.fila}>
-                <td className={styles.cliente}>{pedido.cliente}</td>
+                <td>
+                  <div className={styles.cliente}>{pedido.cliente}</div>
+                  {pedido.id_externo && <div className={styles.referencia}>#{pedido.id_externo}</div>}
+                </td>
                 <td>
                   <CanalBadge origen={pedido.origen} />
                 </td>
@@ -127,7 +143,12 @@ export default function HistorialPage() {
                   </span>
                 </td>
                 <td className={`table-num ${styles.total}`}>${pedido.total.toFixed(2)}</td>
-                <td className={styles.fecha}>{new Date(pedido.fecha_creacion).toLocaleString()}</td>
+                <td className={styles.fecha}>
+                  <div>{new Date(pedido.fecha_creacion).toLocaleDateString()}</div>
+                  <div className={styles.hora}>
+                    {new Date(pedido.fecha_creacion).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

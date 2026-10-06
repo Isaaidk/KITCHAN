@@ -1,9 +1,67 @@
 .filtros {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  padding: 14px;
   margin-bottom: 16px;
+}
+
+.filtrosFila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+}
+
+.selectCanal {
+  min-width: 0;
+}
+
+/* Estado como chips con su color, en vez de un desplegable */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  --chip-color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 5px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chipActivo {
+  border-color: color-mix(in srgb, var(--chip-color) 40%, white);
+  background: color-mix(in srgb, var(--chip-color) 10%, white);
+  color: color-mix(in srgb, var(--chip-color) 85%, black);
+}
+
+.chipPunto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-color);
 }
 
 .buscador {
@@ -32,13 +90,30 @@
   white-space: nowrap;
 }
 
+.referencia {
+  margin-top: 1px;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
 .total {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .fecha {
   color: var(--color-text-muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.hora {
+  font-size: 0.74rem;
+  color: var(--color-text-subtle);
+}
+
+.fila:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 /* Recarga por filtro/paginación: la tabla se atenúa sin desaparecer */
@@ -64,18 +139,8 @@
   color: var(--color-text);
 }
 
-@media (max-width: 760px) {
-  .filtros {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .buscador {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 480px) {
-  .filtros {
+@media (max-width: 560px) {
+  .filtrosFila {
     grid-template-columns: 1fr;
   }
 }

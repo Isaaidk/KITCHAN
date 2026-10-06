@@ -1,22 +1,33 @@
+/* Los 4 indicadores viven en una sola superficie separada por filetes de 1px
+   (el fondo del contenedor asoma entre las celdas), no en 4 tarjetas sueltas. */
 .kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 1px;
   margin-bottom: 20px;
+  overflow: hidden;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
 }
 
 .kpi {
   position: relative;
   overflow: hidden;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 18px 20px 20px;
-  transition:
-    transform var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    border-color var(--dur) ease;
+  padding: 20px 22px 22px;
+}
+
+/* Filete de color arriba de cada indicador */
+.kpi::before {
+  content: "";
+  position: absolute;
+  inset: 0 22px auto;
+  height: 2px;
+  border-radius: 0 0 3px 3px;
+  background: var(--kpi-color, transparent);
+  opacity: 0.8;
 }
 
 /* Brillo de color en la esquina, discreto */
@@ -25,25 +36,12 @@
   position: absolute;
   width: 140px;
   height: 140px;
-  top: -70px;
+  top: -80px;
   right: -50px;
   border-radius: 50%;
   background: var(--kpi-color, transparent);
-  opacity: 0.07;
-  transition:
-    opacity var(--dur) ease,
-    transform var(--dur-slow) var(--ease-out);
-}
-
-.kpi:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
-  border-color: var(--color-border-strong);
-}
-
-.kpi:hover::after {
-  opacity: 0.12;
-  transform: scale(1.15);
+  opacity: 0.08;
+  pointer-events: none;
 }
 
 .kpiCabecera {
@@ -69,11 +67,6 @@
   border-radius: 10px;
   color: var(--kpi-color);
   background: color-mix(in srgb, var(--kpi-color) 12%, white);
-  transition: transform var(--dur) var(--ease-spring);
-}
-
-.kpi:hover .kpiIcono {
-  transform: scale(1.08) rotate(-4deg);
 }
 
 .kpiValor {
@@ -100,22 +93,57 @@
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
-  padding: 20px 20px 12px;
+  padding: 22px 22px 14px;
   min-width: 0;
-  transition: box-shadow var(--dur) var(--ease-out);
-}
-
-.panel:hover {
-  box-shadow: var(--shadow-hover);
 }
 
 .panelCabecera {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-bottom: 16px;
+}
+
+.comparativa {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.comparativa strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.delta {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.deltaSube {
+  background: var(--color-success-soft);
+  color: #166534;
+}
+
+.deltaBaja {
+  background: var(--color-danger-soft);
+  color: #991b1b;
+}
+
+.deltaIgual {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
 }
 
 .panelTitulo {
@@ -175,6 +203,12 @@
 @media (max-width: 1180px) {
   .kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .comparativa {
+    flex-wrap: wrap;
   }
 }
 
