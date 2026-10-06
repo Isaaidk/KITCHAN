@@ -1,18 +1,52 @@
-.resumen {
+.cabecera {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 12px;
 }
 
-.fecha {
+.cabeceraTexto {
+  flex: 1;
+  min-width: 0;
+}
+
+.cliente {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.origen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.referencia {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dato {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
   font-size: 0.78rem;
   color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Timeline de estados con línea de progreso animada */
@@ -116,91 +150,115 @@
   flex: 1;
 }
 
+/* Cancelar es secundario: no compite con la acción principal */
+.acciones :global(.btn-danger-soft) {
+  flex: 0 0 auto;
+}
+
 .items {
+  margin-bottom: 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  background: var(--color-surface);
   overflow: hidden;
-  margin-bottom: 16px;
 }
 
-.tablaItems {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.tablaItems th {
-  background: var(--color-surface-muted);
-  font-size: 0.7rem;
+.itemsTitulo {
+  padding: 12px 16px 4px;
+  font-size: 0.78rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
-.tablaItems th,
-.tablaItems td {
-  text-align: left;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border);
+.listaItems {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
 }
 
-.tablaItems th:nth-child(2),
-.tablaItems td:nth-child(2) {
-  text-align: center;
-  width: 70px;
+.item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--color-border);
 }
 
-.tablaItems th:last-child,
-.tablaItems td:last-child {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.itemNota {
-  font-size: 0.75rem;
-  color: var(--color-warning);
-  margin-top: 2px;
+.item:last-child {
+  border-bottom: none;
 }
 
 .cantidad {
-  display: inline-grid;
-  place-items: center;
-  min-width: 26px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 6px;
-  background: var(--color-primary-soft);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--color-primary);
-  font-size: 0.78rem;
-  font-weight: 700;
+}
+
+.itemDatos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemNombre {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.itemNota {
+  font-size: 0.76rem;
+  font-style: italic;
+  color: var(--color-warning);
+}
+
+.itemUnitario {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.itemSubtotal {
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .total {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 12px 14px;
+  padding: 14px 16px;
   background: var(--color-surface-muted);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
   font-weight: 600;
+  color: var(--color-text-muted);
 }
 
 .totalValor {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+  color: var(--color-text);
 }
 
+/* La nota del cliente va arriba de los ítems: la cocina debe verla primero */
 .notaCliente {
   display: flex;
   gap: 10px;
   background: var(--color-warning-soft);
   border: 1px solid #fde68a;
+  border-left: 4px solid var(--color-warning);
   color: #78350f;
   border-radius: var(--radius);
   padding: 12px 14px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
   margin-bottom: 16px;
 }
 
@@ -233,16 +291,6 @@
   gap: 12px;
 }
 
-.odooIcono {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  background: #f3e8ff;
-  color: #7e22ce;
-}
-
 .odooTitulo {
   font-size: 0.85rem;
   font-weight: 600;
@@ -254,9 +302,8 @@
 }
 
 @media (max-width: 480px) {
-  .fecha {
-    margin-left: 0;
-    width: 100%;
+  .cabecera {
+    flex-wrap: wrap;
   }
 
   .acciones {

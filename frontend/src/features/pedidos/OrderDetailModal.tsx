@@ -1,8 +1,8 @@
+import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
 import { useOdooSyncStub } from "../integraciones/useOdooSyncStub";
-import CanalBadge from "./CanalBadge";
 import CancelarPedidoModal from "./CancelarPedidoModal";
 import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
@@ -38,22 +38,45 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
   } = usePedidoAcciones(pedido);
 
   const cargando = procesando ? "is-loading" : "";
-  const nombreCanal = infoCanal(pedido.origen).nombre;
+  const canal = infoCanal(pedido.origen);
+  const nombreCanal = canal.nombre;
+  const unidades = pedido.items.reduce((suma, item) => suma + item.cantidad, 0);
 
   return (
     <Modal titulo={`Pedido de ${pedido.cliente}`} onClose={onClose} ancho={560}>
-      <div className={styles.resumen}>
-        <CanalBadge origen={pedido.origen} />
+      <div className={styles.cabecera}>
+        <CanalLogo canal={pedido.origen} color={canal.color} nombre={canal.nombre} size={48} />
+        <div className={styles.cabeceraTexto}>
+          <div className={styles.cliente}>{pedido.cliente}</div>
+          <div className={styles.origen}>
+            {canal.nombre}
+            {pedido.id_externo && <span className={styles.referencia}>#{pedido.id_externo}</span>}
+          </div>
+        </div>
         <span
           className="badge badge-dot"
           style={{ ["--badge-color" as string]: colorVarEstado(pedido.estado) }}
         >
           {ETIQUETA_ESTADO[pedido.estado]}
         </span>
-        <span className={styles.fecha}>
+      </div>
+
+      <div className={styles.datos}>
+        <span className={styles.dato}>
           <Icon name="reloj" size={13} />
-          {new Date(pedido.fecha_creacion).toLocaleString()}
+          {new Date(pedido.fecha_creacion).toLocaleString([], {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </span>
+        {pedido.estado_entrega && (
+          <span className={styles.dato}>
+            <Icon name="tienda" size={13} />
+            Entrega: {pedido.estado_entrega.toLowerCase().replace(/_/g, " ")}
+          </span>
+        )}
       </div>
 
       {cancelado ? (
@@ -128,36 +151,6 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
         </div>
       )}
 
-      <div className={styles.items}>
-        <table className={styles.tablaItems}>
-          <thead>
-            <tr>
-              <th>Ítem</th>
-              <th>Cant.</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pedido.items.map((item, i) => (
-              <tr key={i}>
-                <td>
-                  {item.nombre}
-                  {item.notas && <div className={styles.itemNota}>{item.notas}</div>}
-                </td>
-                <td>
-                  <span className={styles.cantidad}>{item.cantidad}</span>
-                </td>
-                <td>${(item.precio_unitario * item.cantidad).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className={styles.total}>
-          <span>Total</span>
-          <span className={styles.totalValor}>${pedido.total.toFixed(2)}</span>
-        </div>
-      </div>
-
       {pedido.nota_cliente && (
         <div className={styles.notaCliente}>
           <Icon name="nota" size={16} />
@@ -168,13 +161,36 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
         </div>
       )}
 
+      <div className={styles.items}>
+        <div className={styles.itemsTitulo}>
+          {unidades} {unidades === 1 ? "ítem" : "ítems"}
+        </div>
+        <ul className={styles.listaItems}>
+          {pedido.items.map((item, i) => (
+            <li key={i} className={styles.item}>
+              <span className={styles.cantidad}>{item.cantidad}×</span>
+              <div className={styles.itemDatos}>
+                <span className={styles.itemNombre}>{item.nombre}</span>
+                {item.notas && <span className={styles.itemNota}>{item.notas}</span>}
+                {item.cantidad > 1 && (
+                  <span className={styles.itemUnitario}>${item.precio_unitario.toFixed(2)} c/u</span>
+                )}
+              </div>
+              <span className={styles.itemSubtotal}>${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+        <div className={styles.total}>
+          <span>Total</span>
+          <span className={styles.totalValor}>${pedido.total.toFixed(2)}</span>
+        </div>
+      </div>
+
       <div className={styles.odoo}>
         <div className={styles.odooInfo}>
-          <div className={styles.odooIcono}>
-            <Icon name="sync" size={16} />
-          </div>
+          <CanalLogo canal="ODOO" {...infoCanal("ODOO")} size={34} />
           <div>
-            <div className={styles.odooTitulo}>Sincronización ODOO</div>
+            <div className={styles.odooTitulo}>Sincronización con Odoo</div>
             <div className={styles.odooEstado}>
               {estadoOdoo === "idle" && "Sin sincronizar"}
               {estadoOdoo === "sincronizando" && "Sincronizando..."}
