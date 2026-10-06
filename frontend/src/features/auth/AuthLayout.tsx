@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
+import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import styles from "./LoginPage.module.css";
 
 const CANALES = [
-  { nombre: "Uber Eats", color: "#06C167" },
-  { nombre: "Rappi", color: "#FF441F" },
-  { nombre: "PedidosYa", color: "#EA004B" },
+  { clave: "UBER_EATS", nombre: "Uber Eats", color: "#06C167" },
+  { clave: "RAPPI", nombre: "Rappi", color: "#FF441F" },
+  { clave: "PEDIDOSYA", nombre: "PedidosYa", color: "#EA004B" },
 ];
 
 /** Marco compartido por Login y Registro: panel de marca + formulario. */
@@ -49,7 +50,7 @@ export default function AuthLayout({ children, ancho = 400 }: { children: ReactN
               className={styles.canal}
               style={{ ["--c" as string]: c.color, ["--i" as string]: i }}
             >
-              <span className={styles.canalPunto} />
+              <CanalLogo canal={c.clave} color={c.color} nombre={c.nombre} size={20} />
               {c.nombre}
             </span>
           ))}
@@ -62,6 +63,18 @@ export default function AuthLayout({ children, ancho = 400 }: { children: ReactN
       <main className={styles.panelForm}>
         <div className={styles.tarjeta} style={{ maxWidth: ancho }}>
           {children}
+        </div>
+
+        <div className={styles.pie} style={{ maxWidth: ancho }}>
+          <span className={styles.pieTexto}>Conectado con</span>
+          <div className={styles.pieLogos}>
+            {CANALES.map((c) => (
+              <span key={c.clave} className={styles.pieLogo} title={c.nombre}>
+                <CanalLogo canal={c.clave} color={c.color} nombre={c.nombre} size={26} />
+                {c.nombre}
+              </span>
+            ))}
+          </div>
         </div>
       </main>
     </div>

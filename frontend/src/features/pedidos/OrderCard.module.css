@@ -61,16 +61,103 @@
 
 .encabezado {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
 }
 
+.identidad {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 .cliente {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: -0.01em;
   line-height: 1.3;
+}
+
+.origen {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.referencia {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+/* Barra de tiempo: se llena hasta el límite de espera y luego se pone roja */
+.tiempo {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.tiempoBarra {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--borde-estado, var(--color-primary));
+  transition: width 600ms var(--ease-out);
+}
+
+.tarjeta:has(.timerVencido) .tiempoBarra {
+  background: var(--color-danger);
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
+  font-size: 0.82rem;
+}
+
+.items li {
+  display: flex;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.cantidad {
+  flex-shrink: 0;
+  min-width: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.itemNombre {
+  color: #334155;
+}
+
+.itemNota {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--color-warning);
+}
+
+.masItems {
+  color: var(--color-text-subtle);
+  font-size: 0.76rem;
+  padding-left: 30px;
 }
 
 .timer {
@@ -96,35 +183,22 @@
   animation: kt-pulse-ring 1.6s ease-out infinite;
 }
 
-.resumen {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 .meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
 }
 
 .detalle {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
   font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
 .total {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }

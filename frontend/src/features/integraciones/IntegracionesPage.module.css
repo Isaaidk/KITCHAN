@@ -1,75 +1,154 @@
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 18px;
+/* Lista agrupada en vez de una grilla de tarjetas iguales: cada canal es una
+   fila (logo · descripción · estado · acción) dentro de una sola superficie. */
+.pagina {
+  max-width: 920px;
 }
 
-.tarjeta {
-  position: relative;
+.seccion {
+  margin-bottom: 28px;
+}
+
+.seccionTitulo {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 10px 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text-muted);
+}
+
+.seccionCuenta {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--color-text-subtle);
+}
+
+.lista {
+  overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 20px;
-  transition:
-    transform var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    border-color var(--dur) ease;
+  box-shadow: var(--shadow-xs);
 }
 
-.tarjeta:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
-  border-color: var(--color-border-strong);
+.fila {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(120px, auto) minmax(150px, auto);
+  align-items: center;
+  gap: 8px 18px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--dur-fast) ease;
 }
 
-.tarjetaActiva {
-  border-color: #bbf7d0;
-  background: linear-gradient(180deg, #f6fef9 0%, var(--color-surface) 45%);
+.fila:last-child {
+  border-bottom: none;
 }
 
-.tarjetaInactiva .logo {
-  filter: saturate(0.75);
+.fila:hover {
+  background: var(--color-surface-muted);
 }
 
-.cabecera {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 16px;
+.filaInactiva .logo {
+  filter: saturate(0.6);
+  opacity: 0.8;
+}
+
+.filaInactiva .canal {
+  color: var(--color-text-muted);
 }
 
 .logo {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 65%, #0f172a));
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 800;
-  box-shadow: 0 10px 20px -10px var(--c);
-  transition: transform var(--dur) var(--ease-spring);
+  transition: transform var(--dur) var(--ease-out);
 }
 
-.tarjeta:hover .logo {
-  transform: scale(1.06) rotate(-3deg);
+.fila:hover .logo {
+  transform: scale(1.05);
+}
+
+.texto {
+  min-width: 0;
 }
 
 .canal {
-  font-size: 1.02rem;
-  font-weight: 700;
-  margin-bottom: 4px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .descripcion {
-  flex: 1;
-  margin: 0 0 18px;
+  max-width: 60ch;
+  margin: 2px 0 0;
   font-size: 0.84rem;
   line-height: 1.5;
   color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+/* Estado: punto + texto plano, sin pastilla. */
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.estado::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--punto, var(--color-text-subtle));
+}
+
+.estadoOk {
+  --punto: var(--color-success);
+  color: #166534;
+}
+
+.estadoOk::before {
+  animation: kt-pulse-ring 2s ease-out infinite;
+  --pulse-color: rgba(22, 163, 74, 0.4);
+}
+
+.estadoInfo {
+  --punto: var(--color-primary);
+  color: var(--color-text);
+}
+
+.estadoSkeleton {
+  width: 96px;
+  height: 14px;
+}
+
+.accion {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nota {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .fila {
+    grid-template-columns: 44px minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .estado,
+  .accion {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .nota {
+    text-align: left;
+  }
 }

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Icon from "../../shared/components/Icon";
 import type { Pedido } from "../../shared/types/pedido";
-import CanalBadge from "./CanalBadge";
+import CanalLogo from "../../shared/components/CanalLogo";
 import CancelarPedidoModal from "./CancelarPedidoModal";
-import { colorVarEstado, minutosTranscurridos } from "./estadoUtils";
+import { colorVarEstado, infoCanal, minutosTranscurridos } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
 import styles from "./OrderCard.module.css";
 
@@ -15,6 +15,7 @@ interface Props {
 }
 
 const LIMITE_MINUTOS = 10;
+const MAX_ITEMS_VISIBLES = 3;
 
 export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
   const [minutos, setMinutos] = useState(() => minutosTranscurridos(pedido.fecha_creacion));
@@ -42,7 +43,10 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
 
   const vencido = minutos >= LIMITE_MINUTOS;
   const unidades = pedido.items.reduce((suma, item) => suma + item.cantidad, 0);
-  const resumen = pedido.items.map((item) => `${item.cantidad}× ${item.nombre}`).join(" · ");
+  const visibles = pedido.items.slice(0, MAX_ITEMS_VISIBLES);
+  const ocultos = pedido.items.length - visibles.length;
+  const canal = infoCanal(pedido.origen);
+  const progreso = Math.min(minutos / LIMITE_MINUTOS, 1);
   const cargando = procesando ? "is-loading" : "";
 
   return (
@@ -59,21 +63,44 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
       }}
     >
       <div className={styles.encabezado}>
-        <span className={styles.cliente}>{pedido.cliente}</span>
+        <CanalLogo canal={pedido.origen} color={canal.color} nombre={canal.nombre} size={34} />
+        <div className={styles.identidad}>
+          <span className={styles.cliente}>{pedido.cliente}</span>
+          <span className={styles.origen}>
+            {canal.nombre}
+            {pedido.id_externo && <span className={styles.referencia}>#{pedido.id_externo.length > 10 ? pedido.id_externo.slice(-6) : pedido.id_externo}</span>}
+          </span>
+        </div>
         <span className={`${styles.timer} ${vencido ? styles.timerVencido : ""}`}>
           <Icon name="reloj" size={12} strokeWidth={2.5} />
           {minutos} min
         </span>
       </div>
 
-      {resumen && <p className={styles.resumen}>{resumen}</p>}
+      <div className={styles.tiempo} aria-hidden="true">
+        <span className={styles.tiempoBarra} style={{ width: `${progreso * 100}%` }} />
+      </div>
+
+      {visibles.length > 0 && (
+        <ul className={styles.items}>
+          {visibles.map((item, i) => (
+            <li key={`${item.nombre}-${i}`}>
+              <span className={styles.cantidad}>{item.cantidad}×</span>
+              <span className={styles.itemNombre}>
+                {item.nombre}
+                {item.notas && <em className={styles.itemNota}>{item.notas}</em>}
+              </span>
+            </li>
+          ))}
+          {ocultos > 0 && <li className={styles.masItems}>+{ocultos} más</li>}
+        </ul>
+      )}
 
       <div className={styles.meta}>
-        <CanalBadge origen={pedido.origen} />
         <span className={styles.detalle}>
           {unidades} {unidades === 1 ? "ítem" : "ítems"}
-          <strong className={styles.total}>${pedido.total.toFixed(2)}</strong>
         </span>
+        <strong className={styles.total}>${pedido.total.toFixed(2)}</strong>
       </div>
 
       {(puedeAceptar || puedeMarcarListo || puedeCompletar || puedeCancelar) && (

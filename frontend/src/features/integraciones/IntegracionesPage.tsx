@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { API_URL, httpClient } from "../../shared/api/httpClient";
+import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import { useAuthStore } from "../../shared/stores/authStore";
 import { infoCanal } from "../pedidos/estadoUtils";
@@ -16,14 +17,10 @@ const DESCRIPCION: Record<string, string> = {
   WHATSAPP: "Pedidos directos desde WhatsApp Business.",
 };
 
-/** Logo tipográfico con el color de marca del canal. */
+/** Logo del canal con su color de marca. */
 export function LogoCanal({ canal }: { canal: string }) {
   const { nombre, color } = infoCanal(canal);
-  return (
-    <div className={styles.logo} style={{ ["--c" as string]: color }}>
-      {nombre.charAt(0)}
-    </div>
-  );
+  return <CanalLogo className={styles.logo} canal={canal} color={color} nombre={nombre} size={44} />;
 }
 
 export default function IntegracionesPage() {
@@ -43,7 +40,7 @@ export default function IntegracionesPage() {
   };
 
   return (
-    <div>
+    <div className={styles.pagina}>
       <div className="page-header">
         <div>
           <h1 className="page-title">Integraciones</h1>
@@ -51,80 +48,81 @@ export default function IntegracionesPage() {
         </div>
       </div>
 
-      <div className={styles.grid}>
-        <div className={`${styles.tarjeta} ${uberConectado ? styles.tarjetaActiva : ""} animate-in`}>
-          <div className={styles.cabecera}>
+      <section className={styles.seccion} aria-labelledby="int-canales">
+        <h2 id="int-canales" className={styles.seccionTitulo}>
+          Canales de venta <span className={styles.seccionCuenta}>2</span>
+        </h2>
+        <div className={styles.lista}>
+          <div className={`${styles.fila} animate-in`}>
             <LogoCanal canal="UBER_EATS" />
-            <span
-              className="badge badge-dot"
-              style={{
-                ["--badge-color" as string]:
-                  uberConectado === true ? "#16a34a" : uberConectado === false ? "#64748b" : "#d97706",
-              }}
-            >
-              {uberConectado === null && "Verificando..."}
-              {uberConectado === true && "Conectado"}
-              {uberConectado === false && "No conectado"}
-            </span>
-          </div>
-          <div className={styles.canal}>Uber Eats</div>
-          <p className={styles.descripcion}>{DESCRIPCION.UBER_EATS}</p>
-          <button
-            className={`btn btn-block ${uberConectado ? "btn-secondary" : "btn-primary"}`}
-            onClick={conectarUber}
-            disabled={uberConectado === true}
-          >
-            {uberConectado ? (
-              <>
-                <Icon name="check" size={16} strokeWidth={2.5} />
-                Conectado
-              </>
-            ) : (
-              <>
-                Conectar Uber Eats
-                <Icon name="flecha" size={16} />
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Rappi usa client-credentials configuradas en el backend (.env),
-            no un flujo OAuth por restaurante como Uber: no hay botón de conectar. */}
-        <div className={`${styles.tarjeta} animate-in`} style={{ ["--i" as string]: 1 }}>
-          <div className={styles.cabecera}>
-            <LogoCanal canal="RAPPI" />
-            <span className="badge badge-dot" style={{ ["--badge-color" as string]: "#2563eb" }}>
-              Disponible
-            </span>
-          </div>
-          <div className={styles.canal}>Rappi</div>
-          <p className={styles.descripcion}>{DESCRIPCION.RAPPI}</p>
-          <button className="btn btn-secondary btn-block" disabled>
-            <Icon name="check" size={16} strokeWidth={2.5} />
-            Configuración manual
-          </button>
-        </div>
-
-        {CANALES_PROXIMAMENTE.map((canal, i) => (
-          <div
-            key={canal}
-            className={`${styles.tarjeta} ${styles.tarjetaInactiva} animate-in`}
-            style={{ ["--i" as string]: i + 2 }}
-          >
-            <div className={styles.cabecera}>
-              <LogoCanal canal={canal} />
-              <span className="badge">Próximamente</span>
+            <div className={styles.texto}>
+              <div className={styles.canal}>Uber Eats</div>
+              <p className={styles.descripcion}>{DESCRIPCION.UBER_EATS}</p>
             </div>
-            <div className={styles.canal}>{infoCanal(canal).nombre}</div>
-            <p className={styles.descripcion}>{DESCRIPCION[canal]}</p>
-            <button className="btn btn-secondary btn-block" disabled>
-              No disponible
-            </button>
+            {uberConectado === null ? (
+              <span className={`skeleton ${styles.estadoSkeleton}`} aria-label="Verificando conexión" />
+            ) : (
+              <span className={`${styles.estado} ${uberConectado ? styles.estadoOk : ""}`}>
+                {uberConectado ? "Conectado" : "No conectado"}
+              </span>
+            )}
+            <div className={styles.accion}>
+              {uberConectado === false && (
+                <button className="btn btn-primary btn-sm" onClick={conectarUber}>
+                  Conectar
+                  <Icon name="flecha" size={14} />
+                </button>
+              )}
+            </div>
           </div>
-        ))}
 
-        <OdooCard />
-      </div>
+          {/* Rappi usa client-credentials configuradas en el backend (.env),
+              no un flujo OAuth por restaurante como Uber: no hay botón de conectar. */}
+          <div className={`${styles.fila} animate-in`} style={{ ["--i" as string]: 1 }}>
+            <LogoCanal canal="RAPPI" />
+            <div className={styles.texto}>
+              <div className={styles.canal}>Rappi</div>
+              <p className={styles.descripcion}>{DESCRIPCION.RAPPI}</p>
+            </div>
+            <span className={`${styles.estado} ${styles.estadoInfo}`}>Disponible</span>
+            <div className={styles.accion}>
+              <span className={styles.nota}>Lo configura el equipo técnico</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.seccion} aria-labelledby="int-sistemas">
+        <h2 id="int-sistemas" className={styles.seccionTitulo}>
+          Sistemas externos <span className={styles.seccionCuenta}>1</span>
+        </h2>
+        <div className={styles.lista}>
+          <OdooCard />
+        </div>
+      </section>
+
+      <section className={styles.seccion} aria-labelledby="int-pronto">
+        <h2 id="int-pronto" className={styles.seccionTitulo}>
+          Próximamente <span className={styles.seccionCuenta}>{CANALES_PROXIMAMENTE.length}</span>
+        </h2>
+        <div className={styles.lista}>
+          {CANALES_PROXIMAMENTE.map((canal, i) => (
+            <div
+              key={canal}
+              className={`${styles.fila} ${styles.filaInactiva} animate-in`}
+              style={{ ["--i" as string]: i + 2 }}
+            >
+              <LogoCanal canal={canal} />
+              <div className={styles.texto}>
+                <div className={styles.canal}>{infoCanal(canal).nombre}</div>
+                <p className={styles.descripcion}>{DESCRIPCION[canal]}</p>
+              </div>
+              <span className={styles.estado}>En desarrollo</span>
+              <div className={styles.accion} />
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

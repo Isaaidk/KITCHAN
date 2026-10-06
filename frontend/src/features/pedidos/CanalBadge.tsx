@@ -1,10 +1,15 @@
+import CanalLogo from "../../shared/components/CanalLogo";
 import { infoCanal } from "./estadoUtils";
 
-/** Chip con el nombre y el color de marca del canal (Uber Eats, Rappi, ...). */
+/** Chip con el logo y el nombre del canal (Uber Eats, Rappi, ...). */
 export default function CanalBadge({ origen }: { origen: string }) {
   const { nombre, color } = infoCanal(origen);
   return (
-    <span className="badge badge-dot" style={{ ["--badge-color" as string]: color }}>
+    <span
+      className="badge"
+      style={{ ["--badge-color" as string]: color, paddingLeft: 4, gap: 6 }}
+    >
+      <CanalLogo canal={origen} color={color} nombre={nombre} size={18} />
       {nombre}
     </span>
   );

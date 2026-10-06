@@ -17,23 +17,28 @@
 }
 
 .columna {
-  background: linear-gradient(180deg, #eef1f7 0%, rgba(238, 241, 247, 0.55) 100%);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  /* Columna teñida con el color de su estado, sin degradado gris */
+  background: color-mix(in srgb, var(--color-columna) 5%, #eef1f7);
+  border: 1px solid color-mix(in srgb, var(--color-columna) 14%, var(--color-border));
+  border-radius: var(--radius-xl);
   padding: 14px;
-  min-height: 220px;
+  min-height: 260px;
   position: relative;
   overflow: hidden;
 }
 
-/* Filete superior con el color del estado */
+/* Resplandor del color del estado en la esquina superior */
 .columna::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--color-columna);
-  opacity: 0.85;
+  height: 120px;
+  background: radial-gradient(70% 100% at 0% 0%, color-mix(in srgb, var(--color-columna) 16%, transparent), transparent 75%);
+  pointer-events: none;
+}
+
+.columna > * {
+  position: relative;
 }
 
 .columnaTitulo {
@@ -66,12 +71,12 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-columna);
+  color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 4px 10px -4px var(--color-columna);
   /* key={items.length}: el número "rebota" cada vez que cambia */
   animation: contador-bump 360ms var(--ease-spring) both;
 }

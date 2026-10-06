@@ -32,6 +32,7 @@ const CANALES: Record<string, { nombre: string; color: string }> = {
   PEDIDOS_YA: { nombre: "PedidosYa", color: "#EA004B" },
   PEDIDOSYA: { nombre: "PedidosYa", color: "#EA004B" },
   WHATSAPP: { nombre: "WhatsApp", color: "#25D366" },
+  ODOO: { nombre: "Odoo", color: "#714B67" },
   LOCAL: { nombre: "Local", color: "#64748b" },
 };
 
