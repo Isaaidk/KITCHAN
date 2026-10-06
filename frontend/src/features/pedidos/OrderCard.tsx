@@ -57,29 +57,41 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
         ["--borde-estado" as string]: colorVarEstado(pedido.estado),
         ["--i" as string]: Math.min(indice, 6),
       }}
-      onClick={() => onAbrir(pedido)}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" && e.target === e.currentTarget) onAbrir(pedido);
-      }}
     >
       <div className={styles.encabezado}>
         <CanalLogo canal={pedido.origen} color={canal.color} nombre={canal.nombre} size={34} />
         <div className={styles.identidad}>
-          <span className={styles.cliente}>{pedido.cliente}</span>
+          <span className={styles.cliente}>
+            {/* Botón real que se estira sobre toda la tarjeta (::after): el clic con
+                mouse abre el detalle en cualquier parte y el teclado/lector de
+                pantalla encuentra un único control, sin <article onClick>. */}
+            <button
+              type="button"
+              className={styles.abrir}
+              onClick={() => onAbrir(pedido)}
+              aria-haspopup="dialog"
+            >
+              {pedido.cliente}
+            </button>
+          </span>
           <span className={styles.origen}>
             {canal.nombre}
-            {pedido.id_externo && <span className={styles.referencia}>#{pedido.id_externo.length > 10 ? pedido.id_externo.slice(-6) : pedido.id_externo}</span>}
+            {pedido.id_externo && (
+              <span className={styles.referencia} translate="no">
+                #{pedido.id_externo.length > 10 ? pedido.id_externo.slice(-6) : pedido.id_externo}
+              </span>
+            )}
           </span>
         </div>
         <span className={`${styles.timer} ${vencido ? styles.timerVencido : ""}`}>
           <Icon name="reloj" size={12} strokeWidth={2.5} />
           {minutos} min
+          {vencido && <span className="sr-only"> (demorado)</span>}
         </span>
       </div>
 
       <div className={styles.tiempo} aria-hidden="true">
-        <span className={styles.tiempoBarra} style={{ width: `${progreso * 100}%` }} />
+        <span className={styles.tiempoBarra} style={{ transform: `scaleX(${progreso})` }} />
       </div>
 
       {visibles.length > 0 && (
@@ -105,7 +117,7 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
       </div>
 
       {(puedeAceptar || puedeMarcarListo || puedeCompletar || puedeCancelar) && (
-        <div className={styles.acciones} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.acciones}>
           {puedeAceptar && (
             <button className={`btn btn-sm btn-primary ${cargando}`} disabled={procesando} onClick={aceptar}>
               <Icon name="check" size={14} strokeWidth={2.5} />
@@ -137,13 +149,11 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
       )}
 
       {mostrarCancelar && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <CancelarPedidoModal
-            pedido={pedido}
-            onClose={() => setMostrarCancelar(false)}
-            onConfirmar={confirmarCancelacion}
-          />
-        </div>
+        <CancelarPedidoModal
+          pedido={pedido}
+          onClose={() => setMostrarCancelar(false)}
+          onConfirmar={confirmarCancelacion}
+        />
       )}
     </article>
   );

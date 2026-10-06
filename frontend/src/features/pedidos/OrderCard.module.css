@@ -43,9 +43,38 @@
   transform: translateY(0) scale(0.99);
 }
 
-.tarjeta:focus-visible {
+/* El foco vive en el botón del nombre, pero el anillo se dibuja en toda la tarjeta */
+.tarjeta:has(.abrir:focus-visible) {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+/* Si un pedido recibe el foco con la barra superior fija, no queda tapado */
+.tarjeta {
+  scroll-margin-top: 88px;
+}
+
+.abrir {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.abrir::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.abrir:focus-visible {
+  outline: none;
 }
 
 @keyframes tarjeta-entrada {
@@ -106,12 +135,15 @@
   overflow: hidden;
 }
 
+/* Se anima con transform (no width): el progreso crece desde la izquierda */
 .tiempoBarra {
   display: block;
+  width: 100%;
   height: 100%;
   border-radius: inherit;
   background: var(--borde-estado, var(--color-primary));
-  transition: width 600ms var(--ease-out);
+  transform-origin: left;
+  transition: transform 600ms var(--ease-out);
 }
 
 .tarjeta:has(.timerVencido) .tiempoBarra {
@@ -145,7 +177,9 @@
 }
 
 .itemNombre {
+  min-width: 0;
   color: #334155;
+  overflow-wrap: anywhere;
 }
 
 .itemNota {
@@ -161,6 +195,7 @@
 }
 
 .timer {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -179,8 +214,28 @@
   background: var(--color-danger-soft);
   border-color: #fecaca;
   color: var(--color-danger);
-  --pulse-color: rgba(220, 38, 38, 0.35);
-  animation: kt-pulse-ring 1.6s ease-out infinite;
+}
+
+/* Pulso con un anillo que escala y se desvanece (solo transform/opacity) */
+.timerVencido::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 2px solid rgba(220, 38, 38, 0.5);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: timer-pulso 1.6s ease-out infinite;
+}
+
+@keyframes timer-pulso {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
 }
 
 .meta {
@@ -203,7 +258,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Por encima del botón estirado de la tarjeta para que sus clics lleguen primero */
 .acciones {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 8px;
   padding-top: 12px;

@@ -42,7 +42,7 @@ export default function ColaPedidosPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Cola de pedidos</h1>
-          <p className="page-subtitle">
+          <p className="page-subtitle" aria-live="polite">
             {cargado
               ? `${activos} ${activos === 1 ? "pedido activo" : "pedidos activos"} · se actualiza en tiempo real`
               : "Cargando pedidos…"}
@@ -79,12 +79,14 @@ export default function ColaPedidosPage() {
         </div>
       </div>
 
-      <div className={styles.tablero}>
+      <div className={styles.tablero} aria-busy={!cargado}>
         {columnas.map((estado, indiceColumna) => {
           const items = pedidosFiltrados(estado);
+          const idTitulo = `columna-${estado}`;
           return (
             <section
               key={estado}
+              aria-labelledby={idTitulo}
               className={`${styles.columna} animate-in`}
               style={{
                 ["--i" as string]: indiceColumna,
@@ -92,12 +94,13 @@ export default function ColaPedidosPage() {
               }}
             >
               <header className={styles.columnaTitulo}>
-                <span className={styles.columnaNombre}>
-                  <span className={styles.columnaPunto} />
+                <h2 id={idTitulo} className={styles.columnaNombre}>
+                  <span className={styles.columnaPunto} aria-hidden="true" />
                   {ETIQUETA_ESTADO[estado]}
-                </span>
+                </h2>
                 <span className={styles.contador} key={items.length}>
                   {items.length}
+                  <span className="sr-only"> {items.length === 1 ? "pedido" : "pedidos"}</span>
                 </span>
               </header>
 
