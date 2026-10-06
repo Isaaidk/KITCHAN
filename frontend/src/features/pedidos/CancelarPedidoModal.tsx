@@ -1,8 +1,11 @@
 import { useState } from "react";
+import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
-import { motivosCancelacionPara } from "./integracionesApi";
+import { infoCanal } from "./estadoUtils";
+import { motivosCancelacionPara, tieneIntegracionDisponible } from "./integracionesApi";
+import styles from "./CancelarPedidoModal.module.css";
 
 interface Props {
   pedido: Pedido;
@@ -15,45 +18,74 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
   const [motivo, setMotivo] = useState<string>(motivos[0].value);
   const [explicacion, setExplicacion] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canal = infoCanal(pedido.origen);
+  const unidades = pedido.items.reduce((suma, item) => suma + item.cantidad, 0);
+  const notificaPlataforma = tieneIntegracionDisponible(pedido.origen);
 
   const confirmar = async () => {
+    setError(null);
     setEnviando(true);
     try {
       await onConfirmar(motivo, explicacion || "Cancelado desde KITCHAN");
       onClose();
+    } catch {
+      setError(`No se pudo cancelar el pedido. Revisa la conexión e inténtalo de nuevo.`);
     } finally {
       setEnviando(false);
     }
   };
 
   return (
-    <Modal titulo={`Cancelar pedido de ${pedido.cliente}`} onClose={onClose} ancho={460}>
-      <div className="alert alert-warning" style={{ animation: "none" }}>
-        <Icon name="alerta" size={16} />
-        Esta acción no se puede deshacer.
+    <Modal titulo={`Cancelar pedido de ${pedido.cliente}`} onClose={onClose} ancho={480}>
+      <div className={styles.pedido}>
+        <CanalLogo canal={pedido.origen} color={canal.color} nombre={canal.nombre} size={38} />
+        <div className={styles.pedidoTexto}>
+          <div className={styles.cliente}>{pedido.cliente}</div>
+          <div className={styles.meta}>
+            {canal.nombre} · {unidades} {unidades === 1 ? "ítem" : "ítems"}
+            {pedido.id_externo && <span className={styles.referencia}> · #{pedido.id_externo}</span>}
+          </div>
+        </div>
+        <span className={styles.total}>${pedido.total.toFixed(2)}</span>
       </div>
 
-      <div className="field">
-        <label className="label" htmlFor="motivo-cancelacion">
-          Motivo
-        </label>
-        <select
-          id="motivo-cancelacion"
-          className="select"
-          value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-        >
-          {motivos.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </select>
+      <div className={styles.aviso}>
+        <Icon name="alerta" size={16} />
+        <span>
+          {notificaPlataforma
+            ? `La cancelación se enviará a ${canal.nombre}. Esta acción no se puede deshacer.`
+            : "El pedido se cancela solo dentro de KITCHAN. Esta acción no se puede deshacer."}
+        </span>
       </div>
+
+      <fieldset className={styles.grupo}>
+        <legend className="label">Motivo</legend>
+        <div className={styles.motivos}>
+          {motivos.map((m) => (
+            <label
+              key={m.value}
+              className={`${styles.motivo} ${motivo === m.value ? styles.motivoActivo : ""}`}
+            >
+              <input
+                type="radio"
+                name="motivo-cancelacion"
+                value={m.value}
+                checked={motivo === m.value}
+                onChange={() => setMotivo(m.value)}
+                className={styles.radio}
+              />
+              <span className={styles.marca} aria-hidden="true" />
+              {m.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <div className="field">
         <label className="label" htmlFor="detalle-cancelacion">
-          Detalle <span className="label-hint">(opcional)</span>
+          Detalle <span className="label-hint">· opcional</span>
         </label>
         <input
           id="detalle-cancelacion"
@@ -64,7 +96,14 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
         />
       </div>
 
-      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
+      {error && (
+        <div className="alert alert-error">
+          <Icon name="alerta" size={16} />
+          {error}
+        </div>
+      )}
+
+      <div className={styles.acciones}>
         <button className="btn btn-secondary" onClick={onClose} disabled={enviando}>
           Volver
         </button>
@@ -73,7 +112,8 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
           onClick={confirmar}
           disabled={enviando}
         >
-          {enviando ? "Cancelando..." : "Confirmar cancelación"}
+          <Icon name="prohibido" size={16} />
+          Confirmar cancelación
         </button>
       </div>
     </Modal>
