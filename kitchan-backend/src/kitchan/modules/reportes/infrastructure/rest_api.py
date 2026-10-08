@@ -3,7 +3,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.core.database import get_db
-from src.kitchan.modules.reportes.infrastructure.queries import obtener_analiticas_pedidos
+from src.kitchan.modules.reportes.infrastructure.queries import (
+    obtener_analiticas_pedidos,
+)
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
 from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import requiere_rol
 

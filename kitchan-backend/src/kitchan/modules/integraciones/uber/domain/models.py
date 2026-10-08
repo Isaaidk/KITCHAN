@@ -17,6 +17,7 @@ from src.kitchan.modules.integraciones.core.domain.entities import (  # noqa: F4
 
 class UberWebhookMeta(BaseModel):
     """Metadatos del evento de Uber"""
+
     resource_id: Optional[str] = None
 
     status: Optional[str] = None
@@ -31,8 +32,10 @@ class UberWebhookMeta(BaseModel):
 
     store_id: Optional[str] = None
 
+
 class UberWebhookPayload(BaseModel):
     """Estructura esperada del Webhook de Uber Eats"""
+
     event_id: str
     event_type: str
     meta: UberWebhookMeta

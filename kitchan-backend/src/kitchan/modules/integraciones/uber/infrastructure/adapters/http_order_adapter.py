@@ -5,31 +5,32 @@ from datetime import datetime, timedelta, timezone
 
 
 class UberHttpAdapter(UberApiPort):
-    
+
     async def get_order_details(self, order_id: str, access_token: str) -> dict:
-        
+
         # --- 🧪 INTERCEPTOR DE PRUEBAS (Evita el 401 de Uber) ---
         # --------------------------------------------------------
 
         # Código real para producción
         url = f"https://test-api.uber.com/v2/eats/order/{order_id}"
-        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
-        
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
         async with httpx.AsyncClient() as client:
             respuesta = await client.get(url, headers=headers)
-            
+
         if respuesta.status_code != 200:
-            raise HTTPException(status_code=respuesta.status_code, detail=f"Error en Uber: {respuesta.text}")
-            
+            raise HTTPException(
+                status_code=respuesta.status_code,
+                detail=f"Error en Uber: {respuesta.text}",
+            )
+
         return respuesta.json()
 
-
-
     async def accept_order(
-        self,
-        order_id: str,
-        access_token: str,
-        reason: str = "Accepted"
+        self, order_id: str, access_token: str, reason: str = "Accepted"
     ) -> bool:
         # Endpoint real de Eats POS (v1/eats/orders, no v1/delivery/order —
         # ese es de Uber Direct, un producto distinto). Confirmado contra
@@ -38,13 +39,12 @@ class UberHttpAdapter(UberApiPort):
         # (no un ISO string) — así es como Uber conoce el tiempo estimado de
         # entrega; no existe un endpoint separado para "marcar listo".
         url = (
-            f"https://test-api.uber.com"
-            f"/v1/eats/orders/{order_id}/accept_pos_order"
+            f"https://test-api.uber.com" f"/v1/eats/orders/{order_id}/accept_pos_order"
         )
 
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         pickup_time = int(
@@ -57,11 +57,7 @@ class UberHttpAdapter(UberApiPort):
         }
 
         async with httpx.AsyncClient() as client:
-            respuesta = await client.post(
-                url,
-                headers=headers,
-                json=payload
-            )
+            respuesta = await client.post(url, headers=headers, json=payload)
 
         print(f"📡 [UBER ACCEPT] order_id={order_id}")
         print(f"📡 [UBER ACCEPT] status={respuesta.status_code}")
@@ -73,17 +69,23 @@ class UberHttpAdapter(UberApiPort):
                 status_code=respuesta.status_code,
                 detail={
                     "error": "No se pudo aceptar la orden en Uber",
-                    "uber_response": respuesta.text
-                }
+                    "uber_response": respuesta.text,
+                },
             )
 
         return True
-    async def deny_order(self, order_id: str, access_token: str, reason: str, explanation: str) -> bool:
+
+    async def deny_order(
+        self, order_id: str, access_token: str, reason: str, explanation: str
+    ) -> bool:
         # Mismo error que accept_order tenía: "orders" es plural y va en v1,
         # no v2/eats/order (singular). Confirmado contra developer.uber.com/
         # docs/eats/references/api/v1/post-eats-order-orderid-denyposorder.
         url = f"https://test-api.uber.com/v1/eats/orders/{order_id}/deny_pos_order"
-        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
 
         # Motivos válidos según Uber: STORE_CLOSED, POS_NOT_READY, POS_OFFLINE,
         # ITEM_AVAILABILITY, MISSING_ITEM, MISSING_INFO, PRICING, CAPACITY,
@@ -95,13 +97,16 @@ class UberHttpAdapter(UberApiPort):
                 "explanation": explanation,
             }
         }
-        
+
         async with httpx.AsyncClient() as client:
             respuesta = await client.post(url, headers=headers, json=payload)
-            
+
         if respuesta.status_code not in (200, 204):
             print(f"❌ Error al rechazar orden {order_id}: {respuesta.text}")
-            raise HTTPException(status_code=respuesta.status_code, detail="No se pudo rechazar la orden en Uber")
+            raise HTTPException(
+                status_code=respuesta.status_code,
+                detail="No se pudo rechazar la orden en Uber",
+            )
 
         return True
 
@@ -113,7 +118,10 @@ class UberHttpAdapter(UberApiPort):
         # developer.uber.com/docs/eats/references/api/v1/post-eats-order-orderid-cancel
         # — "orders" plural, v1/eats, no v1/delivery/order.
         url = f"https://test-api.uber.com/v1/eats/orders/{order_id}/cancel"
-        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
 
         # Motivos válidos: OUT_OF_ITEMS, KITCHEN_CLOSED,
         # CUSTOMER_CALLED_TO_CANCEL, RESTAURANT_TOO_BUSY,
@@ -132,16 +140,15 @@ class UberHttpAdapter(UberApiPort):
         if respuesta.status_code not in (200, 204):
             raise HTTPException(
                 status_code=respuesta.status_code,
-                detail={"error": "No se pudo cancelar la orden en Uber", "uber_response": respuesta.text},
+                detail={
+                    "error": "No se pudo cancelar la orden en Uber",
+                    "uber_response": respuesta.text,
+                },
             )
 
         return True
 
-    async def mark_order_ready(
-        self,
-        order_id: str,
-        access_token: str
-    ) -> bool:
+    async def mark_order_ready(self, order_id: str, access_token: str) -> bool:
         # La API de Eats POS (v1/eats/orders) NO tiene un endpoint para
         # "marcar listo": el tiempo estimado de entrega ya se informa en
         # accept_pos_order (campo pickup_time). Confirmado revisando la
@@ -158,39 +165,27 @@ class UberHttpAdapter(UberApiPort):
         return True
 
     async def get_delivery_order_details(
-            self,
-            order_id: str,
-            access_token: str
-        ) -> dict:
+        self, order_id: str, access_token: str
+    ) -> dict:
 
-            url = (
-                f"https://test-api.uber.com"
-                f"/v1/delivery/order/{order_id}"
+        url = f"https://test-api.uber.com" f"/v1/delivery/order/{order_id}"
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        async with httpx.AsyncClient() as client:
+            respuesta = await client.get(url, headers=headers)
+
+        if respuesta.status_code != 200:
+            print(
+                f"❌ Error obteniendo estado delivery " f"{order_id}: {respuesta.text}"
             )
 
-            headers = {
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json"
-            }
+            raise HTTPException(
+                status_code=respuesta.status_code,
+                detail=("No se pudo obtener el estado " "delivery de la orden en Uber"),
+            )
 
-            async with httpx.AsyncClient() as client:
-                respuesta = await client.get(
-                    url,
-                    headers=headers
-                )
-
-            if respuesta.status_code != 200:
-                print(
-                    f"❌ Error obteniendo estado delivery "
-                    f"{order_id}: {respuesta.text}"
-                )
-
-                raise HTTPException(
-                    status_code=respuesta.status_code,
-                    detail=(
-                        "No se pudo obtener el estado "
-                        "delivery de la orden en Uber"
-                    )
-                )
-
-            return respuesta.json()
+        return respuesta.json()

@@ -13,7 +13,9 @@ from src.kitchan.modules.pedidos.infrastructure.models import PedidoModel
 # de `pedidos`.
 
 
-async def obtener_analiticas_pedidos(session: AsyncSession, restaurante_id: str) -> dict:
+async def obtener_analiticas_pedidos(
+    session: AsyncSession, restaurante_id: str
+) -> dict:
     rid = uuid.UUID(str(restaurante_id))
     hoy = date.today()
     ayer = hoy - timedelta(days=1)
@@ -36,7 +38,8 @@ async def obtener_analiticas_pedidos(session: AsyncSession, restaurante_id: str)
     preparados_hoy = [
         m
         for m in pedidos_hoy
-        if m.estado in (EstadoPedido.LISTA, EstadoPedido.ENTREGADA) and m.fecha_actualizacion
+        if m.estado in (EstadoPedido.LISTA, EstadoPedido.ENTREGADA)
+        and m.fecha_actualizacion
     ]
     tiempo_promedio_preparacion = (
         sum(
@@ -68,6 +71,7 @@ async def obtener_analiticas_pedidos(session: AsyncSession, restaurante_id: str)
         "pedidos_cancelados_hoy": cancelados_hoy,
         "por_canal": por_canal,
         "comparacion_hoy_vs_ayer": [
-            {"hora": h, "hoy": por_hora_hoy[h], "ayer": por_hora_ayer[h]} for h in range(24)
+            {"hora": h, "hoy": por_hora_hoy[h], "ayer": por_hora_ayer[h]}
+            for h in range(24)
         ],
     }

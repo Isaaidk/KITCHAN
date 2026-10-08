@@ -8,7 +8,10 @@ from typing import Optional
 # Le pongo tu clave generada como valor por defecto (fallback) para que no falle si olvidas el .env
 UBER_SECRET = os.getenv("UBER_WEBHOOK_SECRET", "ChispoyNaomi@0305")
 
-async def validar_firma_uber(request: Request, x_uber_signature: Optional[str] = Header(None)):
+
+async def validar_firma_uber(
+    request: Request, x_uber_signature: Optional[str] = Header(None)
+):
     """
     Dependencia que intercepta la petición y valida la firma HMAC-SHA256 de Uber.
     """
@@ -17,14 +20,14 @@ async def validar_firma_uber(request: Request, x_uber_signature: Optional[str] =
 
     # Extraemos el cuerpo de la petición exactamente en bytes como llegó
     body_bytes = await request.body()
-    
+
     # Calculamos la firma usando nuestra clave secreta
     firma_calculada = hmac.new(
-        key=UBER_SECRET.encode("utf-8"),
-        msg=body_bytes,
-        digestmod=hashlib.sha256
+        key=UBER_SECRET.encode("utf-8"), msg=body_bytes, digestmod=hashlib.sha256
     ).hexdigest()
 
     # Comparamos la firma de Uber con la nuestra de forma segura
     if not hmac.compare_digest(firma_calculada, x_uber_signature):
-        raise HTTPException(status_code=403, detail="Firma HMAC inválida. Acceso denegado.")
+        raise HTTPException(
+            status_code=403, detail="Firma HMAC inválida. Acceso denegado."
+        )

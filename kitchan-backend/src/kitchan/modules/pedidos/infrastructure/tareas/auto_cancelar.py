@@ -2,11 +2,17 @@ import asyncio
 import logging
 
 from src.kitchan.core.database import AsyncSessionLocal
+from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
+    ESTADOS_QUE_YA_NO_SE_CANCELAN,
+    ActualizarEstadoPedidoUseCase,
+)
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido
 from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
     RedisPublisherAdapter,
 )
-from src.kitchan.modules.pedidos.infrastructure.repository import PostgresPedidoRepository
+from src.kitchan.modules.pedidos.infrastructure.repository import (
+    PostgresPedidoRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +24,24 @@ async def _barrer_una_vez(redis_url: str) -> None:
     async with AsyncSessionLocal() as session:
         repo = PostgresPedidoRepository(session=session)
         notificador = RedisPublisherAdapter(redis_url=redis_url)
+        # La cancelación pasa por el caso de uso (y no directo por el
+        # repositorio) para respetar las reglas de negocio de pedidos: un
+        # pedido LISTA ya no se cancela aunque lleve tiempo sin moverse.
+        caso_uso = ActualizarEstadoPedidoUseCase(
+            repository=repo, notificador=notificador
+        )
 
         estancados = await repo.listar_estancados(MINUTOS_LIMITE)
         for pedido in estancados:
-            actualizado = await repo.actualizar_estado(pedido.id, EstadoPedido.CANCELADA.value)
-            if not actualizado:
+            # Se filtran antes para no reintentar (y loguear) en cada barrido
+            # una cancelación que el caso de uso siempre va a ignorar.
+            if pedido.estado in ESTADOS_QUE_YA_NO_SE_CANCELAN:
                 continue
-            pedido.estado = EstadoPedido.CANCELADA
-            await notificador.notificar_pedido_actualizado(pedido)
+            actualizado = await caso_uso.ejecutar_por_id(
+                pedido.id, EstadoPedido.CANCELADA
+            )
+            if actualizado is None or actualizado.estado != EstadoPedido.CANCELADA:
+                continue
             logger.info(
                 "⏱️ Pedido %s auto-cancelado: sin cambios en más de %s minutos.",
                 pedido.id,

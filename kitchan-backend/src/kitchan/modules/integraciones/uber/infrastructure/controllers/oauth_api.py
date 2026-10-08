@@ -5,18 +5,17 @@ from urllib.parse import urlencode
 import httpx
 from dotenv import load_dotenv
 from src.kitchan.modules.integraciones.uber.domain.schemas import UberProvisionRequest
-from fastapi import APIRouter, HTTPException, Query, Depends,Request
-from fastapi.responses import RedirectResponse, Response 
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
+from fastapi.responses import RedirectResponse, Response
 
 from src.kitchan.modules.integraciones.uber.domain.ports import (
     UberTokenCachePort,
-    UberOAuthStatePort
+    UberOAuthStatePort,
 )
 
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_adapter import (
-    RedisUberTokenAdapter
+    RedisUberTokenAdapter,
 )
-
 
 # ============================================================
 # CONFIGURACIÓN
@@ -26,18 +25,14 @@ load_dotenv()
 
 
 router = APIRouter(
-    prefix="/api/v1/integraciones/uber/auth",
-    tags=["Integraciones - Uber Eats Auth"]
+    prefix="/api/v1/integraciones/uber/auth", tags=["Integraciones - Uber Eats Auth"]
 )
 
 
 UBER_CLIENT_ID = os.getenv("UBER_CLIENT_ID")
 UBER_CLIENT_SECRET = os.getenv("UBER_CLIENT_SECRET")
 
-REDIS_URL = os.getenv(
-    "REDIS_URL",
-    "redis://localhost:6379/0"
-)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 
 # ============================================================
@@ -46,15 +41,11 @@ REDIS_URL = os.getenv(
 
 # Authorization Code
 # Se utiliza para que el merchant autorice KITCHAN.
-UBER_AUTHORIZE_URL = (
-    "https://sandbox-login.uber.com/oauth/v2/authorize"
-)
+UBER_AUTHORIZE_URL = "https://sandbox-login.uber.com/oauth/v2/authorize"
 
 
 # Intercambio authorization_code -> access_token
-UBER_TOKEN_URL = (
-    "https://sandbox-login.uber.com/oauth/v2/token"
-)
+UBER_TOKEN_URL = "https://sandbox-login.uber.com/oauth/v2/token"
 
 
 # API de pruebas de Uber Eats
@@ -90,15 +81,14 @@ UBER_SCOPE = "eats.pos_provisioning"
 # DEPENDENCIES
 # ============================================================
 
+
 def get_token_adapter() -> UberTokenCachePort:
     """
     Devuelve el adaptador encargado de almacenar
     y recuperar los access tokens desde Redis.
     """
 
-    return RedisUberTokenAdapter(
-        redis_url=REDIS_URL
-    )
+    return RedisUberTokenAdapter(redis_url=REDIS_URL)
 
 
 def get_oauth_state_adapter() -> UberOAuthStatePort:
@@ -107,24 +97,18 @@ def get_oauth_state_adapter() -> UberOAuthStatePort:
     temporalmente los estados OAuth.
     """
 
-    return RedisUberTokenAdapter(
-        redis_url=REDIS_URL
-    )
+    return RedisUberTokenAdapter(redis_url=REDIS_URL)
 
 
 # ============================================================
 # AUTHORIZATION CODE FLOW
 # ============================================================
 
+
 @router.get("/login")
 async def uber_login(
-    restaurante_id: str = Query(
-        ...,
-        description="ID del restaurante en Kitchan"
-    ),
-    state_adapter: UberOAuthStatePort = Depends(
-        get_oauth_state_adapter
-    )
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    state_adapter: UberOAuthStatePort = Depends(get_oauth_state_adapter),
 ):
     """
     Inicia el flujo OAuth Authorization Code de Uber.
@@ -152,37 +136,24 @@ async def uber_login(
     if not UBER_CLIENT_ID:
 
         raise HTTPException(
-            status_code=500,
-            detail="UBER_CLIENT_ID no está configurado"
+            status_code=500, detail="UBER_CLIENT_ID no está configurado"
         )
-
 
     # --------------------------------------------------------
     # Limpiar Client ID
     # --------------------------------------------------------
 
-    client_id_limpio = (
-        UBER_CLIENT_ID
-        .strip()
-        .replace('"', '')
-        .replace("'", "")
-    )
-
+    client_id_limpio = UBER_CLIENT_ID.strip().replace('"', "").replace("'", "")
 
     if not client_id_limpio:
 
-        raise HTTPException(
-            status_code=500,
-            detail="UBER_CLIENT_ID está vacío"
-        )
-
+        raise HTTPException(status_code=500, detail="UBER_CLIENT_ID está vacío")
 
     # --------------------------------------------------------
     # Generar STATE
     # --------------------------------------------------------
 
     state = secrets.token_urlsafe(32)
-
 
     # --------------------------------------------------------
     # Guardar STATE en Redis
@@ -199,11 +170,8 @@ async def uber_login(
     # --------------------------------------------------------
 
     await state_adapter.save_state(
-        state=state,
-        restaurante_id=restaurante_id,
-        expires_in=600
+        state=state, restaurante_id=restaurante_id, expires_in=600
     )
-
 
     # --------------------------------------------------------
     # Parámetros OAuth
@@ -215,27 +183,20 @@ async def uber_login(
         "redirect_uri": UBER_REDIRECT_URI,
         "scope": UBER_SCOPE,
         "state": state,
-        "prompt": "consent"
+        "prompt": "consent",
     }
-
 
     # --------------------------------------------------------
     # Construir URL de autorización
     # --------------------------------------------------------
 
-    authorization_url = (
-        f"{UBER_AUTHORIZE_URL}?{urlencode(params)}"
-    )
-
+    authorization_url = f"{UBER_AUTHORIZE_URL}?{urlencode(params)}"
 
     # --------------------------------------------------------
     # Redireccionar al usuario hacia Uber
     # --------------------------------------------------------
 
-    return RedirectResponse(
-        url=authorization_url,
-        status_code=302
-    )
+    return RedirectResponse(url=authorization_url, status_code=302)
 
 
 # ============================================================
@@ -249,7 +210,7 @@ async def uber_callback(
     code: str = Query(..., description="Authorization code entregado por Uber"),
     state: str = Query(..., description="State generado por Kitchan"),
     token_adapter: UberTokenCachePort = Depends(get_token_adapter),
-    state_adapter: UberOAuthStatePort = Depends(get_oauth_state_adapter)
+    state_adapter: UberOAuthStatePort = Depends(get_oauth_state_adapter),
 ):
     """
     Callback multi-tenant: Intercambia el token, descubre las tiendas autorizadas
@@ -262,8 +223,8 @@ async def uber_callback(
     await state_adapter.delete_state(state)
 
     # Limpiar credenciales
-    client_id_limpio = UBER_CLIENT_ID.strip().replace('"', '').replace("'", "")
-    client_secret_limpio = UBER_CLIENT_SECRET.strip().replace('"', '').replace("'", "")
+    client_id_limpio = UBER_CLIENT_ID.strip().replace('"', "").replace("'", "")
+    client_secret_limpio = UBER_CLIENT_SECRET.strip().replace('"', "").replace("'", "")
 
     # 2. Solicitar ACCESS TOKEN
     payload = {
@@ -271,7 +232,7 @@ async def uber_callback(
         "client_secret": client_secret_limpio,
         "grant_type": "authorization_code",
         "redirect_uri": UBER_REDIRECT_URI,
-        "code": code
+        "code": code,
     }
 
     async with httpx.AsyncClient() as client:
@@ -279,7 +240,7 @@ async def uber_callback(
             UBER_TOKEN_URL,
             data=payload,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=30
+            timeout=30,
         )
 
     if respuesta.status_code != 200:
@@ -295,9 +256,7 @@ async def uber_callback(
 
     # 3. Guardar el ACCESS TOKEN
     await token_adapter.save_provisioning_token(
-        restaurante_id=restaurante_id,
-        token=access_token,
-        expires_in=expires_in
+        restaurante_id=restaurante_id, token=access_token, expires_in=expires_in
     )
 
     # ==========================================================
@@ -306,20 +265,26 @@ async def uber_callback(
     stores_url = f"{UBER_API_BASE}/v1/eats/stores"
     headers_store = {
         "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
-    
+
     async with httpx.AsyncClient() as client:
-        respuesta_stores = await client.get(stores_url, headers=headers_store, timeout=30)
-        
+        respuesta_stores = await client.get(
+            stores_url, headers=headers_store, timeout=30
+        )
+
     tiendas_mapeadas = 0
     if respuesta_stores.status_code == 200:
         stores_data = respuesta_stores.json()
-        
+
         # Uber devuelve una lista de tiendas en el campo "stores" o directamente en un array
         # Depende un poco de la API, usualmente es un dict que contiene un array
-        lista_tiendas = stores_data if isinstance(stores_data, list) else stores_data.get("stores", [])
-        
+        lista_tiendas = (
+            stores_data
+            if isinstance(stores_data, list)
+            else stores_data.get("stores", [])
+        )
+
         for store in lista_tiendas:
             store_id = store.get("store_id")
             if store_id:
@@ -342,19 +307,16 @@ async def uber_callback(
         status_code=302,
     )
 
+
 # ============================================================
 # CLIENT CREDENTIALS
 # ============================================================
 
+
 @router.post("/app-token")
 async def generate_app_token(
-    restaurante_id: str = Query(
-        ...,
-        description="ID del restaurante en Kitchan"
-    ),
-    token_adapter: UberTokenCachePort = Depends(
-        get_token_adapter
-    )
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Obtiene un token mediante Client Credentials.
@@ -374,32 +336,16 @@ async def generate_app_token(
     if not UBER_CLIENT_ID or not UBER_CLIENT_SECRET:
 
         raise HTTPException(
-            status_code=500,
-            detail=(
-                "Credenciales de Uber incompletas "
-                "en el .env"
-            )
+            status_code=500, detail=("Credenciales de Uber incompletas " "en el .env")
         )
-
 
     # --------------------------------------------------------
     # Limpiar credenciales
     # --------------------------------------------------------
 
-    client_id_limpio = (
-        UBER_CLIENT_ID
-        .strip()
-        .replace('"', '')
-        .replace("'", "")
-    )
+    client_id_limpio = UBER_CLIENT_ID.strip().replace('"', "").replace("'", "")
 
-    client_secret_limpio = (
-        UBER_CLIENT_SECRET
-        .strip()
-        .replace('"', '')
-        .replace("'", "")
-    )
-
+    client_secret_limpio = UBER_CLIENT_SECRET.strip().replace('"', "").replace("'", "")
 
     # --------------------------------------------------------
     # Client Credentials
@@ -409,16 +355,10 @@ async def generate_app_token(
         "client_id": client_id_limpio,
         "client_secret": client_secret_limpio,
         "grant_type": "client_credentials",
-        "scope": "eats.store eats.order"
+        "scope": "eats.store eats.order",
     }
 
-
-    headers = {
-        "Content-Type": (
-            "application/x-www-form-urlencoded"
-        )
-    }
-
+    headers = {"Content-Type": ("application/x-www-form-urlencoded")}
 
     # --------------------------------------------------------
     # Solicitar token
@@ -432,18 +372,14 @@ async def generate_app_token(
                 "https://sandbox-login.uber.com/oauth/v2/token",
                 data=payload,
                 headers=headers,
-                timeout=30
+                timeout=30,
             )
 
         except httpx.RequestError as error:
 
             raise HTTPException(
-                status_code=502,
-                detail=(
-                    f"No se pudo comunicar con Uber: {error}"
-                )
+                status_code=502, detail=(f"No se pudo comunicar con Uber: {error}")
             )
-
 
     # --------------------------------------------------------
     # Validar respuesta
@@ -456,45 +392,31 @@ async def generate_app_token(
             detail={
                 "mensaje": "Fallo en Uber Auth",
                 "uber_status": respuesta.status_code,
-                "uber_response": respuesta.text
-            }
+                "uber_response": respuesta.text,
+            },
         )
-
 
     tokens = respuesta.json()
 
     access_token = tokens.get("access_token")
     expires_in = tokens.get("expires_in")
 
-
     if not access_token:
 
-        raise HTTPException(
-            status_code=502,
-            detail=(
-                "Uber no devolvió access_token"
-            )
-        )
-
+        raise HTTPException(status_code=502, detail=("Uber no devolvió access_token"))
 
     # --------------------------------------------------------
     # Guardar token
     # --------------------------------------------------------
 
     await token_adapter.save_app_token(
-        restaurante_id=restaurante_id,
-        token=access_token,
-        expires_in=expires_in
+        restaurante_id=restaurante_id, token=access_token, expires_in=expires_in
     )
 
-
     return {
-        "mensaje": (
-            "Access Token de aplicación generado "
-            "y almacenado en Redis"
-        ),
+        "mensaje": ("Access Token de aplicación generado " "y almacenado en Redis"),
         "restaurante_id": restaurante_id,
-        "expira_en_segundos": expires_in
+        "expira_en_segundos": expires_in,
     }
 
 
@@ -502,15 +424,11 @@ async def generate_app_token(
 # DIAGNÓSTICO DE TIENDA
 # ============================================================
 
+
 @router.get("/diagnostico")
 async def diagnosticar_tienda_uber(
-    restaurante_id: str = Query(
-        ...,
-        description="ID del restaurante en Kitchan"
-    ),
-    token_adapter: UberTokenCachePort = Depends(
-        get_token_adapter
-    )
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Consulta una tienda utilizando el token almacenado.
@@ -522,48 +440,31 @@ async def diagnosticar_tienda_uber(
 
     # get_token() leía una clave que nunca se escribe (bug); el token del
     # merchant que sí se guarda tras el OAuth es el de provisioning.
-    token = await token_adapter.get_provisioning_token(
-        restaurante_id
-    )
-
+    token = await token_adapter.get_provisioning_token(restaurante_id)
 
     if not token:
 
         raise HTTPException(
-            status_code=404,
-            detail=(
-                "No hay token en Redis para este restaurante."
-            )
+            status_code=404, detail=("No hay token en Redis para este restaurante.")
         )
-
 
     # --------------------------------------------------------
     # Store UUID de prueba
     # --------------------------------------------------------
 
-    STORE_UUID = (
-        "13e7c732-7b58-44c1-b313-957557d6b482"
-    )
-
+    STORE_UUID = "13e7c732-7b58-44c1-b313-957557d6b482"
 
     # --------------------------------------------------------
     # URL de la tienda
     # --------------------------------------------------------
 
-    store_url = (
-        f"{UBER_API_BASE}"
-        f"/v1/eats/stores/{STORE_UUID}"
-    )
-
+    store_url = f"{UBER_API_BASE}" f"/v1/eats/stores/{STORE_UUID}"
 
     # --------------------------------------------------------
     # Headers
     # --------------------------------------------------------
 
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-
+    headers = {"Authorization": f"Bearer {token}"}
 
     # --------------------------------------------------------
     # Request
@@ -573,21 +474,13 @@ async def diagnosticar_tienda_uber(
 
         try:
 
-            respuesta = await client.get(
-                store_url,
-                headers=headers,
-                timeout=30
-            )
+            respuesta = await client.get(store_url, headers=headers, timeout=30)
 
         except httpx.RequestError as error:
 
             raise HTTPException(
-                status_code=502,
-                detail=(
-                    f"No se pudo comunicar con Uber: {error}"
-                )
+                status_code=502, detail=(f"No se pudo comunicar con Uber: {error}")
             )
-
 
     # --------------------------------------------------------
     # Éxito
@@ -596,13 +489,9 @@ async def diagnosticar_tienda_uber(
     if respuesta.status_code == 200:
 
         return {
-            "mensaje": (
-                "La tienda respondió correctamente "
-                "en el entorno Sandbox"
-            ),
-            "datos_uber": respuesta.json()
+            "mensaje": ("La tienda respondió correctamente " "en el entorno Sandbox"),
+            "datos_uber": respuesta.json(),
         }
-
 
     # --------------------------------------------------------
     # Error
@@ -613,19 +502,15 @@ async def diagnosticar_tienda_uber(
         detail={
             "mensaje": "Fallo al consultar tienda",
             "uber_status": respuesta.status_code,
-            "uber_response": respuesta.text
-        }
+            "uber_response": respuesta.text,
+        },
     )
+
 
 @router.get("/stores")
 async def obtener_tiendas_uber(
-    restaurante_id: str = Query(
-        ...,
-        description="ID del restaurante en Kitchan"
-    ),
-    token_adapter: UberTokenCachePort = Depends(
-        get_token_adapter
-    )
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Obtiene las tiendas autorizadas por el merchant
@@ -634,9 +519,7 @@ async def obtener_tiendas_uber(
 
     # get_token() leía una clave que nunca se escribe (bug); el token del
     # merchant que sí se guarda tras el OAuth es el de provisioning.
-    token = await token_adapter.get_provisioning_token(
-        restaurante_id
-    )
+    token = await token_adapter.get_provisioning_token(restaurante_id)
 
     if not token:
         raise HTTPException(
@@ -644,25 +527,16 @@ async def obtener_tiendas_uber(
             detail=(
                 "No existe un access token para este restaurante. "
                 "Ejecuta primero /login."
-            )
+            ),
         )
 
-    stores_url = (
-        f"{UBER_API_BASE}/v1/eats/stores"
-    )
+    stores_url = f"{UBER_API_BASE}/v1/eats/stores"
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient() as client:
 
-        respuesta = await client.get(
-            stores_url,
-            headers=headers,
-            timeout=30
-        )
+        respuesta = await client.get(stores_url, headers=headers, timeout=30)
 
     if respuesta.status_code != 200:
 
@@ -671,20 +545,21 @@ async def obtener_tiendas_uber(
             detail={
                 "mensaje": "Uber rechazó la consulta de tiendas",
                 "uber_status": respuesta.status_code,
-                "uber_response": respuesta.text
-            }
+                "uber_response": respuesta.text,
+            },
         )
 
     return {
         "mensaje": "Tiendas obtenidas correctamente",
         "restaurante_id": restaurante_id,
-        "stores": respuesta.json()
+        "stores": respuesta.json(),
     }
+
 
 @router.post("/provision")
 async def provisionar_tienda_uber(
     data: UberProvisionRequest,
-    token_adapter: UberTokenCachePort = Depends(get_token_adapter)
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Provisiona KITCHAN como integración POS para una tienda de Uber Eats.
@@ -698,8 +573,8 @@ async def provisionar_tienda_uber(
             status_code=404,
             detail={
                 "error": "UBER_TOKEN_NOT_FOUND",
-                "mensaje": "No existe un access token de Uber para este restaurante. Ejecuta /login primero."
-            }
+                "mensaje": "No existe un access token de Uber para este restaurante. Ejecuta /login primero.",
+            },
         )
 
     # 2. URL de Provisioning en el entorno Sandbox
@@ -716,7 +591,7 @@ async def provisionar_tienda_uber(
         "integrator_store_id": data.restaurante_id,
         "integrator_brand_id": "KITCHAN",
         "is_order_manager": True,
-        "store_configuration_data": f'{{"kitchan_restaurante_id": "{data.restaurante_id}"}}'
+        "store_configuration_data": f'{{"kitchan_restaurante_id": "{data.restaurante_id}"}}',
     }
 
     headers = {
@@ -738,7 +613,7 @@ async def provisionar_tienda_uber(
                 "mensaje": "Uber rechazó el provisioning de la tienda.",
                 "uber_status": respuesta.status_code,
                 "uber_response": respuesta.text,
-            }
+            },
         )
 
     return {
@@ -748,11 +623,14 @@ async def provisionar_tienda_uber(
         "status": respuesta.status_code,
     }
 
+
 @router.get("/provision/{store_id}/status")
 async def verificar_estado_provisioning(
     store_id: str,
-    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan (Ej: TEST-001)"),
-    token_adapter: UberTokenCachePort = Depends(get_token_adapter)
+    restaurante_id: str = Query(
+        ..., description="ID del restaurante en Kitchan (Ej: TEST-001)"
+    ),
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Verifica el estado del provisioning en Uber usando CLIENT CREDENTIALS.
@@ -764,7 +642,7 @@ async def verificar_estado_provisioning(
     if not token:
         raise HTTPException(
             status_code=404,
-            detail="No existe el APP TOKEN (Client Credentials) para este restaurante. Ejecuta /app-token primero."
+            detail="No existe el APP TOKEN (Client Credentials) para este restaurante. Ejecuta /app-token primero.",
         )
 
     # URL de consulta en Sandbox
@@ -784,23 +662,26 @@ async def verificar_estado_provisioning(
             detail={
                 "error": "UBER_STATUS_CHECK_FAILED",
                 "mensaje": "Fallo al leer con Client Credentials.",
-                "uber_response": respuesta.text
-            }
+                "uber_response": respuesta.text,
+            },
         )
-        
+
     datos_uber = respuesta.json()
 
     return {
         "mensaje": "¡KITCHAN es oficialmente el POS de esta tienda!",
         "integration_enabled": datos_uber.get("integration_enabled", False),
-        "datos_completos": datos_uber
+        "datos_completos": datos_uber,
     }
+
 
 @router.put("/menu/upload/{store_id}")
 async def subir_menu_uber(
     store_id: str,
-    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan (Ej: TEST-001)"),
-    token_adapter: UberTokenCachePort = Depends(get_token_adapter)
+    restaurante_id: str = Query(
+        ..., description="ID del restaurante en Kitchan (Ej: TEST-001)"
+    ),
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Sube un menú de prueba a la tienda autorizada usando Client Credentials.
@@ -808,7 +689,9 @@ async def subir_menu_uber(
     # 1. Recuperamos el App Token (Client Credentials)
     token = await token_adapter.get_app_token(restaurante_id)
     if not token:
-        raise HTTPException(status_code=404, detail="App Token no encontrado. Ejecuta /app-token.")
+        raise HTTPException(
+            status_code=404, detail="App Token no encontrado. Ejecuta /app-token."
+        )
 
     # 2. URL para subir el menú en Sandbox
     # Nota: Uber usa POST v1/delivery/stores/.../menus o PUT v2/eats/stores/.../menus
@@ -820,11 +703,19 @@ async def subir_menu_uber(
     }
 
     # 3. Payload de Menú Básico (Una Hamburguesa)
-    dias_semana = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    dias_semana = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    ]
     disponibilidad = [
         {
             "day_of_week": dia,
-            "time_periods": [{"start_time": "00:00", "end_time": "23:59"}]
+            "time_periods": [{"start_time": "00:00", "end_time": "23:59"}],
         }
         for dia in dias_semana
     ]
@@ -833,15 +724,18 @@ async def subir_menu_uber(
             {
                 "id": "item-hamburguesa-1",
                 "title": {"translations": {"es": "Hamburguesa Kitchan"}},
-                "price_info": {"price": 1000, "overrides": []}, # 10.00 en la moneda local
-                "tax_info": {"tax_rate": 0}
+                "price_info": {
+                    "price": 1000,
+                    "overrides": [],
+                },  # 10.00 en la moneda local
+                "tax_info": {"tax_rate": 0},
             }
         ],
         "categories": [
             {
                 "id": "cat-principales",
                 "title": {"translations": {"es": "Platos Principales"}},
-                "entities": [{"id": "item-hamburguesa-1", "type": "ITEM"}]
+                "entities": [{"id": "item-hamburguesa-1", "type": "ITEM"}],
             }
         ],
         "menus": [
@@ -849,19 +743,21 @@ async def subir_menu_uber(
                 "id": "menu-principal",
                 "title": {"translations": {"es": "Menú Principal"}},
                 "category_ids": ["cat-principales"],
-                "service_availability": disponibilidad
+                "service_availability": disponibilidad,
             }
         ],
-        "modifier_groups": []
+        "modifier_groups": [],
     }
 
     async with httpx.AsyncClient() as client:
-        respuesta = await client.put(url, json=menu_payload, headers=headers, timeout=30)
+        respuesta = await client.put(
+            url, json=menu_payload, headers=headers, timeout=30
+        )
 
     if respuesta.status_code not in (200, 204):
         raise HTTPException(
             status_code=respuesta.status_code,
-            detail={"error": "Fallo al subir menú", "uber_response": respuesta.text}
+            detail={"error": "Fallo al subir menú", "uber_response": respuesta.text},
         )
 
     return {"mensaje": "¡Menú inyectado con éxito!", "status": respuesta.status_code}
@@ -870,8 +766,10 @@ async def subir_menu_uber(
 @router.get("/order/{order_id}")
 async def obtener_detalles_pedido(
     order_id: str,
-    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan (Ej: TEST-001)"),
-    token_adapter: UberTokenCachePort = Depends(get_token_adapter)
+    restaurante_id: str = Query(
+        ..., description="ID del restaurante en Kitchan (Ej: TEST-001)"
+    ),
+    token_adapter: UberTokenCachePort = Depends(get_token_adapter),
 ):
     """
     Descarga los detalles completos de un pedido usando su ID.
@@ -895,7 +793,10 @@ async def obtener_detalles_pedido(
     if respuesta.status_code != 200:
         raise HTTPException(
             status_code=respuesta.status_code,
-            detail={"error": "Fallo al obtener pedido", "uber_response": respuesta.text}
+            detail={
+                "error": "Fallo al obtener pedido",
+                "uber_response": respuesta.text,
+            },
         )
 
     return respuesta.json()

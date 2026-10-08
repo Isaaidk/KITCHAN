@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from src.kitchan.modules.pedidos.domain.entities import Pedido
 
+
 class PedidoRepositoryPort(ABC):
     @abstractmethod
     async def guardar(self, pedido: Pedido) -> Pedido:
@@ -19,7 +20,9 @@ class PedidoRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def actualizar_estado_entrega(self, pedido_id: str, estado_entrega: str) -> bool:
+    async def actualizar_estado_entrega(
+        self, pedido_id: str, estado_entrega: str
+    ) -> bool:
         """
         Actualiza el estado de entrega/delivery (courier) de un pedido.
         Retorna True si fue exitoso, False si el pedido no existe.
@@ -27,7 +30,9 @@ class PedidoRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def buscar_por_id_externo(self, origen: str, id_externo: str) -> Optional[Pedido]:
+    async def buscar_por_id_externo(
+        self, origen: str, id_externo: str
+    ) -> Optional[Pedido]:
         """
         Busca un pedido por el id que le asignó la plataforma externa (Uber, etc.),
         necesario porque los webhooks/acciones de integraciones solo conocen ese id.

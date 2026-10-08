@@ -5,11 +5,13 @@ Pedidos, sin conocer su base de datos ni su modelo de persistencia.
 from abc import ABC, abstractmethod
 from src.kitchan.modules.integraciones.core.domain.entities import KitchanOrderDTO
 
+
 class OrderDispatcherPort(ABC):
     """
     Puerto de salida. Integraciones usará esto para enviar pedidos limpios
     a cualquier otro módulo del sistema, sin acoplarse a su base de datos.
     """
+
     @abstractmethod
     async def dispatch_new_order(self, order: KitchanOrderDTO) -> str:
         """Debe enviar la orden y retornar el ID interno generado en Kitchan"""
