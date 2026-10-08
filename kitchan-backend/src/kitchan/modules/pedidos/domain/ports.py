@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Optional
 from src.kitchan.modules.pedidos.domain.entities import Pedido
 
@@ -50,6 +51,16 @@ class PedidoRepositoryPort(ABC):
         Pedidos no terminales (ni ENTREGADA ni CANCELADA) de CUALQUIER
         restaurante cuyo último cambio de estado tiene más de `minutos`
         minutos — usado por el barrido de auto-cancelación.
+        """
+        pass
+
+    @abstractmethod
+    async def listar_por_restaurante_desde(
+        self, restaurante_id: str, desde: datetime
+    ) -> list[Pedido]:
+        """
+        Pedidos de un restaurante creados desde `desde` (inclusive), en
+        cualquier estado. Lo usa el módulo de reportes para sus métricas.
         """
         pass
 

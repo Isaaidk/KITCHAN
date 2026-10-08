@@ -3,8 +3,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.core.database import get_db
-from src.kitchan.modules.reportes.infrastructure.queries import (
-    obtener_analiticas_pedidos,
+from src.kitchan.modules.pedidos.infrastructure.dependencias import (
+    construir_repositorio_pedidos,
+)
+from src.kitchan.modules.reportes.application.analiticas_pedidos import (
+    ObtenerAnaliticasPedidosUseCase,
+)
+from src.kitchan.modules.reportes.infrastructure.pedidos_lectura_adapter import (
+    PedidosLecturaAdapter,
 )
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
 from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import requiere_rol
@@ -27,10 +33,18 @@ class AnaliticasPedidosResponse(BaseModel):
     comparacion_hoy_vs_ayer: list[PuntoComparacionHora]
 
 
+def get_analiticas_use_case(
+    db: AsyncSession = Depends(get_db),
+) -> ObtenerAnaliticasPedidosUseCase:
+    return ObtenerAnaliticasPedidosUseCase(
+        pedidos=PedidosLecturaAdapter(construir_repositorio_pedidos(db))
+    )
+
+
 @router.get("/pedidos/analiticas", response_model=AnaliticasPedidosResponse)
 async def analiticas_pedidos(
-    db: AsyncSession = Depends(get_db),
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ObtenerAnaliticasPedidosUseCase = Depends(get_analiticas_use_case),
 ):
-    datos = await obtener_analiticas_pedidos(db, usuario_actual["restaurante_id"])
+    datos = await use_case.ejecutar(usuario_actual["restaurante_id"])
     return AnaliticasPedidosResponse(**datos)

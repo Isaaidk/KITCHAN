@@ -55,6 +55,15 @@ class MemoryPedidoRepository(PedidoRepositoryPort):
             if p.estado not in ESTADOS_TERMINALES and p.fecha_creacion < limite
         ]
 
+    async def listar_por_restaurante_desde(
+        self, restaurante_id: str, desde: datetime
+    ) -> list[Pedido]:
+        return [
+            p
+            for p in self.db.values()
+            if p.restaurante_id == restaurante_id and p.fecha_creacion >= desde
+        ]
+
     async def listar_por_restaurante(
         self,
         restaurante_id: str,

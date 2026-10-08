@@ -36,3 +36,6 @@ class Pedido(BaseModel):
     estado: EstadoPedido = EstadoPedido.NUEVA
     estado_entrega: Optional[str] = None
     fecha_creacion: datetime = Field(default_factory=datetime.utcnow)
+    # Último cambio de estado (lo asigna la base de datos); None si el pedido
+    # todavía no se guardó.
+    fecha_actualizacion: Optional[datetime] = None

@@ -26,6 +26,7 @@ from src.kitchan.modules.pedidos.application.crear_pedido_service import (
     CrearPedidoUseCase,
 )
 from src.kitchan.modules.pedidos.application.ports import NotificadorEventosPort
+from src.kitchan.modules.pedidos.domain.ports import PedidoRepositoryPort
 from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
     PedidosIntegracionesAdapter,
 )
@@ -40,6 +41,12 @@ def _redis_url() -> str:
 
 def construir_notificador() -> NotificadorEventosPort:
     return RedisPublisherAdapter(redis_url=_redis_url())
+
+
+def construir_repositorio_pedidos(session: AsyncSession) -> PedidoRepositoryPort:
+    """Repositorio de pedidos para otros módulos (p. ej. reportes), expuesto
+    como puerto para que no dependan del modelo de persistencia."""
+    return PostgresPedidoRepository(session=session)
 
 
 def construir_actualizar_estado_use_case(

@@ -65,6 +65,16 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
         modelos = resultado.scalars().all()
         return [m.to_domain() for m in modelos]
 
+    async def listar_por_restaurante_desde(
+        self, restaurante_id: str, desde: datetime
+    ) -> list[Pedido]:
+        stmt = select(PedidoModel).where(
+            PedidoModel.restaurante_id == uuid.UUID(str(restaurante_id)),
+            PedidoModel.fecha_creacion >= desde,
+        )
+        resultado = await self.session.execute(stmt)
+        return [m.to_domain() for m in resultado.scalars().all()]
+
     async def listar_por_restaurante(
         self,
         restaurante_id: str,

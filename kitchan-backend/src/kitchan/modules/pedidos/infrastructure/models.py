@@ -53,6 +53,7 @@ class PedidoModel(Base):
             estado=EstadoPedido(self.estado),
             estado_entrega=self.estado_entrega,
             fecha_creacion=self.fecha_creacion,
+            fecha_actualizacion=self.fecha_actualizacion,
         )
 
     @staticmethod
