@@ -22,6 +22,9 @@ from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
     usuario_duenio_del_pedido,
     verificar_restaurante_del_usuario,
 )
+from src.kitchan.modules.integraciones.core.infrastructure.errores import (
+    error_de_plataforma,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,11 +89,16 @@ async def accept_uber_order(
             "message": f"Pedido {order_id} aceptado en Uber Eats.",
         }
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    except HTTPException:
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+    except HTTPException as e:
         # Preserva el status/detail real que devolvió Uber (ej. 401 "User
         # not allowed to access the store") en vez de ocultarlo como 500.
-        raise
+        raise error_de_plataforma(e, "Uber Eats")
     except Exception:
         logger.exception("Error inesperado aceptando el pedido %s", order_id)
         raise HTTPException(
@@ -122,9 +130,14 @@ async def deny_uber_order(
             "message": f"Pedido {order_id} rechazado en Uber Eats.",
         }
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    except HTTPException:
-        raise
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
     except Exception:
         logger.exception("Error inesperado rechazando el pedido %s", order_id)
         raise HTTPException(
@@ -158,9 +171,14 @@ async def cancel_uber_order(
             "message": f"Pedido {order_id} cancelado en Uber Eats.",
         }
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    except HTTPException:
-        raise
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
     except Exception:
         logger.exception("Error inesperado cancelando el pedido %s", order_id)
         raise HTTPException(
@@ -189,10 +207,15 @@ async def ready_uber_order(
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
 
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
 
     except Exception as error:
         logger.exception("❌ Error marcando pedido Uber %s como READY", order_id)
@@ -216,7 +239,15 @@ async def get_delivery_order_status(
         )
 
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
 
     except Exception:
         logger.exception("❌ Error obteniendo estado delivery de Uber %s", order_id)

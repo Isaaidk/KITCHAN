@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { mensajeDeError } from "../../shared/api/mensajeDeError";
+import { useToastStore } from "../../shared/stores/toastStore";
 import type { Pedido } from "../../shared/types/pedido";
 import {
   aceptarPedido,
@@ -22,13 +24,30 @@ export function usePedidoAcciones(pedido: Pedido) {
   const cancelacionSoloPorSoporte = pedido.estado === "EN_PREPARACION" && !puedeCancelar;
   const puedeCompletar = pedido.estado === "LISTA";
 
-  const ejecutar = async (accion: (p: Pedido) => Promise<void>) => {
+  const ejecutar = async (accion: (p: Pedido) => Promise<void>): Promise<boolean> => {
     setProcesando(true);
     try {
       // El cambio de estado llega por WS cuando el backend confirma con la
       // integración (o de inmediato para acciones internas); no se
       // actualiza el store de forma optimista.
       await accion(pedido);
+      return true;
+    } catch (err) {
+      // Antes el error se perdía sin aviso; ahora se muestra el motivo
+      // (ej. "Vuelve a conectar Uber Eats desde Integraciones").
+      useToastStore
+        .getState()
+        .add(mensajeDeError(err, "No se pudo completar la acción. Inténtalo de nuevo."), "critica");
+      return false;
+    } finally {
+      setProcesando(false);
+    }
+  };
+
+  const confirmarCancelacion = async (reasonCode: string, explanation: string) => {
+    setProcesando(true);
+    try {
+      await cancelarPedido(pedido, reasonCode, explanation);
     } finally {
       setProcesando(false);
     }
@@ -46,7 +65,8 @@ export function usePedidoAcciones(pedido: Pedido) {
     aceptar: () => ejecutar(aceptarPedido),
     marcarListo: () => ejecutar(marcarPedidoListo),
     marcarEntregado: () => ejecutar(marcarPedidoEntregado),
-    confirmarCancelacion: (reasonCode: string, explanation: string) =>
-      ejecutar((p) => cancelarPedido(p, reasonCode, explanation)),
+    // La cancelación deja que el error suba: el modal lo muestra en su
+    // propio aviso y se mantiene abierto para reintentar.
+    confirmarCancelacion,
   };
 }

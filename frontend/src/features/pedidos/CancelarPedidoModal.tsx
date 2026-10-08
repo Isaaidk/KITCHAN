@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { mensajeDeError } from "../../shared/api/mensajeDeError";
 import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
@@ -31,8 +32,10 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
     try {
       await onConfirmar(motivo, explicacion || "Cancelado desde KITCHAN");
       onClose();
-    } catch {
-      setError(`No se pudo cancelar el pedido. Revisa la conexión e inténtalo de nuevo.`);
+    } catch (err) {
+      setError(
+        mensajeDeError(err, "No se pudo cancelar el pedido. Revisa la conexión e inténtalo de nuevo."),
+      );
     } finally {
       setEnviando(false);
     }

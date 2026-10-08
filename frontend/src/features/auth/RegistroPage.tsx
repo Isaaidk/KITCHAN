@@ -1,3 +1,4 @@
+import { mensajeDeError } from "../../shared/api/mensajeDeError";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
@@ -68,14 +69,6 @@ function Campo({ campo, etiqueta, ayuda, completo, valor, onCambio, children, ..
   );
 }
 
-/** El backend puede devolver `detail` como texto o como lista de errores de validación. */
-function mensajeDeError(err: any): string {
-  const detail = err?.response?.data?.detail;
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail) && detail.length > 0 && typeof detail[0]?.msg === "string") return detail[0].msg;
-  return "No se pudo crear el restaurante.";
-}
-
 export default function RegistroPage() {
   const [form, setForm] = useState<FormState>(VACIO);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +122,7 @@ export default function RegistroPage() {
       login(data.access_token, data.usuario);
       navigate("/", { replace: true });
     } catch (err: any) {
-      setError(mensajeDeError(err));
+      setError(mensajeDeError(err, "No se pudo crear el restaurante."));
     } finally {
       setCargando(false);
     }

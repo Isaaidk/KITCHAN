@@ -28,6 +28,9 @@ from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_di
 from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
     usuario_duenio_del_pedido,
 )
+from src.kitchan.modules.integraciones.core.infrastructure.errores import (
+    error_de_plataforma,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +73,8 @@ async def accept_pedidosya_order(
             "status": "success",
             "message": f"Pedido {order_id} aceptado en PedidosYa.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "PedidosYa")
     except Exception:
         logger.exception("Error inesperado aceptando el pedido %s", order_id)
         raise HTTPException(
@@ -92,8 +95,8 @@ async def deny_pedidosya_order(
             "status": "success",
             "message": f"Pedido {order_id} rechazado en PedidosYa.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "PedidosYa")
     except Exception:
         logger.exception("Error inesperado rechazando el pedido %s", order_id)
         raise HTTPException(
@@ -114,8 +117,8 @@ async def cancel_pedidosya_order(
             "status": "success",
             "message": f"Pedido {order_id} cancelado en PedidosYa.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "PedidosYa")
     except Exception:
         logger.exception("Error inesperado cancelando el pedido %s", order_id)
         raise HTTPException(
@@ -135,8 +138,8 @@ async def ready_pedidosya_order(
             "status": "success",
             "message": f"Pedido {order_id} marcado como listo en PedidosYa.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "PedidosYa")
     except Exception:
         logger.exception("Error inesperado marcando pedido %s como listo", order_id)
         raise HTTPException(

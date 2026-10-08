@@ -110,8 +110,8 @@ function AccionesToast({ pedido, onDone }: { pedido: NonNullable<Toast["pedido"]
           className={`btn btn-sm btn-primary ${procesando ? "is-loading" : ""}`}
           disabled={procesando}
           onClick={async () => {
-            await aceptar();
-            onDone();
+            // Si falla, el toast queda abierto para reintentar.
+            if (await aceptar()) onDone();
           }}
         >
           Aceptar

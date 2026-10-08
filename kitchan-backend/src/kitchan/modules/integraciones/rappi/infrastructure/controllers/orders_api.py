@@ -31,6 +31,9 @@ from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_di
 from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
     usuario_duenio_del_pedido,
 )
+from src.kitchan.modules.integraciones.core.infrastructure.errores import (
+    error_de_plataforma,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +84,8 @@ async def accept_rappi_order(
             "status": "success",
             "message": f"Pedido {order_id} aceptado en Rappi.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Rappi")
     except Exception:
         logger.exception("Error inesperado aceptando el pedido %s", order_id)
         raise HTTPException(
@@ -105,8 +108,8 @@ async def deny_rappi_order(
             "status": "success",
             "message": f"Pedido {order_id} rechazado en Rappi.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Rappi")
     except Exception:
         logger.exception("Error inesperado rechazando el pedido %s", order_id)
         raise HTTPException(
@@ -126,8 +129,8 @@ async def ready_rappi_order(
             "status": "success",
             "message": f"Pedido {order_id} marcado como listo en Rappi.",
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Rappi")
     except Exception:
         logger.exception("Error inesperado marcando pedido %s como listo", order_id)
         raise HTTPException(
