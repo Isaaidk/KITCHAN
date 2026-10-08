@@ -1,13 +1,9 @@
 import uuid
 
 from sqlalchemy import UUID, Boolean, DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.kitchan.core.database import Base
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
 
 
 class RestauranteModel(Base):
@@ -27,8 +23,3 @@ class RestauranteModel(Base):
         String(255), unique=True, nullable=False
     )
     estado: Mapped[bool] = mapped_column(Boolean, default=True)
-
-    # Relación inversa hacia usuarios
-    usuarios: Mapped[list["UsuarioModel"]] = relationship(
-        back_populates="restaurante", cascade="all, delete-orphan"
-    )

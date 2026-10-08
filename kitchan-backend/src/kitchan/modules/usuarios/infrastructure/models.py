@@ -4,14 +4,11 @@ import uuid
 from sqlalchemy import UUID, Boolean
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.kitchan.core.database import Base
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from src.kitchan.modules.restaurantes.infrastructure.models import RestauranteModel
 # Adaptador de salida
 # Mapea los datos
 
@@ -23,13 +20,12 @@ class UsuarioModel(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
     )
 
-    # 1. Clave foránea hacia el restaurante (Usando sintaxis SQLAlchemy 2.0)
+    # Clave foránea hacia el restaurante. Se referencia la tabla por nombre
+    # (sin importar el modelo de restaurantes) para que los dos módulos no
+    # dependan uno del otro.
     restaurante_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("restaurantes.id"), nullable=False
     )
-
-    # 2. Relación bidireccional (El string "RestauranteModel" evita errores de importación circular)
-    restaurante: Mapped["RestauranteModel"] = relationship(back_populates="usuarios")
 
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
 
