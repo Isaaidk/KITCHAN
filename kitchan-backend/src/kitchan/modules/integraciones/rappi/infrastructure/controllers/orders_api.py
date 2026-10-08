@@ -15,9 +15,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.kitchan.core.database import get_db
 from src.kitchan.modules.integraciones.rappi.application.order_use_cases import (
     RappiOrderUseCase,
 )
@@ -27,24 +25,13 @@ from src.kitchan.modules.integraciones.rappi.infrastructure.adapters.http_order_
 from src.kitchan.modules.integraciones.rappi.infrastructure.adapters.redis_token_adapter import (
     RedisRappiTokenAdapter,
 )
-from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
-    ActualizarEstadoPedidoUseCase,
-)
-from src.kitchan.modules.pedidos.application.crear_pedido_service import (
-    CrearPedidoUseCase,
-)
-from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
-    PedidosIntegracionesAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.repository import (
-    PostgresPedidoRepository,
-)
 from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
     obtener_usuario_actual,
 )
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
+)
+from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -69,23 +56,13 @@ class DenyOrderRequest(BaseModel):
     reason: str = "No podemos preparar el pedido en este momento."
 
 
-def get_order_use_case(db: AsyncSession = Depends(get_db)) -> RappiOrderUseCase:
+def get_order_use_case(
+    order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
+) -> RappiOrderUseCase:
     token_adapter = RedisRappiTokenAdapter(redis_url=REDIS_URL)
     api_adapter = RappiHttpAdapter(token_cache=token_adapter)
 
-    repo_pedidos = PostgresPedidoRepository(session=db)
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
-    crear_pedido_uc = CrearPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    actualizar_estado_uc = ActualizarEstadoPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    dispatcher = PedidosIntegracionesAdapter(
-        use_case=crear_pedido_uc, actualizar_estado_use_case=actualizar_estado_uc
-    )
-
-    return RappiOrderUseCase(rappi_api=api_adapter, order_dispatcher=dispatcher)
+    return RappiOrderUseCase(rappi_api=api_adapter, order_dispatcher=order_dispatcher)
 
 
 @router.post("/{order_id}/accept")

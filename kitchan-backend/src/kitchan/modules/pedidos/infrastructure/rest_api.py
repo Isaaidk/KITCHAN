@@ -9,8 +9,8 @@ from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service im
     ActualizarEstadoPedidoUseCase,
 )
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido, PedidoItem
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter,
+from src.kitchan.modules.pedidos.infrastructure.dependencias import (
+    construir_notificador,
 )
 from src.kitchan.modules.pedidos.infrastructure.repository import (
     PostgresPedidoRepository,
@@ -19,9 +19,6 @@ from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
     obtener_usuario_actual,
 )
 
-import os
-
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 router = APIRouter(prefix="/api/v1/pedidos", tags=["Pedidos"])
 
@@ -141,7 +138,7 @@ async def completar_pedido(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado"
         )
 
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
+    notificador = construir_notificador()
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
     actualizado = await caso_uso.ejecutar_por_id(pedido_id, EstadoPedido.ENTREGADA)
 
@@ -167,7 +164,7 @@ async def cancelar_pedido_interno(
             status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado"
         )
 
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
+    notificador = construir_notificador()
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
     actualizado = await caso_uso.ejecutar_por_id(pedido_id, EstadoPedido.CANCELADA)
 

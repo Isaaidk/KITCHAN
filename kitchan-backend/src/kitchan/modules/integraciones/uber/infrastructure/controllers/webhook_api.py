@@ -3,22 +3,7 @@ import json
 
 from fastapi import APIRouter, Request, Header, HTTPException, Depends
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.kitchan.core.database import get_db
-from src.kitchan.modules.pedidos.application.crear_pedido_service import (
-    CrearPedidoUseCase,
-)
-from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
-    ActualizarEstadoPedidoUseCase,
-)
-
-from src.kitchan.modules.pedidos.infrastructure.repository import (
-    PostgresPedidoRepository,
-)
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter,
-)
 
 from src.kitchan.modules.integraciones.uber.infrastructure.security.hmac_validator import (
     verify_uber_signature,
@@ -40,10 +25,11 @@ from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import (
     UberHttpAdapter,
 )
-
-from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
-    PedidosIntegracionesAdapter,
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
 )
+from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
+
 
 load_dotenv()
 
@@ -104,31 +90,16 @@ async def validate_webhook_signature(
 # DEPENDENCY INJECTION
 # ============================================================
 def get_webhook_use_case(
-    db: AsyncSession = Depends(get_db),
+    order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
 ) -> UberWebhookUseCase:
     token_adapter = RedisUberTokenAdapter(redis_url=REDIS_URL)
 
     api_adapter = UberHttpAdapter()
 
-    repo_pedidos = PostgresPedidoRepository(session=db)
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
-
-    crear_pedido_use_case = CrearPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    actualizar_estado_use_case = ActualizarEstadoPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-
-    dispatcher_adapter = PedidosIntegracionesAdapter(
-        use_case=crear_pedido_use_case,
-        actualizar_estado_use_case=actualizar_estado_use_case,
-    )
-
     return UberWebhookUseCase(
         token_cache=token_adapter,
         uber_api=api_adapter,
-        order_dispatcher=dispatcher_adapter,
+        order_dispatcher=order_dispatcher,
     )
 
 

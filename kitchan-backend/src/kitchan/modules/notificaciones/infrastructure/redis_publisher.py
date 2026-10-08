@@ -11,7 +11,7 @@ CANAL_PREFIX = "pedidos"
 class RedisPublisherAdapter(NotificadorEventosPort):
     """
     Publica los eventos de pedidos al canal Redis `pedidos:{restaurante_id}`.
-    El subscriber (pedidos/infrastructure/websocket/redis_subscriber.py) escucha
+    El subscriber (notificaciones/infrastructure/redis_subscriber.py) escucha
     con psubscribe("pedidos:*") y reenvía al ConnectionManager de WebSockets.
     Se envía el pedido completo para que el frontend no necesite un round-trip
     REST adicional al recibir el evento.

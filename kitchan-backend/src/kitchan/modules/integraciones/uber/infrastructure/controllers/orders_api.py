@@ -1,10 +1,8 @@
 import os
 from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from src.kitchan.core.database import get_db
 
 # Importamos nuestro Caso de Uso y los Adaptadores
 from src.kitchan.modules.integraciones.uber.application.order_use_cases import (
@@ -16,21 +14,10 @@ from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import (
     UberHttpAdapter,
 )
-from src.kitchan.modules.pedidos.application.crear_pedido_service import (
-    CrearPedidoUseCase,
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
 )
-from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
-    ActualizarEstadoPedidoUseCase,
-)
-from src.kitchan.modules.pedidos.infrastructure.repository import (
-    PostgresPedidoRepository,
-)
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
-    PedidosIntegracionesAdapter,
-)
+from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -61,24 +48,16 @@ class CancelOrderRequest(BaseModel):
 
 
 # Inyección de Dependencias
-def get_order_use_case(db: AsyncSession = Depends(get_db)) -> UberOrderUseCase:
+def get_order_use_case(
+    order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
+) -> UberOrderUseCase:
     token_adapter = RedisUberTokenAdapter(redis_url=REDIS_URL)
     api_adapter = UberHttpAdapter()
 
-    repo_pedidos = PostgresPedidoRepository(session=db)
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
-    crear_pedido_uc = CrearPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    actualizar_estado_uc = ActualizarEstadoPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    dispatcher = PedidosIntegracionesAdapter(
-        use_case=crear_pedido_uc, actualizar_estado_use_case=actualizar_estado_uc
-    )
-
     return UberOrderUseCase(
-        token_cache=token_adapter, uber_api=api_adapter, order_dispatcher=dispatcher
+        token_cache=token_adapter,
+        uber_api=api_adapter,
+        order_dispatcher=order_dispatcher,
     )
 
 

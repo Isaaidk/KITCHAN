@@ -9,12 +9,9 @@ vez de un evento genérico con metadata como Uber).
 
 import json
 import logging
-import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.kitchan.core.database import get_db
 from src.kitchan.modules.integraciones.pedidosya.application.order_dispatch_use_case import (
     PedidosYaOrderDispatchUseCase,
 )
@@ -31,21 +28,10 @@ from src.kitchan.modules.integraciones.pedidosya.infrastructure.adapters.env_ven
 from src.kitchan.modules.integraciones.pedidosya.infrastructure.security.jwt_validator import (
     validar_jwt_pedidosya,
 )
-from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
-    ActualizarEstadoPedidoUseCase,
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
 )
-from src.kitchan.modules.pedidos.application.crear_pedido_service import (
-    CrearPedidoUseCase,
-)
-from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
-    PedidosIntegracionesAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.repository import (
-    PostgresPedidoRepository,
-)
+from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -54,30 +40,14 @@ router = APIRouter(
     tags=["Integraciones - PedidosYa Dispatch"],
 )
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-
 
 # ============================================================
 # DEPENDENCY INJECTION
 # ============================================================
 def get_order_dispatch_use_case(
-    db: AsyncSession = Depends(get_db),
+    order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
 ) -> PedidosYaOrderDispatchUseCase:
-    repo_pedidos = PostgresPedidoRepository(session=db)
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
-
-    crear_pedido_uc = CrearPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    actualizar_estado_uc = ActualizarEstadoPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-
-    dispatcher_adapter = PedidosIntegracionesAdapter(
-        use_case=crear_pedido_uc, actualizar_estado_use_case=actualizar_estado_uc
-    )
-
-    return PedidosYaOrderDispatchUseCase(order_dispatcher=dispatcher_adapter)
+    return PedidosYaOrderDispatchUseCase(order_dispatcher=order_dispatcher)
 
 
 def get_vendor_mapping() -> PedidosYaVendorMappingPort:

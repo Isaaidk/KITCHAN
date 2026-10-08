@@ -42,11 +42,11 @@ from src.kitchan.modules.usuarios.infrastructure.rest_api import (
 
 from src.kitchan.modules.pedidos.infrastructure.rest_api import router as pedidos_router
 
-from src.kitchan.modules.pedidos.infrastructure.controllers.websocket_api import (
+from src.kitchan.modules.notificaciones.infrastructure.websocket_api import (
     router as pedidos_ws_router,
 )
 
-from src.kitchan.modules.pedidos.infrastructure.websocket.redis_subscriber import (
+from src.kitchan.modules.notificaciones.infrastructure.redis_subscriber import (
     iniciar_subscriber,
 )
 
@@ -100,25 +100,15 @@ app.include_router(uber_oauth_router)
 
 app.include_router(orders_api.router)
 
-app.include_router(
-    pedidosya_dispatch_api.router
-)
+app.include_router(pedidosya_dispatch_api.router)
 
-app.include_router(
-    pedidosya_orders_api.router
-)
+app.include_router(pedidosya_orders_api.router)
 
-app.include_router(
-    rappi_webhook_api.router
-)
+app.include_router(rappi_webhook_api.router)
 
-app.include_router(
-    rappi_orders_api.router
-)
+app.include_router(rappi_orders_api.router)
 
-app.include_router(
-    pedidos_router
-)
+app.include_router(pedidos_router)
 
 app.include_router(pedidos_ws_router)
 

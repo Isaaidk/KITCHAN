@@ -7,7 +7,7 @@ from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service im
     ActualizarEstadoPedidoUseCase,
 )
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
+from src.kitchan.modules.notificaciones.infrastructure.redis_publisher import (
     RedisPublisherAdapter,
 )
 from src.kitchan.modules.pedidos.infrastructure.repository import (

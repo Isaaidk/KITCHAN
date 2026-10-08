@@ -10,34 +10,20 @@ no hace falta resolver el tenant para autenticar la llamada saliente.
 """
 
 import logging
-import os
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.kitchan.core.database import get_db
 from src.kitchan.modules.integraciones.pedidosya.application.order_use_cases import (
     PedidosYaOrderUseCase,
 )
 from src.kitchan.modules.integraciones.pedidosya.infrastructure.adapters.http_order_adapter import (
     PedidosYaHttpAdapter,
 )
-from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
-    ActualizarEstadoPedidoUseCase,
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
 )
-from src.kitchan.modules.pedidos.application.crear_pedido_service import (
-    CrearPedidoUseCase,
-)
-from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import (
-    PedidosIntegracionesAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.eventos.redis_publisher import (
-    RedisPublisherAdapter,
-)
-from src.kitchan.modules.pedidos.infrastructure.repository import (
-    PostgresPedidoRepository,
-)
+from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +31,6 @@ router = APIRouter(
     prefix="/api/v1/integraciones/pedidosya/orders",
     tags=["Integraciones - Acciones de Pedidos PedidosYa"],
 )
-
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 
 class DenyOrderRequest(BaseModel):
@@ -57,22 +41,14 @@ class CancelOrderRequest(BaseModel):
     reason: str = "OTHER"
 
 
-def get_order_use_case(db: AsyncSession = Depends(get_db)) -> PedidosYaOrderUseCase:
+def get_order_use_case(
+    order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
+) -> PedidosYaOrderUseCase:
     api_adapter = PedidosYaHttpAdapter()
 
-    repo_pedidos = PostgresPedidoRepository(session=db)
-    notificador = RedisPublisherAdapter(redis_url=REDIS_URL)
-    crear_pedido_uc = CrearPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
+    return PedidosYaOrderUseCase(
+        pedidosya_api=api_adapter, order_dispatcher=order_dispatcher
     )
-    actualizar_estado_uc = ActualizarEstadoPedidoUseCase(
-        repository=repo_pedidos, notificador=notificador
-    )
-    dispatcher = PedidosIntegracionesAdapter(
-        use_case=crear_pedido_uc, actualizar_estado_use_case=actualizar_estado_uc
-    )
-
-    return PedidosYaOrderUseCase(pedidosya_api=api_adapter, order_dispatcher=dispatcher)
 
 
 @router.post("/{order_id}/accept")
