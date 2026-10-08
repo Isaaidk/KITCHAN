@@ -6,7 +6,8 @@ integraciones/uber/infrastructure/controllers/orders_api.py.
 Nota de diseño: a diferencia de las rutas de Uber, estas no reciben
 `restaurante_id` como query param — las llamadas salientes de PedidosYa usan
 credenciales estáticas de aplicación (no un token OAuth por tenant), así que
-no hace falta resolver el tenant para autenticar la llamada saliente.
+no hace falta resolver el tenant para autenticar la llamada saliente. Por lo
+mismo, cada ruta exige un usuario de KITCHAN autenticado y dueño del pedido.
 """
 
 import logging
@@ -24,8 +25,14 @@ from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
     OrderDispatcherPort,
 )
 from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
+from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
+    usuario_duenio_del_pedido,
+)
 
 logger = logging.getLogger(__name__)
+
+# Solo usuarios de KITCHAN dueños del pedido (ver core/infrastructure/seguridad.py).
+requiere_duenio = usuario_duenio_del_pedido("PEDIDOS_YA")
 
 router = APIRouter(
     prefix="/api/v1/integraciones/pedidosya/orders",
@@ -53,7 +60,9 @@ def get_order_use_case(
 
 @router.post("/{order_id}/accept")
 async def accept_pedidosya_order(
-    order_id: str, use_case: PedidosYaOrderUseCase = Depends(get_order_use_case)
+    order_id: str,
+    _usuario: dict = Depends(requiere_duenio),
+    use_case: PedidosYaOrderUseCase = Depends(get_order_use_case),
 ):
     try:
         await use_case.accept_order_in_pedidosya(order_id)
@@ -74,6 +83,7 @@ async def accept_pedidosya_order(
 async def deny_pedidosya_order(
     order_id: str,
     payload: DenyOrderRequest,
+    _usuario: dict = Depends(requiere_duenio),
     use_case: PedidosYaOrderUseCase = Depends(get_order_use_case),
 ):
     try:
@@ -95,6 +105,7 @@ async def deny_pedidosya_order(
 async def cancel_pedidosya_order(
     order_id: str,
     payload: CancelOrderRequest,
+    _usuario: dict = Depends(requiere_duenio),
     use_case: PedidosYaOrderUseCase = Depends(get_order_use_case),
 ):
     try:
@@ -114,7 +125,9 @@ async def cancel_pedidosya_order(
 
 @router.post("/{order_id}/ready")
 async def ready_pedidosya_order(
-    order_id: str, use_case: PedidosYaOrderUseCase = Depends(get_order_use_case)
+    order_id: str,
+    _usuario: dict = Depends(requiere_duenio),
+    use_case: PedidosYaOrderUseCase = Depends(get_order_use_case),
 ):
     try:
         await use_case.mark_order_ready_in_pedidosya(order_id)

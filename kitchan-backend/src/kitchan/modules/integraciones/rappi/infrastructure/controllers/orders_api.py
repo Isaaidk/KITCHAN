@@ -5,8 +5,7 @@ listo), equivalentes a las de las integraciones de Uber y PedidosYa.
 Diferencias con esas rutas:
 - No hay /cancel: la API pública de Rappi no documenta cómo cancelar un
   pedido ya tomado; /deny (reject) solo vale mientras está en SENT.
-- Se exige un usuario de KITCHAN autenticado (Bearer JWT), igual que en
-  pedidos/rest_api.py.
+- Se exige un usuario de KITCHAN autenticado (Bearer JWT) y dueño del pedido.
 """
 
 import logging
@@ -25,15 +24,18 @@ from src.kitchan.modules.integraciones.rappi.infrastructure.adapters.http_order_
 from src.kitchan.modules.integraciones.rappi.infrastructure.adapters.redis_token_adapter import (
     RedisRappiTokenAdapter,
 )
-from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
-    obtener_usuario_actual,
-)
 from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
     OrderDispatcherPort,
 )
 from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
+from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
+    usuario_duenio_del_pedido,
+)
 
 logger = logging.getLogger(__name__)
+
+# Solo usuarios de KITCHAN dueños del pedido (ver core/infrastructure/seguridad.py).
+requiere_duenio = usuario_duenio_del_pedido("RAPPI")
 
 router = APIRouter(
     prefix="/api/v1/integraciones/rappi/orders",
@@ -69,7 +71,7 @@ def get_order_use_case(
 async def accept_rappi_order(
     order_id: str,
     payload: Optional[AcceptOrderRequest] = None,
-    _usuario: dict = Depends(obtener_usuario_actual),
+    _usuario: dict = Depends(requiere_duenio),
     use_case: RappiOrderUseCase = Depends(get_order_use_case),
 ):
     cooking_time = payload.cooking_time if payload else None
@@ -92,7 +94,7 @@ async def accept_rappi_order(
 async def deny_rappi_order(
     order_id: str,
     payload: DenyOrderRequest,
-    _usuario: dict = Depends(obtener_usuario_actual),
+    _usuario: dict = Depends(requiere_duenio),
     use_case: RappiOrderUseCase = Depends(get_order_use_case),
 ):
     try:
@@ -115,7 +117,7 @@ async def deny_rappi_order(
 @router.post("/{order_id}/ready")
 async def ready_rappi_order(
     order_id: str,
-    _usuario: dict = Depends(obtener_usuario_actual),
+    _usuario: dict = Depends(requiere_duenio),
     use_case: RappiOrderUseCase = Depends(get_order_use_case),
 ):
     try:

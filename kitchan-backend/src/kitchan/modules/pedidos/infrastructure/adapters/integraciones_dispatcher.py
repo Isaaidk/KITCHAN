@@ -3,7 +3,10 @@ compartido de integraciones (OrderDispatcherPort), traduciendo el DTO neutral
 al modelo de dominio de Pedidos. Es el único punto donde una integración
 (Uber, PedidosYa, ...) toca el modelo genérico del sistema.
 """
-from src.kitchan.modules.integraciones.core.domain.inter_module_ports import OrderDispatcherPort
+
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
+)
 from src.kitchan.modules.integraciones.core.domain.entities import KitchanOrderDTO
 
 from src.kitchan.modules.pedidos.domain.entities import Pedido, PedidoItem, EstadoPedido
@@ -75,5 +78,15 @@ class PedidosIntegracionesAdapter(OrderDispatcherPort):
         return pedido is not None
 
     async def order_already_exists(self, origen: str, id_externo: str) -> bool:
-        pedido = await self.use_case.repository.buscar_por_id_externo(origen, id_externo)
+        pedido = await self.use_case.repository.buscar_por_id_externo(
+            origen, id_externo
+        )
         return pedido is not None
+
+    async def order_belongs_to_restaurant(
+        self, origen: str, id_externo: str, restaurante_id: str
+    ) -> bool:
+        pedido = await self.use_case.repository.buscar_por_id_externo(
+            origen, id_externo
+        )
+        return pedido is not None and str(pedido.restaurante_id) == str(restaurante_id)

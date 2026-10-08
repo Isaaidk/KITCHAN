@@ -2,6 +2,7 @@
 integración (Uber, PedidosYa, ...) usa para enviar pedidos al módulo de
 Pedidos, sin conocer su base de datos ni su modelo de persistencia.
 """
+
 from abc import ABC, abstractmethod
 from src.kitchan.modules.integraciones.core.domain.entities import KitchanOrderDTO
 
@@ -25,6 +26,18 @@ class OrderDispatcherPort(ABC):
         proveedor puede reenviar la misma notificación más de una vez (ej.
         PedidosYa documenta explícitamente entregas duplicadas), sin que la
         integración tenga que acoplarse al repositorio de Pedidos.
+        """
+        pass
+
+    @abstractmethod
+    async def order_belongs_to_restaurant(
+        self, origen: str, id_externo: str, restaurante_id: str
+    ) -> bool:
+        """
+        Indica si el pedido (identificado por el id de la plataforma externa)
+        existe y pertenece a ese restaurante. Las acciones del KDS lo usan
+        para que un usuario no pueda operar pedidos de otro restaurante: las
+        credenciales de PedidosYa y Rappi son de aplicación, no por tenant.
         """
         pass
 

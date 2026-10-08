@@ -18,8 +18,15 @@ from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
     OrderDispatcherPort,
 )
 from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
+from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
+    usuario_duenio_del_pedido,
+    verificar_restaurante_del_usuario,
+)
 
 logger = logging.getLogger(__name__)
+
+# Solo usuarios de KITCHAN dueños del pedido (ver core/infrastructure/seguridad.py).
+requiere_duenio = usuario_duenio_del_pedido("UBER_EATS")
 
 router = APIRouter(
     prefix="/api/v1/integraciones/uber/orders",
@@ -65,11 +72,13 @@ def get_order_use_case(
 async def accept_uber_order(
     order_id: str,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
     use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
     """
     Endpoint consumido por el frontend para ACEPTAR un pedido en Uber Eats.
     """
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.accept_order_in_uber(order_id, restaurante_id)
         return {
@@ -94,11 +103,13 @@ async def deny_uber_order(
     order_id: str,
     payload: DenyOrderRequest,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
     use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
     """
     Endpoint consumido por el frontend para RECHAZAR un pedido en Uber Eats.
     """
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.deny_order_in_uber(
             order_id=order_id,
@@ -126,6 +137,7 @@ async def cancel_uber_order(
     order_id: str,
     payload: CancelOrderRequest,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
     use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
     """
@@ -133,6 +145,7 @@ async def cancel_uber_order(
     en Uber Eats. Para pedidos que todavía no fueron aceptados, usar /deny
     en su lugar (deny_pos_order no aplica después de aceptar).
     """
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.cancel_order_in_uber(
             order_id=order_id,
@@ -159,8 +172,10 @@ async def cancel_uber_order(
 async def ready_uber_order(
     order_id: str,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
     use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.mark_order_ready_in_uber(
             order_id=order_id, restaurante_id=restaurante_id
@@ -191,8 +206,10 @@ async def ready_uber_order(
 async def get_delivery_order_status(
     order_id: str,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
     use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         return await use_case.get_delivery_order_status(
             order_id=order_id, restaurante_id=restaurante_id
