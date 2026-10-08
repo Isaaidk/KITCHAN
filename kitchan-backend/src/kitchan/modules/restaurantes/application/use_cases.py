@@ -1,7 +1,5 @@
 import uuid
 
-from sqlalchemy.exc import IntegrityError  # <- Importante para atrapar duplicados de BD
-
 from src.kitchan.modules.restaurantes.application.ports import IRestauranteRepository
 from src.kitchan.modules.restaurantes.domain.entities import Restaurante
 from src.kitchan.modules.usuarios.application.ports import IPasswordHasher
@@ -52,12 +50,7 @@ class RegistrarRestauranteSaaSUseCase:
             estado=True,
         )
 
-        # 6. Ejecutamos la transacción atrapando posibles duplicidades de la BD
-        try:
-            return await self.repository.crear_con_admin(nuevo_restaurante, nuevo_admin)
-        except Exception as e:
-            # Si la base de datos rechaza por RUC o email duplicado (Unique Constraint),
-            # transformamos el error técnico en un ValueError legible para la API (400 Bad Request)
-            raise ValueError(
-                "El email corporativo o la identificación fiscal ya se encuentran registrados."
-            )
+        # 6. Ejecutamos la transacción. Si el RUC o algún email ya existen, el
+        # repositorio lanza RegistroDuplicadoError (excepción de dominio, ya
+        # con un mensaje legible), así esta capa no depende de la base de datos.
+        return await self.repository.crear_con_admin(nuevo_restaurante, nuevo_admin)

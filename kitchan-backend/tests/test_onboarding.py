@@ -106,3 +106,37 @@ async def test_registrar_restaurante_mismo_correo_empresa_y_admin(client):
         "igual" in res.json()["detail"].lower()
         or "diferente" in res.json()["detail"].lower()
     )
+
+
+@pytest.mark.asyncio
+async def test_registrar_restaurante_email_admin_duplicado(client):
+    """El repositorio traduce el IntegrityError a RegistroDuplicadoError (de
+    dominio) con un mensaje propio para el email del administrador."""
+
+    def payload(ruc: str, email_corporativo: str) -> dict:
+        return {
+            "restaurante": {
+                "nombre_comercial": "Local Admin",
+                "razon_social": "S.A. Admin",
+                "identificacion_fiscal": ruc,
+                "direccion": "Calle B",
+                "telefono": "0988888888",
+                "email_corporativo": email_corporativo,
+            },
+            "admin": {
+                "nombre": "Admin Repetido",
+                "email": "admin.repetido@test.com",
+                "password": "Password123*",
+            },
+        }
+
+    res1 = await client.post(
+        "/api/v1/onboarding/", json=payload("1700000000001", "local1@test.com")
+    )
+    assert res1.status_code == 201
+
+    res2 = await client.post(
+        "/api/v1/onboarding/", json=payload("1700000000002", "local2@test.com")
+    )
+    assert res2.status_code == 400
+    assert "email del administrador" in res2.json()["detail"].lower()
