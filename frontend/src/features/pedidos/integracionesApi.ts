@@ -54,6 +54,20 @@ export const MOTIVOS_RECHAZO_RAPPI = [
   { value: "ORDER_MISSING_ADDRESS_INFORMATION", label: "Falta información de la dirección" },
 ] as const;
 
+// PedidosYa recibe el motivo como texto libre (`reason`) tanto al rechazar
+// como al cancelar (ver DenyOrderRequest/CancelOrderRequest en
+// integraciones/pedidosya/.../orders_api.py).
+export const MOTIVOS_PEDIDOSYA = [
+  { value: "Producto agotado", label: "Producto agotado" },
+  { value: "Cocina cerrada", label: "Cocina cerrada" },
+  { value: "Restaurante muy ocupado", label: "Restaurante muy ocupado" },
+  { value: "Otro motivo", label: "Otro motivo" },
+] as const;
+
+const bodyMotivoPedidosYa = (motivo: string, detalle: string) => ({
+  reason: detalle && detalle !== "Cancelado desde KITCHAN" ? `${motivo}: ${detalle}` : motivo,
+});
+
 const INTEGRACIONES: Record<string, ConfigIntegracion> = {
   UBER_EATS: {
     base: "/api/v1/integraciones/uber/orders",
@@ -71,6 +85,13 @@ const INTEGRACIONES: Record<string, ConfigIntegracion> = {
     // La API pública de Rappi no documenta cómo cancelar un pedido ya
     // tomado; /reject solo vale mientras el pedido está en SENT (NUEVA).
     cancelacionAceptado: null,
+  },
+  PEDIDOS_YA: {
+    base: "/api/v1/integraciones/pedidosya/orders",
+    bodyRechazo: bodyMotivoPedidosYa,
+    motivosRechazo: MOTIVOS_PEDIDOSYA,
+    // PedidosYa sí permite cancelar un pedido ya aceptado (status CANCELLED).
+    cancelacionAceptado: { body: bodyMotivoPedidosYa, motivos: MOTIVOS_PEDIDOSYA },
   },
 };
 

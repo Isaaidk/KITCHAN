@@ -7,13 +7,14 @@ import { infoCanal } from "../pedidos/estadoUtils";
 import OdooCard from "./OdooCard";
 import styles from "./IntegracionesPage.module.css";
 
-const CANALES_PROXIMAMENTE = ["PEDIDOSYA", "WHATSAPP"];
+const CANALES_PROXIMAMENTE = ["WHATSAPP"];
 
 const DESCRIPCION: Record<string, string> = {
   UBER_EATS: "Recibe y gestiona los pedidos de tu tienda de Uber Eats.",
   RAPPI:
     "Recibe pedidos de Rappi y acéptalos, recházalos o márcalos listos desde la cola. Las credenciales las configura el equipo técnico.",
-  PEDIDOSYA: "Integración POS con el Middleware de PedidosYa.",
+  PEDIDOSYA:
+    "Recibe pedidos de PedidosYa y acéptalos, recházalos, cancélalos o márcalos listos desde la cola. Las credenciales las configura el equipo técnico.",
   WHATSAPP: "Pedidos directos desde WhatsApp Business.",
 };
 
@@ -50,7 +51,7 @@ export default function IntegracionesPage() {
 
       <section className={styles.seccion} aria-labelledby="int-canales">
         <h2 id="int-canales" className={styles.seccionTitulo}>
-          Canales de venta <span className={styles.seccionCuenta}>2</span>
+          Canales de venta <span className={styles.seccionCuenta}>3</span>
         </h2>
         <div className={styles.lista}>
           <div className={`${styles.fila} animate-in`}>
@@ -88,6 +89,20 @@ export default function IntegracionesPage() {
             <div className={styles.texto}>
               <div className={styles.canal}>Rappi</div>
               <p className={styles.descripcion}>{DESCRIPCION.RAPPI}</p>
+            </div>
+            <span className={`${styles.estado} ${styles.estadoInfo}`}>Disponible</span>
+            <div className={styles.accion}>
+              <span className={styles.nota}>Lo configura el equipo técnico</span>
+            </div>
+          </div>
+
+          {/* PedidosYa: credenciales del plugin (Integration Middleware) en el
+              backend (.env), igual que Rappi: no hay botón de conectar. */}
+          <div className={`${styles.fila} animate-in`} style={{ ["--i" as string]: 2 }}>
+            <LogoCanal canal="PEDIDOSYA" />
+            <div className={styles.texto}>
+              <div className={styles.canal}>PedidosYa</div>
+              <p className={styles.descripcion}>{DESCRIPCION.PEDIDOSYA}</p>
             </div>
             <span className={`${styles.estado} ${styles.estadoInfo}`}>Disponible</span>
             <div className={styles.accion}>
