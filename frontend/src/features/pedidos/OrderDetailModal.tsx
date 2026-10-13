@@ -3,7 +3,8 @@ import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import type { Pedido } from "../../shared/types/pedido";
 import { moneda } from "../../shared/utils/formato";
-import { useOdooSyncStub } from "../integraciones/useOdooSyncStub";
+import { ETIQUETA_FACTURA } from "../facturacion/facturacionApi";
+import { useFacturaPedido } from "../facturacion/useFacturaPedido";
 import CancelarPedidoModal from "./CancelarPedidoModal";
 import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
@@ -24,7 +25,13 @@ interface Props {
 }
 
 export default function OrderDetailModal({ pedido, onClose }: Props) {
-  const { estado: estadoOdoo, ejecutar } = useOdooSyncStub();
+  const {
+    factura,
+    cargando: cargandoFactura,
+    facturando,
+    facturar,
+  } = useFacturaPedido(pedido.id);
+  const facturable = pedido.estado === "LISTA" || pedido.estado === "ENTREGADA";
   const cancelado = pedido.estado === "CANCELADA";
   const indiceActual = PASOS.indexOf(pedido.estado);
   // Porcentaje de la línea de progreso entre el primer y el último paso.
@@ -201,22 +208,38 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
       <div className={styles.odoo}>
         <div className={styles.odooInfo}>
           <CanalLogo canal="ODOO" {...infoCanal("ODOO")} size={34} />
-          <div>
-            <div className={styles.odooTitulo}>Sincronización con Odoo</div>
-            <div className={styles.odooEstado}>
-              {estadoOdoo === "idle" && "Sin sincronizar"}
-              {estadoOdoo === "sincronizando" && "Sincronizando…"}
-              {estadoOdoo === "no_disponible" && "Disponible próximamente"}
+          <div className={styles.odooTexto}>
+            <div className={styles.odooTitulo}>
+              {factura?.numero ? `Factura ${factura.numero.replace(/^Fact\s*/, "")}` : "Factura electrónica"}
             </div>
+            <div
+              className={styles.odooEstado}
+              data-estado={factura?.estado}
+              aria-live="polite"
+            >
+              {cargandoFactura && "Consultando…"}
+              {!cargandoFactura && !factura && (facturable ? "Sin facturar" : "Se factura cuando el pedido esté listo")}
+              {factura && ETIQUETA_FACTURA[factura.estado]}
+            </div>
+            {factura?.numero_autorizacion && (
+              <div className={styles.odooDetalle} title="Número de autorización del SRI">
+                Autorización {factura.numero_autorizacion}
+              </div>
+            )}
+            {factura?.estado === "CON_ERROR" && factura.mensaje_error && (
+              <div className={styles.odooDetalle}>{factura.mensaje_error}</div>
+            )}
           </div>
         </div>
-        <button
-          className={`btn btn-secondary btn-sm ${estadoOdoo === "sincronizando" ? "is-loading" : ""}`}
-          disabled={estadoOdoo === "sincronizando"}
-          onClick={ejecutar}
-        >
-          Sincronizar
-        </button>
+        {!cargandoFactura && (!factura || factura.estado === "CON_ERROR") && (
+          <button
+            className={`btn btn-secondary btn-sm ${facturando ? "is-loading" : ""}`}
+            disabled={facturando || (!factura && !facturable)}
+            onClick={facturar}
+          >
+            {factura ? "Reintentar" : "Facturar"}
+          </button>
+        )}
       </div>
 
       {mostrarCancelar && (

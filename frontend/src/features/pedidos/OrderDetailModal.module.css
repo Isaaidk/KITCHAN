@@ -299,16 +299,49 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+}
+
+.odooTexto {
+  min-width: 0;
 }
 
 .odooTitulo {
   font-size: 0.85rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .odooEstado {
   font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+.odooEstado[data-estado="AUTORIZADA"] {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.odooEstado[data-estado="CON_ERROR"] {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.odooEstado[data-estado="PENDIENTE_SRI"] {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+/* El número de autorización del SRI tiene 49 dígitos: se corta con
+   puntos suspensivos y se ve completo al pasar el mouse. */
+.odooDetalle {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 480px) {

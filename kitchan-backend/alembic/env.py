@@ -19,6 +19,9 @@ from src.kitchan.modules.restaurantes.infrastructure.models import (
 )  # noqa
 from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel  # noqa
 from src.kitchan.modules.pedidos.infrastructure.models import PedidoModel  # noqa
+from src.kitchan.modules.facturacion.infrastructure.models import (  # noqa
+    FacturaPedidoModel,
+)
 
 # Esto es de Alembic por defecto
 config = context.config

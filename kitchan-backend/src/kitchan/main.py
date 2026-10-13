@@ -58,15 +58,25 @@ from src.kitchan.modules.reportes.infrastructure.rest_api import (
     router as reportes_router,
 )
 
+from src.kitchan.modules.facturacion.infrastructure.rest_api import (
+    router as facturacion_router,
+)
+
+from src.kitchan.modules.facturacion.infrastructure.tareas.conciliar import (
+    iniciar_conciliador_facturas,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis_url = os.getenv("REDIS_URL")
     subscriber_task = iniciar_subscriber(redis_url, connection_manager)
     auto_cancelador_task = iniciar_auto_cancelador(redis_url)
+    conciliador_task = iniciar_conciliador_facturas()
     yield
     subscriber_task.cancel()
     auto_cancelador_task.cancel()
+    conciliador_task.cancel()
 
 
 app = FastAPI(
@@ -113,6 +123,8 @@ app.include_router(pedidos_router)
 app.include_router(pedidos_ws_router)
 
 app.include_router(reportes_router)
+
+app.include_router(facturacion_router)
 
 
 # ============================================================
