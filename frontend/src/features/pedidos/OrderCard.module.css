@@ -1,0 +1,273 @@
+.tarjeta {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 14px 16px 16px 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) ease;
+  /* Entrada: aparece cuando llega un pedido o cuando cambia de columna */
+  animation: tarjeta-entrada 460ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Franja lateral con el color del estado */
+.tarjeta::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--borde-estado, var(--color-primary));
+  transition: width var(--dur) var(--ease-out);
+}
+
+.tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-border-strong);
+}
+
+.tarjeta:hover::before {
+  width: 5px;
+}
+
+.tarjeta:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* El foco vive en el botón del nombre, pero el anillo se dibuja en toda la tarjeta */
+.tarjeta:has(.abrir:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Si un pedido recibe el foco con la barra superior fija, no queda tapado */
+.tarjeta {
+  scroll-margin-top: 88px;
+}
+
+.abrir {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.abrir::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.abrir:focus-visible {
+  outline: none;
+}
+
+@keyframes tarjeta-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.identidad {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cliente {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.origen {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.referencia {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+/* Barra de tiempo: se llena hasta el límite de espera y luego se pone roja */
+.tiempo {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+/* Se anima con transform (no width): el progreso crece desde la izquierda */
+.tiempoBarra {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--borde-estado, var(--color-primary));
+  transform-origin: left;
+  transition: transform 600ms var(--ease-out);
+}
+
+.tarjeta:has(.timerVencido) .tiempoBarra {
+  background: var(--color-danger);
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
+  font-size: 0.82rem;
+}
+
+.items li {
+  display: flex;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.cantidad {
+  flex-shrink: 0;
+  min-width: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.itemNombre {
+  min-width: 0;
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+
+.itemNota {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--color-warning);
+}
+
+.masItems {
+  color: var(--color-text-subtle);
+  font-size: 0.76rem;
+  padding-left: 30px;
+}
+
+.timer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.timerVencido {
+  background: var(--color-danger-soft);
+  border-color: #fecaca;
+  color: var(--color-danger);
+}
+
+/* Pulso con un anillo que escala y se desvanece (solo transform/opacity) */
+.timerVencido::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 2px solid rgba(220, 38, 38, 0.5);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: timer-pulso 1.6s ease-out infinite;
+}
+
+@keyframes timer-pulso {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.detalle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.total {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Por encima del botón estirado de la tarjeta para que sus clics lleguen primero */
+.acciones {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.acciones :global(.btn) {
+  flex: 1;
+}

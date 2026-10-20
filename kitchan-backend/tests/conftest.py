@@ -80,3 +80,24 @@ async def client(db_session):
     ) as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def ws_client():
+    """
+    Cliente síncrono (starlette TestClient) para testear el endpoint
+    WebSocket: httpx.AsyncClient + ASGITransport (usado en `client`) no
+    soporta WS. Cada llamada a get_db abre su propia sesión (en vez de
+    reusar una sola, como hace `client`) porque TestClient corre el ASGI
+    app en su propio hilo/loop.
+    """
+    from starlette.testclient import TestClient
+
+    async def override_get_db():
+        async with TestingSessionLocal() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as tc:
+        yield tc
+    app.dependency_overrides.clear()

@@ -40,6 +40,13 @@ jobs:
       run: bandit -r src/ -ll
 
     - name: 4. Ejecución de Pruebas Unitarias (Pytest)
+      env:
+        # Valores ficticios solo para las pruebas: el .env real no se versiona.
+        DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+        SECRET_KEY: "clave-solo-para-pruebas"
+        ALGORITHM: "HS256"
+        ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+        REDIS_URL: "redis://localhost:6379/0"
       run: |
         export PYTHONPATH=.
         pytest tests/

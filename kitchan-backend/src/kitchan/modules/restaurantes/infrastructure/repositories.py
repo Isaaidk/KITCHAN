@@ -5,9 +5,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.modules.restaurantes.application.ports import IRestauranteRepository
 from src.kitchan.modules.restaurantes.domain.entities import Restaurante
+from src.kitchan.modules.restaurantes.domain.exceptions import RegistroDuplicadoError
 from src.kitchan.modules.restaurantes.infrastructure.models import RestauranteModel
 from src.kitchan.modules.usuarios.domain.entities import Usuario
 from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
+
+
+def _mensaje_duplicado(mensaje_error: str) -> str:
+    """Mensaje claro para el cliente según el constraint que falló. Contempla
+    los nombres de Postgres (ej. usuarios_email_key) y de SQLite (ej.
+    usuarios.email), que es la base que usan los tests.
+
+    Para el restaurante se da un mensaje conjunto: la base reporta solo el
+    primer constraint que falla, y el RUC y el email corporativo pueden estar
+    repetidos a la vez."""
+    if any(
+        clave in mensaje_error
+        for clave in ("usuarios_email_key", "ix_usuarios_email", "usuarios.email")
+    ):
+        return "El email del administrador ya está registrado en el sistema."
+    return (
+        "El email corporativo o la identificación fiscal ya se encuentran registrados."
+    )
 
 
 class PostgresRestauranteRepository(IRestauranteRepository):
@@ -51,26 +70,10 @@ class PostgresRestauranteRepository(IRestauranteRepository):
             return restaurante, admin
 
         except IntegrityError as e:
-            # Si falla la transacción (ej. violación de constraint de unicidad), hacemos rollback
+            # Si falla la transacción (ej. violación de constraint de unicidad),
+            # hacemos rollback y traducimos el error técnico a uno de dominio.
             await self.session.rollback()
-
-            mensaje_error = str(e.orig)
-            # Evaluamos el error específico para darle un mensaje claro al cliente
-            if (
-                "usuarios_email_key" in mensaje_error
-                or "ix_usuarios_email" in mensaje_error
-            ):
-                raise ValueError(
-                    "El email del administrador ya está registrado en el sistema."
-                )
-            elif "identificacion_fiscal" in mensaje_error:
-                raise ValueError(
-                    "La identificación fiscal (RUC/NIT) ya está registrada para otro restaurante."
-                )
-            else:
-                raise ValueError(
-                    "Error de integridad de datos al intentar registrar el restaurante."
-                )
+            raise RegistroDuplicadoError(_mensaje_duplicado(str(e.orig))) from e
 
         except Exception as e:
             # Para cualquier otro error inesperado (ej. pérdida de conexión), también revertimos

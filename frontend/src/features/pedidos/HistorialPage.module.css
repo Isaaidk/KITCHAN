@@ -1,0 +1,171 @@
+.filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.filtrosFila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+}
+
+.selectCanal {
+  min-width: 0;
+}
+
+/* Estado como chips con su color, en vez de un desplegable */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  --chip-color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 5px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chipActivo {
+  border-color: color-mix(in srgb, var(--chip-color) 40%, white);
+  background: color-mix(in srgb, var(--chip-color) 10%, white);
+  color: color-mix(in srgb, var(--chip-color) 85%, black);
+}
+
+.chipPunto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-color);
+}
+
+.buscador {
+  position: relative;
+}
+
+.buscador :global(.input) {
+  padding-left: 38px;
+}
+
+.buscadorIcono {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.fila {
+  cursor: pointer;
+}
+
+.cliente {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.errorTexto {
+  flex: 1;
+}
+
+.bloque {
+  display: block;
+}
+
+/* El nombre es un botón (accesible por teclado) con aspecto de texto */
+.clienteBoton {
+  display: block;
+  /* Un nombre muy largo se recorta con "…" en vez de ensanchar la tabla */
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: left;
+  border-radius: 4px;
+}
+
+.referencia {
+  margin-top: 1px;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.total {
+  font-weight: 700;
+}
+
+.fecha {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.hora {
+  font-size: 0.74rem;
+  color: var(--color-text-subtle);
+}
+
+.fila:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+/* Recarga por filtro/paginación: la tabla se atenúa sin desaparecer */
+.actualizando table {
+  opacity: 0.55;
+  transition: opacity var(--dur) ease;
+}
+
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.paginaTexto {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.paginaTexto strong {
+  color: var(--color-text);
+}
+
+@media (max-width: 560px) {
+  .filtrosFila {
+    grid-template-columns: 1fr;
+  }
+}

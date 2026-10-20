@@ -26,10 +26,15 @@ class EliminarUsuarioUseCase:
     def __init__(self, repository: IUsuarioRepository):
         self.repository = repository
 
-    async def ejecutar(self, usuario_id: str) -> None:
+    async def ejecutar(self, usuario_id: str, admin_restaurante_id: str) -> None:
         # Validar que el usuario exista antes de eliminar
         usuario_existente = await self.repository.buscar_por_id(usuario_id)
         if usuario_existente is None:
+            raise ValueError("Usuario no encontrado")
+
+        # Aislamiento multi-tenant: un admin solo puede eliminar usuarios de
+        # su propio restaurante.
+        if str(usuario_existente.restaurante_id) != str(admin_restaurante_id):
             raise ValueError("Usuario no encontrado")
 
         await self.repository.eliminar(usuario_id)
@@ -47,6 +52,55 @@ class EditarUsuarioUCase:
             raise ValueError("El usuario no existe")
         password_segura = self.hasher.hashear(password_hash)
         await self.repository.editar_contraseña(email, password_segura)
+
+
+class EditarUsuarioPorAdminUseCase:
+    """A diferencia de EditarUsuarioUCase (solo contraseña, solo la propia
+    cuenta), permite a un Admin editar nombre/rol de cualquier usuario de su
+    restaurante."""
+
+    def __init__(self, repository: IUsuarioRepository):
+        self.repository = repository
+
+    async def ejecutar(
+        self, usuario_id: str, nombre: str, rol: str, admin_restaurante_id: str
+    ) -> Usuario:
+        usuario_existente = await self.repository.buscar_por_id(usuario_id)
+        if usuario_existente is None:
+            raise ValueError("Usuario no encontrado")
+
+        # Aislamiento multi-tenant: un admin solo puede editar usuarios de
+        # su propio restaurante.
+        if str(usuario_existente.restaurante_id) != str(admin_restaurante_id):
+            raise ValueError("Usuario no encontrado")
+
+        if rol not in [RolUsuario.ADMIN.value, RolUsuario.OPERADOR.value]:
+            raise ValueError("Rol no válido para asignar.")
+
+        actualizado = await self.repository.actualizar_datos(
+            usuario_id, nombre, RolUsuario(rol)
+        )
+        return actualizado
+
+
+class CambiarEstadoUsuarioUseCase:
+    def __init__(self, repository: IUsuarioRepository):
+        self.repository = repository
+
+    async def ejecutar(
+        self, usuario_id: str, estado: bool, admin_restaurante_id: str
+    ) -> Usuario:
+        usuario_existente = await self.repository.buscar_por_id(usuario_id)
+        if usuario_existente is None:
+            raise ValueError("Usuario no encontrado")
+
+        # Aislamiento multi-tenant: un admin solo puede activar/desactivar
+        # usuarios de su propio restaurante.
+        if str(usuario_existente.restaurante_id) != str(admin_restaurante_id):
+            raise ValueError("Usuario no encontrado")
+
+        actualizado = await self.repository.cambiar_estado(usuario_id, estado)
+        return actualizado
 
 
 class ListarUsuariosUCase:

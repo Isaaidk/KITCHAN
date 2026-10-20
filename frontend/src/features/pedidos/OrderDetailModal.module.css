@@ -1,0 +1,359 @@
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.cabeceraTexto {
+  flex: 1;
+  min-width: 0;
+}
+
+.cliente {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.origen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.referencia {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dato {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Timeline de estados con línea de progreso animada */
+.timeline {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+/* Lista ordenada de pasos: sin viñetas y repartida a lo ancho */
+.pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.linea {
+  position: absolute;
+  top: 13px;
+  left: 12.5%;
+  right: 12.5%;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.lineaRelleno {
+  height: 100%;
+  width: calc(var(--progreso, 0) * 100%);
+  background: var(--gradient-brand);
+  border-radius: inherit;
+  animation: linea-crece 700ms var(--ease-out) 120ms both;
+  transition: width 500ms var(--ease-out);
+}
+
+@keyframes linea-crece {
+  from {
+    width: 0;
+  }
+}
+
+.paso {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 0.74rem;
+  color: var(--color-text-subtle);
+}
+
+.punto {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  color: #fff;
+  transition:
+    background-color var(--dur) ease,
+    border-color var(--dur) ease;
+}
+
+.pasoActivo {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.pasoActivo .punto {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  animation: punto-pop 420ms var(--ease-spring) both;
+  animation-delay: calc(var(--i) * 110ms + 100ms);
+}
+
+.pasoActual .punto {
+  box-shadow: 0 0 0 5px var(--color-primary-ring);
+}
+
+@keyframes punto-pop {
+  from {
+    transform: scale(0.5);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.pasoTexto {
+  max-width: 90px;
+  line-height: 1.25;
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.acciones :global(.btn) {
+  flex: 1;
+}
+
+/* Cancelar es secundario: no compite con la acción principal */
+.acciones :global(.btn-danger-soft) {
+  flex: 0 0 auto;
+}
+
+.items {
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.itemsTitulo {
+  padding: 12px 16px 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.listaItems {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.cantidad {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
+
+.itemDatos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemNombre {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.itemNota {
+  font-size: 0.76rem;
+  font-style: italic;
+  color: var(--color-warning);
+}
+
+.itemUnitario {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-subtle);
+}
+
+.itemSubtotal {
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 14px 16px;
+  background: var(--color-surface-muted);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.totalValor {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+/* La nota del cliente va arriba de los ítems: la cocina debe verla primero */
+.notaCliente {
+  display: flex;
+  gap: 10px;
+  background: var(--color-warning-soft);
+  border: 1px solid #fde68a;
+  border-left: 4px solid var(--color-warning);
+  color: #78350f;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin-bottom: 16px;
+}
+
+.notaCliente svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-warning);
+}
+
+.notaTitulo {
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-bottom: 2px;
+}
+
+.odoo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+
+.odooInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.odooTexto {
+  min-width: 0;
+}
+
+.odooTitulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.odooEstado {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.odooEstado[data-estado="AUTORIZADA"] {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.odooEstado[data-estado="CON_ERROR"] {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.odooEstado[data-estado="PENDIENTE_SRI"] {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+/* El número de autorización del SRI tiene 49 dígitos: se corta con
+   puntos suspensivos y se ve completo al pasar el mouse. */
+.odooDetalle {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .cabecera {
+    flex-wrap: wrap;
+  }
+
+  .acciones {
+    flex-wrap: wrap;
+  }
+
+  .pasoTexto {
+    font-size: 0.68rem;
+  }
+}

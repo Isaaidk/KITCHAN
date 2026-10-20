@@ -1,16 +1,36 @@
-from src.kitchan.modules.integraciones.core.domain.inter_module_ports import OrderDispatcherPort
-from src.kitchan.modules.integraciones.uber.domain.models import KitchanOrderDTO
+"""Infraestructura de Pedidos: adaptador puente que implementa el puerto
+compartido de integraciones (OrderDispatcherPort), traduciendo el DTO neutral
+al modelo de dominio de Pedidos. Es el único punto donde una integración
+(Uber, PedidosYa, ...) toca el modelo genérico del sistema.
+"""
+
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
+)
+from src.kitchan.modules.integraciones.core.domain.entities import KitchanOrderDTO
 
 from src.kitchan.modules.pedidos.domain.entities import Pedido, PedidoItem, EstadoPedido
-from src.kitchan.modules.pedidos.application.crear_pedido_service import CrearPedidoUseCase
+from src.kitchan.modules.pedidos.application.crear_pedido_service import (
+    CrearPedidoUseCase,
+)
+from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
+    ActualizarEstadoPedidoUseCase,
+)
+
 
 class PedidosIntegracionesAdapter(OrderDispatcherPort):
     """
-    Puente de comunicación: Recibe un DTO de integraciones, 
+    Puente de comunicación: Recibe un DTO de integraciones,
     lo traduce al Dominio Core, y ejecuta el caso de uso.
     """
-    def __init__(self, use_case: CrearPedidoUseCase):
+
+    def __init__(
+        self,
+        use_case: CrearPedidoUseCase,
+        actualizar_estado_use_case: ActualizarEstadoPedidoUseCase,
+    ):
         self.use_case = use_case
+        self.actualizar_estado_use_case = actualizar_estado_use_case
 
     async def dispatch_new_order(self, order_dto: KitchanOrderDTO) -> str:
         # 1. Traducción (Mapeo)
@@ -19,23 +39,54 @@ class PedidosIntegracionesAdapter(OrderDispatcherPort):
                 nombre=item.nombre,
                 cantidad=item.cantidad,
                 precio_unitario=item.precio_unitario,
-                notas=item.notas_especiales
+                notas=item.notas_especiales,
             )
             for item in order_dto.items
         ]
 
         pedido_core = Pedido(
+            restaurante_id=order_dto.restaurante_id,
             origen=order_dto.plataforma,
             id_externo=order_dto.id_externo,
             cliente=order_dto.nombre_cliente,
             items=items_core,
             total=order_dto.total,
-            estado=EstadoPedido.NUEVA
+            estado=EstadoPedido.NUEVA,
         )
 
         print(f"🌉 [PUENTE] Traducción completada. Enviando a Cocina Central...")
-        
+
         # 2. Ejecución de la lógica de negocio
         pedido_id = await self.use_case.ejecutar(pedido_core)
-        
+
         return pedido_id
+
+    async def dispatch_order_status_update(
+        self, origen: str, id_externo: str, nuevo_estado: str
+    ) -> bool:
+        pedido = await self.actualizar_estado_use_case.ejecutar_por_id_externo(
+            origen, id_externo, EstadoPedido(nuevo_estado)
+        )
+        return pedido is not None
+
+    async def dispatch_delivery_status_update(
+        self, origen: str, id_externo: str, estado_entrega: str
+    ) -> bool:
+        pedido = await self.actualizar_estado_use_case.actualizar_estado_entrega(
+            origen, id_externo, estado_entrega
+        )
+        return pedido is not None
+
+    async def order_already_exists(self, origen: str, id_externo: str) -> bool:
+        pedido = await self.use_case.repository.buscar_por_id_externo(
+            origen, id_externo
+        )
+        return pedido is not None
+
+    async def order_belongs_to_restaurant(
+        self, origen: str, id_externo: str, restaurante_id: str
+    ) -> bool:
+        pedido = await self.use_case.repository.buscar_por_id_externo(
+            origen, id_externo
+        )
+        return pedido is not None and str(pedido.restaurante_id) == str(restaurante_id)

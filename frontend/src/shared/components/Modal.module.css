@@ -1,0 +1,128 @@
+.fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+  animation: kt-fade-in var(--dur) ease both;
+}
+
+.caja {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-pop);
+  width: 100%;
+  max-height: min(90vh, 860px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: kt-scale-in 280ms var(--ease-out) both;
+}
+
+.saliendo {
+  animation: modal-fade-out 160ms ease forwards;
+}
+
+.saliendo .caja {
+  animation: modal-scale-out 160ms ease forwards;
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.titulo {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.cerrar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur) var(--ease-out);
+}
+
+.cerrar:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  transform: rotate(90deg);
+}
+
+.cuerpo {
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+  /* El scroll del modal no se "escapa" a la página de atrás */
+  overscroll-behavior: contain;
+}
+
+/* La caja recibe el foco al abrir (para teclado y lectores de pantalla);
+   no es interactiva, por eso no necesita anillo de foco propio. */
+.caja:focus {
+  outline: none;
+}
+
+@keyframes modal-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-scale-out {
+  to {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+}
+
+@media (max-width: 560px) {
+  .fondo {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .caja {
+    max-width: 100% !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 92vh;
+    animation: modal-slide-up 320ms var(--ease-out) both;
+  }
+
+  .encabezado {
+    padding: 16px 18px 12px;
+  }
+
+  .cuerpo {
+    padding: 16px 18px 24px;
+  }
+}
+
+@keyframes modal-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}

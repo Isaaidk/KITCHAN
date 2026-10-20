@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from src.kitchan.modules.usuarios.domain.entities import Usuario
+from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
 
 
 class IUsuarioRepository(ABC):
@@ -30,6 +30,18 @@ class IUsuarioRepository(ABC):
 
     @abstractmethod
     async def editar_contraseña(self, email: str, password_hash: str) -> None:
+        pass
+
+    @abstractmethod
+    async def actualizar_datos(
+        self, usuario_id: str, nombre: str, rol: RolUsuario
+    ) -> Optional[Usuario]:
+        """Edita nombre/rol de un usuario existente (usado por el CRUD de Admin)."""
+        pass
+
+    @abstractmethod
+    async def cambiar_estado(self, usuario_id: str, estado: bool) -> Optional[Usuario]:
+        """Activa/desactiva un usuario sin eliminarlo."""
         pass
 
     @abstractmethod

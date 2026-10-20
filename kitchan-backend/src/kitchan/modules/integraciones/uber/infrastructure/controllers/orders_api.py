@@ -3,154 +3,255 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 import logging
 
+
 # Importamos nuestro Caso de Uso y los Adaptadores
-from src.kitchan.modules.integraciones.uber.application.order_use_cases import UberOrderUseCase
-from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_adapter import RedisUberTokenAdapter
-from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import UberHttpAdapter
-from src.kitchan.modules.pedidos.application.crear_pedido_service import CrearPedidoUseCase
-from src.kitchan.modules.pedidos.infrastructure.adapters.integraciones_dispatcher import PedidosIntegracionesAdapter
+from src.kitchan.modules.integraciones.uber.application.order_use_cases import (
+    UberOrderUseCase,
+)
+from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_adapter import (
+    RedisUberTokenAdapter,
+)
+from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import (
+    UberHttpAdapter,
+)
+from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
+    OrderDispatcherPort,
+)
+from src.kitchan.modules.pedidos.infrastructure.dependencias import get_order_dispatcher
+from src.kitchan.modules.integraciones.core.infrastructure.seguridad import (
+    usuario_duenio_del_pedido,
+    verificar_restaurante_del_usuario,
+)
+from src.kitchan.modules.integraciones.core.infrastructure.errores import (
+    error_de_plataforma,
+)
 
 logger = logging.getLogger(__name__)
 
+# Solo usuarios de KITCHAN dueños del pedido (ver core/infrastructure/seguridad.py).
+requiere_duenio = usuario_duenio_del_pedido("UBER_EATS")
+
 router = APIRouter(
     prefix="/api/v1/integraciones/uber/orders",
-    tags=["Integraciones - Acciones de Pedidos Uber"]
+    tags=["Integraciones - Acciones de Pedidos Uber"],
 )
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
+
 # Modelo de Pydantic para el body del endpoint de rechazo
 class DenyOrderRequest(BaseModel):
-    reason_code: str = "OTHER"  # Opciones comunes: ITEM_OUT_OF_STOCK, KITCHEN_CLOSED, OTHER
+    # Valores válidos según Uber: STORE_CLOSED, POS_NOT_READY, POS_OFFLINE,
+    # ITEM_AVAILABILITY, MISSING_ITEM, MISSING_INFO, PRICING, CAPACITY,
+    # ADDRESS, SPECIAL_INSTRUCTIONS, OTHER.
+    reason_code: str = "OTHER"
     explanation: str = "No podemos preparar el pedido en este momento."
 
+
+# Modelo de Pydantic para el body del endpoint de cancelación (pedido YA aceptado)
+class CancelOrderRequest(BaseModel):
+    # Valores válidos según Uber: OUT_OF_ITEMS, KITCHEN_CLOSED,
+    # CUSTOMER_CALLED_TO_CANCEL, RESTAURANT_TOO_BUSY,
+    # CANNOT_COMPLETE_CUSTOMER_NOTE, OTHER.
+    reason: str = "OTHER"
+    details: str | None = None
+
+
 # Inyección de Dependencias
-def get_order_use_case() -> UberOrderUseCase:
+def get_order_use_case(
+    order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
+) -> UberOrderUseCase:
     token_adapter = RedisUberTokenAdapter(redis_url=REDIS_URL)
     api_adapter = UberHttpAdapter()
-    crear_pedido_uc = CrearPedidoUseCase(...)
-    dispatcher = PedidosIntegracionesAdapter(use_case=crear_pedido_uc)
-
-
 
     return UberOrderUseCase(
-        token_cache=token_adapter, 
+        token_cache=token_adapter,
         uber_api=api_adapter,
-        order_dispatcher=dispatcher # <--- ESTO ES LO QUE FALTABA
+        order_dispatcher=order_dispatcher,
     )
+
 
 @router.post("/{order_id}/accept")
 async def accept_uber_order(
     order_id: str,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
-    use_case: UberOrderUseCase = Depends(get_order_use_case)
+    usuario: dict = Depends(requiere_duenio),
+    use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
     """
     Endpoint consumido por el frontend para ACEPTAR un pedido en Uber Eats.
     """
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.accept_order_in_uber(order_id, restaurante_id)
-        return {"status": "success", "message": f"Pedido {order_id} aceptado en Uber Eats."}
+        return {
+            "status": "success",
+            "message": f"Pedido {order_id} aceptado en Uber Eats.",
+        }
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error interno al aceptar el pedido.")
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+    except HTTPException as e:
+        # Preserva el status/detail real que devolvió Uber (ej. 401 "User
+        # not allowed to access the store") en vez de ocultarlo como 500.
+        raise error_de_plataforma(e, "Uber Eats")
+    except Exception:
+        logger.exception("Error inesperado aceptando el pedido %s", order_id)
+        raise HTTPException(
+            status_code=500, detail="Error interno al aceptar el pedido."
+        )
+
 
 @router.post("/{order_id}/deny")
 async def deny_uber_order(
     order_id: str,
     payload: DenyOrderRequest,
     restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
-    use_case: UberOrderUseCase = Depends(get_order_use_case)
+    usuario: dict = Depends(requiere_duenio),
+    use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
     """
     Endpoint consumido por el frontend para RECHAZAR un pedido en Uber Eats.
     """
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.deny_order_in_uber(
-            order_id=order_id, 
-            restaurante_id=restaurante_id, 
-            reason=payload.reason_code, 
-            explanation=payload.explanation
+            order_id=order_id,
+            restaurante_id=restaurante_id,
+            reason=payload.reason_code,
+            explanation=payload.explanation,
         )
-        return {"status": "success", "message": f"Pedido {order_id} rechazado en Uber Eats."}
+        return {
+            "status": "success",
+            "message": f"Pedido {order_id} rechazado en Uber Eats.",
+        }
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error interno al rechazar el pedido.")
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
+    except Exception:
+        logger.exception("Error inesperado rechazando el pedido %s", order_id)
+        raise HTTPException(
+            status_code=500, detail="Error interno al rechazar el pedido."
+        )
+
+
+@router.post("/{order_id}/cancel")
+async def cancel_uber_order(
+    order_id: str,
+    payload: CancelOrderRequest,
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
+    use_case: UberOrderUseCase = Depends(get_order_use_case),
+):
+    """
+    Endpoint consumido por el frontend para CANCELAR un pedido YA ACEPTADO
+    en Uber Eats. Para pedidos que todavía no fueron aceptados, usar /deny
+    en su lugar (deny_pos_order no aplica después de aceptar).
+    """
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
+    try:
+        await use_case.cancel_order_in_uber(
+            order_id=order_id,
+            restaurante_id=restaurante_id,
+            reason=payload.reason,
+            details=payload.details,
+        )
+        return {
+            "status": "success",
+            "message": f"Pedido {order_id} cancelado en Uber Eats.",
+        }
+    except ValueError as e:
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
+        raise HTTPException(
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
+        )
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
+    except Exception:
+        logger.exception("Error inesperado cancelando el pedido %s", order_id)
+        raise HTTPException(
+            status_code=500, detail="Error interno al cancelar el pedido."
+        )
+
 
 @router.post("/{order_id}/ready")
 async def ready_uber_order(
     order_id: str,
-    restaurante_id: str = Query(
-        ...,
-        description="ID del restaurante en Kitchan"
-    ),
-    use_case: UberOrderUseCase = Depends(
-        get_order_use_case
-    )
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
+    use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         await use_case.mark_order_ready_in_uber(
-            order_id=order_id,
-            restaurante_id=restaurante_id
+            order_id=order_id, restaurante_id=restaurante_id
         )
 
         return {
             "status": "success",
             "message": (
-                f"Pedido {order_id} "
-                "marcado como listo para pickup en Uber Eats."
-            )
+                f"Pedido {order_id} " "marcado como listo para pickup en Uber Eats."
+            ),
         }
 
     except ValueError as e:
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
         raise HTTPException(
-            status_code=401,
-            detail=str(e)
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
         )
+
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
 
     except Exception as error:
-        logger.exception(
-            "❌ Error marcando pedido Uber %s como READY",
-            order_id
-        )
+        logger.exception("❌ Error marcando pedido Uber %s como READY", order_id)
 
         raise HTTPException(
-            status_code=500,
-            detail="Error interno al marcar el pedido como listo."
+            status_code=500, detail="Error interno al marcar el pedido como listo."
         )
+
 
 @router.get("/{order_id}/delivery-status")
 async def get_delivery_order_status(
     order_id: str,
-    restaurante_id: str = Query(
-        ...,
-        description="ID del restaurante en Kitchan"
-    ),
-    use_case: UberOrderUseCase = Depends(
-        get_order_use_case
-    )
+    restaurante_id: str = Query(..., description="ID del restaurante en Kitchan"),
+    usuario: dict = Depends(requiere_duenio),
+    use_case: UberOrderUseCase = Depends(get_order_use_case),
 ):
+    verificar_restaurante_del_usuario(restaurante_id, usuario)
     try:
         return await use_case.get_delivery_order_status(
-            order_id=order_id,
-            restaurante_id=restaurante_id
+            order_id=order_id, restaurante_id=restaurante_id
         )
 
     except ValueError as e:
+        # Sin token de Uber vigente: es un problema de la conexión con Uber,
+        # no de la sesión de KITCHAN, así que no se responde 401.
         raise HTTPException(
-            status_code=401,
-            detail=str(e)
+            status_code=409,
+            detail=f"{e} Vuelve a conectar Uber Eats desde Integraciones.",
         )
+
+    except HTTPException as e:
+        raise error_de_plataforma(e, "Uber Eats")
 
     except Exception:
-        logger.exception(
-            "❌ Error obteniendo estado delivery de Uber %s",
-            order_id
-        )
+        logger.exception("❌ Error obteniendo estado delivery de Uber %s", order_id)
 
         raise HTTPException(
-            status_code=500,
-            detail="Error obteniendo estado del pedido en Uber."
+            status_code=500, detail="Error obteniendo estado del pedido en Uber."
         )
