@@ -2,6 +2,7 @@
 (específico de esta plataforma) más el DTO neutral compartido, re-exportado
 aquí para no romper los imports existentes de esta integración.
 """
+
 from pydantic import BaseModel
 from typing import Optional
 
@@ -39,4 +40,3 @@ class UberWebhookPayload(BaseModel):
     event_id: str
     event_type: str
     meta: UberWebhookMeta
-

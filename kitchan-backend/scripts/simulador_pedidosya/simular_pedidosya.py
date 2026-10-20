@@ -74,12 +74,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Simulador de PedidosYa")
     parser.add_argument("evento", choices=["nuevo-pedido", "jwt-invalido"])
     parser.add_argument("--order-id", help="ID del pedido (por defecto uno aleatorio)")
-    parser.add_argument("--remote-id", help="remoteId del vendor (por defecto el 1º de PEDIDOSYA_REMOTE_ID_MAP)")
+    parser.add_argument(
+        "--remote-id",
+        help="remoteId del vendor (por defecto el 1º de PEDIDOSYA_REMOTE_ID_MAP)",
+    )
     args = parser.parse_args()
 
     secret = os.getenv("PEDIDOSYA_JWT_SECRET")
     if not secret:
-        print("❌ Falta PEDIDOSYA_JWT_SECRET en el .env (debe ser el mismo que usa el backend).")
+        print(
+            "❌ Falta PEDIDOSYA_JWT_SECRET en el .env (debe ser el mismo que usa el backend)."
+        )
         sys.exit(1)
 
     remote_id = args.remote_id or _remote_id_por_defecto()
@@ -93,14 +98,18 @@ def main() -> None:
 
     if args.evento == "nuevo-pedido":
         token = _jwt(secret)
-        print(f"🛵 Nuevo pedido PedidosYa {order_id} para remoteId {remote_id} (total {payload['totalPrice']})")
+        print(
+            f"🛵 Nuevo pedido PedidosYa {order_id} para remoteId {remote_id} (total {payload['totalPrice']})"
+        )
     else:  # jwt-invalido: KITCHAN debe responder 401 y no crear el pedido
         token = _jwt("secreto-incorrecto")
         print("🕵️ Enviando pedido con JWT falso (se espera 401)")
 
     url = f"{base}{DISPATCH_BASE}/{remote_id}"
     try:
-        respuesta = httpx.post(url, json=payload, headers={"Authorization": f"Bearer {token}"}, timeout=15)
+        respuesta = httpx.post(
+            url, json=payload, headers={"Authorization": f"Bearer {token}"}, timeout=15
+        )
     except httpx.ConnectError:
         print(f"❌ No se pudo conectar a {url}. ¿Está corriendo el backend?")
         sys.exit(1)

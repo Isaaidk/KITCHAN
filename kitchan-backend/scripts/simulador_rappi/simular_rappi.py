@@ -72,7 +72,11 @@ def _payload_nuevo_pedido(order_id: str, store_id: str) -> dict:
             "totals": {"total_order": total},
         },
         "customer": {"first_name": "Cliente", "last_name": "Simulado"},
-        "store": {"internal_id": store_id, "external_id": "KITCHAN", "name": "Tienda simulada"},
+        "store": {
+            "internal_id": store_id,
+            "external_id": "KITCHAN",
+            "name": "Tienda simulada",
+        },
     }
 
 
@@ -92,14 +96,21 @@ def main() -> None:
     load_dotenv()
 
     parser = argparse.ArgumentParser(description="Simulador de webhooks de Rappi")
-    parser.add_argument("evento", choices=["nuevo-pedido", "cancelar", "firma-invalida"])
+    parser.add_argument(
+        "evento", choices=["nuevo-pedido", "cancelar", "firma-invalida"]
+    )
     parser.add_argument("--order-id", help="ID del pedido (por defecto uno aleatorio)")
-    parser.add_argument("--store-id", help="ID de tienda Rappi (por defecto la 1ª de RAPPI_STORE_ID_MAP)")
+    parser.add_argument(
+        "--store-id",
+        help="ID de tienda Rappi (por defecto la 1ª de RAPPI_STORE_ID_MAP)",
+    )
     args = parser.parse_args()
 
     secret = os.getenv("RAPPI_WEBHOOK_SECRET")
     if not secret:
-        print("❌ Falta RAPPI_WEBHOOK_SECRET en el .env (debe ser el mismo que usa el backend).")
+        print(
+            "❌ Falta RAPPI_WEBHOOK_SECRET en el .env (debe ser el mismo que usa el backend)."
+        )
         sys.exit(1)
 
     store_id = args.store_id or _store_id_por_defecto()
@@ -113,15 +124,21 @@ def main() -> None:
     if args.evento == "nuevo-pedido":
         payload = _payload_nuevo_pedido(order_id, store_id)
         body = json.dumps(payload).encode("utf-8")
-        print(f"🛵 Nuevo pedido Rappi {order_id} para la tienda {store_id} "
-              f"(total {payload['order_detail']['totals']['total_order']})")
+        print(
+            f"🛵 Nuevo pedido Rappi {order_id} para la tienda {store_id} "
+            f"(total {payload['order_detail']['totals']['total_order']})"
+        )
         _enviar(f"{base}{WEBHOOK_BASE}/new-order", body, _firmar(secret, body))
 
     elif args.evento == "cancelar":
         if not args.order_id:
             print("❌ Para cancelar hay que indicar --order-id.")
             sys.exit(1)
-        payload = {"event": "canceled_with_charge", "order_id": order_id, "store_id": store_id}
+        payload = {
+            "event": "canceled_with_charge",
+            "order_id": order_id,
+            "store_id": store_id,
+        }
         body = json.dumps(payload).encode("utf-8")
         print(f"🛑 Cancelación Rappi del pedido {order_id}")
         _enviar(f"{base}{WEBHOOK_BASE}/order-cancel", body, _firmar(secret, body))
@@ -130,7 +147,9 @@ def main() -> None:
         payload = _payload_nuevo_pedido(order_id, store_id)
         body = json.dumps(payload).encode("utf-8")
         print("🕵️ Enviando pedido con firma falsa (se espera 403)")
-        _enviar(f"{base}{WEBHOOK_BASE}/new-order", body, _firmar("secreto-incorrecto", body))
+        _enviar(
+            f"{base}{WEBHOOK_BASE}/new-order", body, _firmar("secreto-incorrecto", body)
+        )
 
 
 if __name__ == "__main__":

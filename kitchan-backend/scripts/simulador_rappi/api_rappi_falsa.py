@@ -25,9 +25,13 @@ TOKEN_FALSO = "token-simulado-rappi"
 ORDERS_PATH = "/api/v2/restaurants-integrations-public-api/orders"
 
 
-def _verificar_token(x_authorization: Optional[str], accion: str, order_id: str) -> None:
+def _verificar_token(
+    x_authorization: Optional[str], accion: str, order_id: str
+) -> None:
     if x_authorization != f"Bearer {TOKEN_FALSO}":
-        print(f"🚨 [RAPPI FALSA] {accion} {order_id}: x-authorization inválido -> {x_authorization!r}")
+        print(
+            f"🚨 [RAPPI FALSA] {accion} {order_id}: x-authorization inválido -> {x_authorization!r}"
+        )
         raise HTTPException(status_code=401, detail="x-authorization inválido")
     print(f"✅ [RAPPI FALSA] {accion} del pedido {order_id} (x-authorization OK)")
 
@@ -35,8 +39,10 @@ def _verificar_token(x_authorization: Optional[str], accion: str, order_id: str)
 @app.post("/restaurants/auth/v1/token/login/integrations")
 async def login(request: Request):
     body = await request.json()
-    print(f"🔑 [RAPPI FALSA] Login con client_id={body.get('client_id')!r} "
-          f"grant_type={body.get('grant_type')!r}")
+    print(
+        f"🔑 [RAPPI FALSA] Login con client_id={body.get('client_id')!r} "
+        f"grant_type={body.get('grant_type')!r}"
+    )
     if not body.get("client_id") or not body.get("client_secret"):
         raise HTTPException(status_code=401, detail="Faltan client_id/client_secret")
     return {"access_token": TOKEN_FALSO, "token_type": "Bearer", "expires_in": 3600}
@@ -44,8 +50,11 @@ async def login(request: Request):
 
 @app.put(f"{ORDERS_PATH}/{{order_id}}/take")
 @app.put(f"{ORDERS_PATH}/{{order_id}}/take/{{cooking_time}}")
-async def take(order_id: str, cooking_time: Optional[int] = None,
-               x_authorization: Optional[str] = Header(default=None)):
+async def take(
+    order_id: str,
+    cooking_time: Optional[int] = None,
+    x_authorization: Optional[str] = Header(default=None),
+):
     _verificar_token(x_authorization, "TAKE", order_id)
     if cooking_time is not None:
         print(f"   tiempo de cocción: {cooking_time} min")
@@ -53,8 +62,11 @@ async def take(order_id: str, cooking_time: Optional[int] = None,
 
 
 @app.put(f"{ORDERS_PATH}/{{order_id}}/reject")
-async def reject(order_id: str, request: Request,
-                 x_authorization: Optional[str] = Header(default=None)):
+async def reject(
+    order_id: str,
+    request: Request,
+    x_authorization: Optional[str] = Header(default=None),
+):
     _verificar_token(x_authorization, "REJECT", order_id)
     print(f"   body: {await request.json()}")
     return {"status": "REJECTED"}

@@ -26,17 +26,27 @@ def _verificar_basic(authorization: Optional[str], accion: str, order_id: str) -
     esperado_user = os.getenv("PEDIDOSYA_PLUGIN_USERNAME", "")
     esperado_pass = os.getenv("PEDIDOSYA_PLUGIN_PASSWORD", "")
     try:
-        user, _, password = base64.b64decode(authorization.split(" ", 1)[1]).decode().partition(":")
+        user, _, password = (
+            base64.b64decode(authorization.split(" ", 1)[1]).decode().partition(":")
+        )
     except Exception:
         user = password = None
-    if not authorization or not authorization.startswith("Basic ") or (user, password) != (esperado_user, esperado_pass):
+    if (
+        not authorization
+        or not authorization.startswith("Basic ")
+        or (user, password) != (esperado_user, esperado_pass)
+    ):
         print(f"🚨 [PYA FALSA] {accion} {order_id}: Basic Auth inválido")
         raise HTTPException(status_code=401, detail="Basic Auth inválido")
-    print(f"✅ [PYA FALSA] {accion} del pedido {order_id} (Basic Auth OK, usuario {user!r})")
+    print(
+        f"✅ [PYA FALSA] {accion} del pedido {order_id} (Basic Auth OK, usuario {user!r})"
+    )
 
 
 @app.post("/order/{order_id}/status")
-async def status(order_id: str, request: Request, authorization: Optional[str] = Header(default=None)):
+async def status(
+    order_id: str, request: Request, authorization: Optional[str] = Header(default=None)
+):
     _verificar_basic(authorization, "STATUS", order_id)
     print(f"   body: {await request.json()}")
     return {"status": "OK"}
