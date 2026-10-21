@@ -11,6 +11,8 @@ python-dotenv==1.0.1
 bcrypt==4.2.0
 redis==5.0.1
 httpx==0.26.0
+# Base de zonas horarias (en Windows no viene con el sistema); la usa Reportes.
+tzdata==2025.2
 
 # --- Dependencias de Pruebas y Calidad de Código (CI/CD) ---
 pytest==8.0.0
