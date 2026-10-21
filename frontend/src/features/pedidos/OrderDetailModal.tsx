@@ -6,7 +6,7 @@ import { moneda } from "../../shared/utils/formato";
 import { ETIQUETA_FACTURA } from "../facturacion/facturacionApi";
 import { useFacturaPedido } from "../facturacion/useFacturaPedido";
 import CancelarPedidoModal from "./CancelarPedidoModal";
-import { colorVarEstado, ETIQUETA_ESTADO, infoCanal } from "./estadoUtils";
+import { colorVarEstado, ETIQUETA_ESTADO, infoCanal, nombreMetodoPago } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
 import styles from "./OrderDetailModal.module.css";
 
@@ -83,6 +83,12 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
           <Icon name="reloj" size={13} />
           <time dateTime={pedido.fecha_creacion}>{formatoFechaHora.format(new Date(pedido.fecha_creacion))}</time>
         </span>
+        {pedido.metodo_pago && (
+          <span className={styles.dato}>
+            <Icon name="dinero" size={13} />
+            Pago: {nombreMetodoPago(pedido.metodo_pago)}
+          </span>
+        )}
         {pedido.estado_entrega && (
           <span className={styles.dato}>
             <Icon name="tienda" size={13} />

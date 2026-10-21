@@ -24,3 +24,30 @@ export function moneda(valor: number): string {
 export function porcentaje(valor: number): string {
   return `${numero(valor, 0)}%`;
 }
+
+/** Duración en minutos con un decimal, p. ej. "12,6 min". */
+export function minutos(valor: number): string {
+  return `${numero(valor, 1)} min`;
+}
+
+/**
+ * Variación porcentual entre dos periodos. Devuelve null cuando no hay un valor
+ * anterior con el que comparar (dividir por cero no tiene sentido).
+ */
+export function variacion(actual: number, anterior: number): number | null {
+  if (!anterior) return null;
+  return ((actual - anterior) / anterior) * 100;
+}
+
+/** "13:00" para la hora 13 (formato de reloj de 24 h). */
+export function horaEtiqueta(hora: number): string {
+  return `${String(hora).padStart(2, "0")}:00`;
+}
+
+const formatoDiaCorto = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" });
+
+/** "8 oct" a partir de una fecha ISO (AAAA-MM-DD); se interpreta como fecha local, sin desfase. */
+export function fechaCorta(iso: string): string {
+  const [anio, mes, dia] = iso.split("-").map(Number);
+  return formatoDiaCorto.format(new Date(anio, mes - 1, dia));
+}

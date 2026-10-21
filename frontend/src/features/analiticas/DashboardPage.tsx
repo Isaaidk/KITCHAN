@@ -1,390 +1,422 @@
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { httpClient } from "../../shared/api/httpClient";
+import fotoCabecera from "../../assets/login-vangalia.webp";
+import CanalLogo from "../../shared/components/CanalLogo";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import { useCountUp } from "../../shared/hooks/useCountUp";
-import { moneda, numero, porcentaje } from "../../shared/utils/formato";
-import CanalBadge from "../pedidos/CanalBadge";
+import { useAuthStore } from "../../shared/stores/authStore";
+import { useOrdersStore } from "../../shared/stores/ordersStore";
+import { fechaCorta, horaEtiqueta, minutos, moneda, numero } from "../../shared/utils/formato";
 import { infoCanal } from "../pedidos/estadoUtils";
-import ExportModal from "./ExportModal";
-import type { AnaliticasPedidos } from "./types";
+import compartido from "./Compartido.module.css";
+import {
+  COLOR_EJE,
+  COLOR_GRILLA,
+  COLOR_PRINCIPAL,
+  COLOR_SECUNDARIO,
+  estiloTooltip,
+} from "./estilosGraficos";
+import RankingProductos from "./RankingProductos";
+import SelectorRango from "./SelectorRango";
+import type { DashboardPedidos, ResumenPeriodo } from "./types";
+import { RANGOS, useDashboard, useRango } from "./useDashboard";
+import Variacion from "./Variacion";
 import styles from "./DashboardPage.module.css";
 
-// Paleta fija para los gráficos (SVG de recharts no resuelve bien var()).
-const PRIMARIO = "#6b1e3c";
-const SECUNDARIO = "#8a949f";
-const GRILLA = "#eee9dc";
-const EJE = "#7a8591";
+const formatoFechaLarga = new Intl.DateTimeFormat(undefined, {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
 
-const estiloTooltip = {
-  contentStyle: {
-    borderRadius: 12,
-    border: "1px solid #e8e2d3",
-    boxShadow: "0 12px 28px -8px rgba(46,58,70,0.2)",
-    fontSize: 12,
-    padding: "8px 12px",
-  },
-  labelStyle: { fontWeight: 700, color: "#2e3a46", marginBottom: 4 },
-  cursor: { fill: "rgba(107,30,60,0.06)", stroke: "rgba(107,30,60,0.2)" },
-};
-
-interface Kpi {
-  etiqueta: string;
-  valor: number;
-  formato: (n: number) => string;
-  icono: NombreIcono;
-  color: string;
-  detalle: string;
+function saludo(): string {
+  const hora = new Date().getHours();
+  if (hora < 12) return "Buenos días";
+  if (hora < 19) return "Buenas tardes";
+  return "Buenas noches";
 }
 
-function KpiCard({ kpi, indice }: { kpi: Kpi; indice: number }) {
-  const animado = useCountUp(kpi.valor);
+interface Kpi {
+  clave: keyof ResumenPeriodo;
+  etiqueta: string;
+  icono: NombreIcono;
+  color: string;
+  formato: (n: number) => string;
+  menorEsMejor?: boolean;
+  detalle: (r: ResumenPeriodo) => string;
+}
+
+const KPIS: Kpi[] = [
+  {
+    clave: "pedidos_totales",
+    etiqueta: "Pedidos totales",
+    icono: "bandeja",
+    color: "#6b1e3c",
+    formato: (n) => numero(n),
+    detalle: (r) => `${numero(r.pedidos_cancelados)} cancelados`,
+  },
+  {
+    clave: "ventas_totales",
+    etiqueta: "Ventas",
+    icono: "dinero",
+    color: "#2cb1b1",
+    formato: moneda,
+    detalle: () => "Sin contar cancelados",
+  },
+  {
+    clave: "ticket_promedio",
+    etiqueta: "Ticket promedio",
+    icono: "recibo",
+    color: "#f4b942",
+    formato: moneda,
+    detalle: () => "Venta media por pedido",
+  },
+  {
+    clave: "tiempo_promedio_preparacion_minutos",
+    etiqueta: "Tiempo de preparación",
+    icono: "reloj",
+    color: "#2e3a46",
+    formato: minutos,
+    menorEsMejor: true,
+    detalle: () => "Promedio hasta quedar listo",
+  },
+];
+
+function TarjetaKpi({
+  kpi,
+  actual,
+  anterior,
+  contra,
+  indice,
+}: {
+  kpi: Kpi;
+  actual: ResumenPeriodo;
+  anterior: ResumenPeriodo;
+  contra: string;
+  indice: number;
+}) {
+  const valor = actual[kpi.clave];
+  const animado = useCountUp(valor);
   return (
-    <div
+    <article
       className={`${styles.kpi} animate-in`}
       style={{ ["--i" as string]: indice, ["--kpi-color" as string]: kpi.color }}
     >
       <div className={styles.kpiCabecera}>
-        <span className={styles.kpiLabel}>{kpi.etiqueta}</span>
+        <h2 className={styles.kpiEtiqueta}>{kpi.etiqueta}</h2>
         <span className={styles.kpiIcono}>
-          <Icon name={kpi.icono} size={18} />
+          <Icon name={kpi.icono} size={20} />
         </span>
       </div>
-      {/* El número animado se oculta a lectores de pantalla (leerían valores
-          intermedios); ellos reciben el valor final. */}
+      {/* El número animado se oculta a lectores de pantalla (leerían valores intermedios). */}
       <div className={styles.kpiValor} aria-hidden="true">
         {kpi.formato(animado)}
       </div>
-      <span className="sr-only">{kpi.formato(kpi.valor)}</span>
-      <div className={styles.kpiDetalle}>{kpi.detalle}</div>
-    </div>
+      <span className="sr-only">{kpi.formato(valor)}</span>
+      <div className={styles.kpiPie}>
+        <Variacion
+          actual={valor}
+          anterior={anterior[kpi.clave]}
+          menorEsMejor={kpi.menorEsMejor}
+          contra={contra}
+        />
+        <span className={styles.kpiDetalle}>{kpi.detalle(actual)}</span>
+      </div>
+    </article>
   );
 }
 
-function DashboardSkeleton() {
-  return (
-    <>
-      <div className={styles.kpis}>
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className={styles.kpi}>
-            <div className="skeleton" style={{ height: 12, width: "50%", marginBottom: 18 }} />
-            <div className="skeleton" style={{ height: 28, width: "40%", marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 10, width: "70%" }} />
-          </div>
-        ))}
-      </div>
-      <div className={styles.graficos}>
-        {[0, 1].map((i) => (
-          <div key={i} className={styles.panel}>
-            <div className="skeleton" style={{ height: 14, width: "40%", marginBottom: 20 }} />
-            <div className="skeleton" style={{ height: 240 }} />
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
-export default function DashboardPage() {
-  const [datos, setDatos] = useState<AnaliticasPedidos | null>(null);
-  const [mostrarExport, setMostrarExport] = useState(false);
-  const [error, setError] = useState(false);
-  // Se incrementa para volver a pedir los datos tras un error.
-  const [intento, setIntento] = useState(0);
-
-  useEffect(() => {
-    let vigente = true;
-    setError(false);
-    httpClient
-      .get<AnaliticasPedidos>("/api/v1/reportes/pedidos/analiticas")
-      .then(({ data }) => {
-        if (vigente) setDatos(data);
-      })
-      .catch(() => {
-        if (vigente) setError(true);
-      });
-    return () => {
-      vigente = false;
-    };
-  }, [intento]);
-
-  const encabezado = (
-    <div className="page-header">
-      <div>
-        <h1 className="page-title">Analíticas</h1>
-        <p className="page-subtitle">
-          Resumen del día ·{" "}
-          {new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
-        </p>
-      </div>
-      <button className="btn btn-primary" onClick={() => setMostrarExport(true)} disabled={!datos}>
-        <Icon name="descargar" size={16} />
-        Exportar
-      </button>
-    </div>
-  );
-
-  if (!datos) {
-    return (
-      <div>
-        {encabezado}
-        {error ? (
-          <div className="alert alert-error" role="alert">
-            <Icon name="alerta" size={16} />
-            <span style={{ flex: 1 }}>No se pudieron cargar las analíticas. Revisa la conexión e inténtalo de nuevo.</span>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIntento((n) => n + 1)}>
-              <Icon name="sync" size={14} />
-              Reintentar
-            </button>
-          </div>
-        ) : (
-          <DashboardSkeleton />
-        )}
-      </div>
-    );
-  }
-
-  const datosPorCanal = Object.entries(datos.por_canal).map(([canal, cantidad]) => ({
-    canal,
-    cantidad,
-  }));
-  const totalCanales = datosPorCanal.reduce((suma, c) => suma + c.cantidad, 0);
-
-  const totalHoy = datos.comparacion_hoy_vs_ayer.reduce((suma, p) => suma + p.hoy, 0);
-  const totalAyer = datos.comparacion_hoy_vs_ayer.reduce((suma, p) => suma + p.ayer, 0);
-  const variacion = totalAyer > 0 ? ((totalHoy - totalAyer) / totalAyer) * 100 : null;
-  const claseDelta =
-    variacion === null || Math.round(variacion) === 0
-      ? styles.deltaIgual
-      : variacion > 0
-        ? styles.deltaSube
-        : styles.deltaBaja;
-  const textoDelta =
-    variacion === null ? "Sin datos de ayer" : `${variacion > 0 ? "+" : ""}${porcentaje(variacion)}`;
-
-  const kpis: Kpi[] = [
-    {
-      etiqueta: "Pedidos hoy",
-      valor: datos.pedidos_totales_hoy,
-      formato: (n) => Math.round(n).toString(),
-      icono: "recibo",
-      color: "#6b1e3c",
-      detalle: `${datosPorCanal.length} ${datosPorCanal.length === 1 ? "canal activo" : "canales activos"}`,
-    },
-    {
-      etiqueta: "Ticket promedio",
-      valor: datos.ticket_promedio,
-      formato: moneda,
-      icono: "dinero",
-      color: "#2cb1b1",
-      detalle: "Por pedido del día",
-    },
-    {
-      etiqueta: "Tiempo prom. preparación",
-      valor: datos.tiempo_promedio_preparacion_minutos,
-      formato: (n) => `${numero(n, 1)} min`,
-      icono: "reloj",
-      color: "#f4b942",
-      detalle: "Desde que se acepta hasta lista",
-    },
-    {
-      etiqueta: "Cancelados hoy",
-      valor: datos.pedidos_cancelados_hoy,
-      formato: (n) => Math.round(n).toString(),
-      icono: "prohibido",
-      color: "#c8453f",
-      detalle:
-        datos.pedidos_totales_hoy > 0
-          ? `${porcentaje((datos.pedidos_cancelados_hoy / datos.pedidos_totales_hoy) * 100)} del total`
-          : "Sin pedidos hoy",
-    },
+/** Lo que hay en cocina ahora mismo (en vivo, desde la cola), con acceso directo a cada columna. */
+function CocinaAhora() {
+  const pedidos = useOrdersStore((s) => s.pedidos);
+  const lista = Object.values(pedidos);
+  const cuenta = (estado: string) => lista.filter((p) => p.estado === estado).length;
+  const columnas = [
+    { estado: "NUEVA", titulo: "Pendientes", clase: styles.cocinaNueva },
+    { estado: "EN_PREPARACION", titulo: "En preparación", clase: styles.cocinaPreparacion },
+    { estado: "LISTA", titulo: "Listos para entregar", clase: styles.cocinaLista },
   ];
 
-  // Los gráficos son SVG: se describen con texto para lectores de pantalla.
-  const descripcionCanales = `Pedidos de hoy por canal: ${datosPorCanal
-    .map(({ canal, cantidad }) => `${infoCanal(canal).nombre} ${cantidad}`)
-    .join(", ")}`;
-  const descripcionHoras = `Pedidos por hora: ${totalHoy} hoy y ${totalAyer} ayer`;
-
   return (
-    <div>
-      {encabezado}
-
-      <div className={styles.kpis}>
-        {kpis.map((kpi, i) => (
-          <KpiCard key={kpi.etiqueta} kpi={kpi} indice={i} />
+    <section className={styles.cocina} aria-labelledby="cocina-ahora">
+      <h2 id="cocina-ahora" className={styles.cocinaTitulo}>
+        <Icon name="cola" size={16} />
+        Cocina ahora
+      </h2>
+      <div className={styles.cocinaTarjetas}>
+        {columnas.map((c) => (
+          <Link key={c.estado} to={`/cola?estado=${c.estado}`} className={`${styles.cocinaTarjeta} ${c.clase}`}>
+            <span className={styles.cocinaNumero}>{cuenta(c.estado)}</span>
+            <span className={styles.cocinaNombre}>{c.titulo}</span>
+            <Icon name="flecha" size={16} className={styles.cocinaFlecha} />
+          </Link>
         ))}
       </div>
+    </section>
+  );
+}
 
-      <div className={styles.graficos}>
-        <div className={`${styles.panel} animate-in`} style={{ ["--i" as string]: 4 }}>
-          <div className={styles.panelCabecera}>
-            <div>
-              <div className={styles.panelTitulo}>Pedidos por canal</div>
-              <div className={styles.panelSub}>Hoy</div>
-            </div>
+function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
+  if (datos.rango === "hoy") {
+    const total = datos.por_hora.reduce((s, p) => s + p.pedidos, 0);
+    const totalAnterior = datos.por_hora.reduce((s, p) => s + p.pedidos_anterior, 0);
+    return (
+      <div className={compartido.panel}>
+        <div className={compartido.panelCabecera}>
+          <div>
+            <h2 className={compartido.panelTitulo}>Pedidos por hora</h2>
+            <p className={compartido.panelSub}>
+              Hoy {numero(total)} · ayer {numero(totalAnterior)}
+            </p>
           </div>
-          {datosPorCanal.length === 0 ? (
-            <div className="empty">
-              <div className="empty-icon">
-                <Icon name="analiticas" size={20} />
-              </div>
-              Aún no hay pedidos hoy.
-            </div>
-          ) : (
-            <div role="img" aria-label={descripcionCanales}>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={datosPorCanal} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} vertical={false} />
-                <XAxis
-                  dataKey="canal"
-                  interval={0}
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  stroke={EJE}
-                  tickFormatter={(c: string) => infoCanal(c).nombre}
-                />
-                <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={EJE} />
-                <Tooltip
-                  {...estiloTooltip}
-                  labelFormatter={(c: string) => infoCanal(c).nombre}
-                  formatter={(v: number) => [v, "Pedidos"]}
-                />
-                <Bar dataKey="cantidad" radius={[8, 8, 0, 0]} maxBarSize={56} animationDuration={900}>
-                  {datosPorCanal.map(({ canal }) => (
-                    <Cell key={canal} fill={infoCanal(canal).color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            </div>
-          )}
         </div>
-
-        <div className={`${styles.panel} animate-in`} style={{ ["--i" as string]: 5 }}>
-          <div className={styles.panelCabecera}>
-            <div>
-              <div className={styles.panelTitulo}>Pedidos por hora</div>
-              <div className={styles.panelSub}>Hoy vs ayer</div>
-            </div>
-            <div className={styles.comparativa}>
-              <strong>{totalHoy}</strong>
-              hoy · {totalAyer} ayer
-              <span className={`${styles.delta} ${claseDelta}`}>{textoDelta}</span>
-            </div>
-          </div>
-          <div role="img" aria-label={descripcionHoras}>
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={datos.comparacion_hoy_vs_ayer} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+        <div role="img" aria-label={`Pedidos por hora: ${total} hoy y ${totalAnterior} ayer`}>
+          <ResponsiveContainer width="100%" height={250}>
+            <AreaChart data={datos.por_hora} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
               <defs>
-                <linearGradient id="gradHoy" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={PRIMARIO} stopOpacity={0.28} />
-                  <stop offset="100%" stopColor={PRIMARIO} stopOpacity={0} />
+                <linearGradient id="gradPedidosHoy" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={COLOR_PRINCIPAL} stopOpacity={0.28} />
+                  <stop offset="100%" stopColor={COLOR_PRINCIPAL} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={COLOR_GRILLA} vertical={false} />
               <XAxis
                 dataKey="hora"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                stroke={EJE}
+                stroke={COLOR_EJE}
                 tickFormatter={(h: number) => `${h}h`}
               />
-              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={EJE} />
-              <Tooltip {...estiloTooltip} labelFormatter={(h: number) => `${h}:00 h`} />
+              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={COLOR_EJE} />
+              <Tooltip {...estiloTooltip} labelFormatter={(h: number) => horaEtiqueta(h)} />
               <Legend
                 iconType="circle"
                 iconSize={8}
                 wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                formatter={(valor: string) => (valor === "hoy" ? "Hoy" : "Ayer")}
+                formatter={(v: string) => (v === "pedidos" ? "Hoy" : "Ayer")}
               />
               <Area
                 type="monotone"
-                dataKey="ayer"
-                stroke={SECUNDARIO}
+                dataKey="pedidos_anterior"
+                stroke={COLOR_SECUNDARIO}
                 strokeWidth={2}
                 strokeDasharray="5 4"
                 fill="transparent"
                 dot={false}
-                animationDuration={1000}
+                animationDuration={900}
               />
               <Area
                 type="monotone"
-                dataKey="hoy"
-                stroke={PRIMARIO}
+                dataKey="pedidos"
+                stroke={COLOR_PRINCIPAL}
                 strokeWidth={2.5}
-                fill="url(#gradHoy)"
+                fill="url(#gradPedidosHoy)"
                 dot={false}
                 activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
-                animationDuration={1000}
+                animationDuration={900}
               />
             </AreaChart>
           </ResponsiveContainer>
-          </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="table-wrap animate-in" style={{ ["--i" as string]: 6 }}>
-        <table className="table">
-          <caption className="sr-only">Pedidos de hoy por canal</caption>
-          <thead>
-            <tr>
-              <th scope="col">Canal</th>
-              <th scope="col">Participación</th>
-              <th scope="col" className="table-num">
-                Pedidos hoy
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {datosPorCanal.map(({ canal, cantidad }) => {
-              const participacion = totalCanales > 0 ? (cantidad / totalCanales) * 100 : 0;
-              return (
-                <tr key={canal}>
-                  <td>
-                    <CanalBadge origen={canal} />
-                  </td>
-                  <td className={styles.participacion}>
-                    <div className={styles.barraFondo} aria-hidden="true">
-                      <div
-                        className={styles.barraRelleno}
-                        style={{ width: `${participacion}%`, background: infoCanal(canal).color }}
-                      />
-                    </div>
-                    <span className={styles.porcentaje}>{porcentaje(participacion)}</span>
-                  </td>
-                  <td className="table-num">
-                    <strong>{cantidad}</strong>
-                  </td>
-                </tr>
-              );
-            })}
-            {datosPorCanal.length === 0 && (
-              <tr>
-                <td colSpan={3} className={styles.sinDatos}>
-                  Sin pedidos registrados hoy.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+  const ventas = datos.por_dia.reduce((s, d) => s + d.ventas, 0);
+  const descripcion = RANGOS.find((r) => r.valor === datos.rango)?.descripcion ?? "";
+  return (
+    <div className={compartido.panel}>
+      <div className={compartido.panelCabecera}>
+        <div>
+          <h2 className={compartido.panelTitulo}>Ventas por día</h2>
+          <p className={compartido.panelSub}>
+            {moneda(ventas)} en {descripcion}
+          </p>
+        </div>
       </div>
+      <div role="img" aria-label={`Ventas por día en ${descripcion}: ${moneda(ventas)} en total`}>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={datos.por_dia} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLOR_GRILLA} vertical={false} />
+            <XAxis
+              dataKey="fecha"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              stroke={COLOR_EJE}
+              tickFormatter={(f: string) => fechaCorta(f)}
+              minTickGap={18}
+            />
+            <YAxis
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              stroke={COLOR_EJE}
+              tickFormatter={(v: number) => moneda(v).replace(/[.,]00$/, "")}
+            />
+            <Tooltip
+              {...estiloTooltip}
+              labelFormatter={(f: string) => fechaCorta(f)}
+              formatter={(v: number) => [moneda(v), "Ventas"]}
+            />
+            <Bar dataKey="ventas" fill={COLOR_PRINCIPAL} radius={[6, 6, 0, 0]} maxBarSize={36} animationDuration={800} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
 
-      {mostrarExport && <ExportModal datos={datos} onClose={() => setMostrarExport(false)} />}
+function EsqueletoDashboard() {
+  return (
+    <>
+      <div className={styles.kpis} aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className={styles.kpi}>
+            <div className="skeleton" style={{ height: 12, width: "50%", marginBottom: 22 }} />
+            <div className="skeleton" style={{ height: 34, width: "55%", marginBottom: 14 }} />
+            <div className="skeleton" style={{ height: 14, width: "70%" }} />
+          </div>
+        ))}
+      </div>
+      <div className={compartido.dosColumnas} aria-hidden="true">
+        {[0, 1].map((i) => (
+          <div key={i} className={compartido.panel}>
+            <div className="skeleton" style={{ height: 14, width: "40%", marginBottom: 20 }} />
+            <div className="skeleton" style={{ height: 230 }} />
+          </div>
+        ))}
+      </div>
+      <span className="sr-only" role="status">
+        Cargando el resumen…
+      </span>
+    </>
+  );
+}
+
+export default function DashboardPage() {
+  const [rango, setRango] = useRango();
+  const { datos, cargando, error, reintentar } = useDashboard(rango);
+  const nombre = useAuthStore((s) => s.usuario?.nombre ?? "");
+  const primerNombre = nombre.split(" ")[0];
+  const contra = rango === "hoy" ? "que ayer" : `que ${RANGOS.find((r) => r.valor === rango)?.descripcion ?? "el periodo"} anteriores`;
+
+  return (
+    <div>
+      <header className={styles.cabecera}>
+        <img className={styles.cabeceraFoto} src={fotoCabecera} alt="" width={800} height={509} />
+        <div className={styles.cabeceraTexto}>
+          <p className={styles.saludo}>{saludo()}</p>
+          <h1 className={styles.titulo}>{primerNombre || "Dashboard"}</h1>
+          <p className={styles.fecha}>{formatoFechaLarga.format(new Date())}</p>
+        </div>
+        <div className={styles.cabeceraAcciones}>
+          <SelectorRango valor={rango} onCambio={setRango} tono="claro" />
+        </div>
+      </header>
+
+      {error && (
+        <div className={`alert alert-error ${compartido.errorAnaliticas}`} role="alert">
+          <Icon name="alerta" size={16} />
+          <span className={compartido.errorTexto}>
+            No se pudo cargar el resumen. Revisa la conexión e inténtalo de nuevo.
+          </span>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={reintentar}>
+            <Icon name="sync" size={14} />
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {!datos && !error && <EsqueletoDashboard />}
+
+      {datos && (
+        <div className={cargando ? styles.actualizando : undefined} aria-busy={cargando}>
+          <div className={styles.kpis}>
+            {KPIS.map((kpi, i) => (
+              <TarjetaKpi
+                key={kpi.clave}
+                kpi={kpi}
+                actual={datos.resumen}
+                anterior={datos.periodo_anterior}
+                contra={contra}
+                indice={i}
+              />
+            ))}
+          </div>
+
+          <CocinaAhora />
+
+          <div className={compartido.dosColumnas}>
+            <GraficoVentas datos={datos} />
+
+            <div className={compartido.panel}>
+              <div className={compartido.panelCabecera}>
+                <div>
+                  <h2 className={compartido.panelTitulo}>Platos más vendidos</h2>
+                  <p className={compartido.panelSub}>Por unidades vendidas</p>
+                </div>
+                <Link to={`/analiticas${rango === "hoy" ? "" : `?rango=${rango}`}`} className={compartido.panelAccion}>
+                  Ver analíticas
+                </Link>
+              </div>
+              <RankingProductos
+                items={datos.productos_mas_vendidos}
+                vacio="Aún no hay ventas en este periodo."
+              />
+            </div>
+          </div>
+
+          <section className={compartido.panel} aria-labelledby="dash-canales">
+            <div className={compartido.panelCabecera}>
+              <div>
+                <h2 id="dash-canales" className={compartido.panelTitulo}>
+                  Canales de venta
+                </h2>
+                <p className={compartido.panelSub}>Local, Uber Eats, Rappi y PedidosYa</p>
+              </div>
+              <Link to={`/analiticas${rango === "hoy" ? "" : `?rango=${rango}`}`} className={compartido.panelAccion}>
+                Comparar canales
+              </Link>
+            </div>
+            {datos.por_canal.length === 0 ? (
+              <div className={compartido.vacio}>
+                <span>Aún no hay pedidos en este periodo.</span>
+              </div>
+            ) : (
+              <ul className={styles.canales}>
+                {datos.por_canal.map((c) => {
+                  const { nombre: nombreCanal, color } = infoCanal(c.canal);
+                  return (
+                    <li key={c.canal} className={styles.canal}>
+                      <CanalLogo canal={c.canal} color={color} nombre={nombreCanal} size={40} />
+                      <div className={styles.canalDatos}>
+                        <span className={styles.canalNombre}>{nombreCanal}</span>
+                        <span className={styles.canalSub}>
+                          {numero(c.pedidos)} {c.pedidos === 1 ? "pedido" : "pedidos"} · {minutos(c.tiempo_promedio_minutos)}
+                        </span>
+                      </div>
+                      <span className={styles.canalVentas}>{moneda(c.ventas)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

@@ -23,6 +23,8 @@ export interface Pedido {
   total: number;
   estado: EstadoPedido;
   estado_entrega: string | null;
+  /** Cómo se pagó (EFECTIVO, TARJETA…); null cuando el canal no lo informa. */
+  metodo_pago?: string | null;
   fecha_creacion: string;
 }
 

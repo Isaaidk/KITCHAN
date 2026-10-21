@@ -40,6 +40,21 @@ export function infoCanal(origen: string): { nombre: string; color: string } {
   return CANALES[origen] ?? { nombre: origen.replace(/_/g, " "), color: "#5e6b78" };
 }
 
+const NOMBRES_PAGO: Record<string, string> = {
+  EFECTIVO: "Efectivo",
+  TARJETA: "Tarjeta",
+  TRANSFERENCIA: "Transferencia",
+  ONLINE: "Pago en la app",
+  BILLETERA: "Billetera digital",
+};
+
+/** Nombre legible de un método de pago ("TARJETA" → "Tarjeta"). */
+export function nombreMetodoPago(codigo: string): string {
+  if (NOMBRES_PAGO[codigo]) return NOMBRES_PAGO[codigo];
+  const texto = codigo.replace(/_/g, " ").toLowerCase();
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
 export function minutosTranscurridos(fechaCreacion: string): number {
   const creado = new Date(fechaCreacion).getTime();
   return Math.floor((Date.now() - creado) / 60000);

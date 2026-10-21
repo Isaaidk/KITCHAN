@@ -1,0 +1,52 @@
+.grupo {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+
+.opcion {
+  min-height: 34px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
+}
+
+.opcion:hover {
+  color: var(--color-text);
+}
+
+.activa,
+.activa:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Sobre la cabecera granate: contorno crema y opción activa en crema */
+.claro {
+  background: rgba(248, 246, 239, 0.1);
+  border-color: rgba(248, 246, 239, 0.28);
+}
+
+.claro .opcion {
+  color: rgba(248, 246, 239, 0.82);
+}
+
+.claro .opcion:hover {
+  color: #fff;
+}
+
+.claro .activa,
+.claro .activa:hover {
+  background: var(--brand-crema);
+  color: var(--brand-granate);
+}

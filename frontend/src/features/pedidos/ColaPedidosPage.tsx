@@ -8,6 +8,13 @@ import OrderCard from "./OrderCard";
 import OrderDetailModal from "./OrderDetailModal";
 import styles from "./ColaPedidosPage.module.css";
 
+// Nombres de las columnas en el lenguaje de la cocina (en las insignias y el historial se mantiene "Nueva", "Lista"…).
+const TITULO_COLUMNA: Partial<Record<EstadoPedido, string>> = {
+  NUEVA: "Pendientes",
+  EN_PREPARACION: "En preparación",
+  LISTA: "Listos para entregar",
+};
+
 const TEXTO_VACIO: Partial<Record<EstadoPedido, string>> = {
   NUEVA: "Los pedidos nuevos aparecerán aquí automáticamente.",
   EN_PREPARACION: "Nada en cocina por ahora.",
@@ -80,7 +87,7 @@ export default function ColaPedidosPage() {
             <option value="TODOS">Todos los estados</option>
             {ESTADOS_ACTIVOS.map((estado) => (
               <option key={estado} value={estado}>
-                {ETIQUETA_ESTADO[estado]}
+                {TITULO_COLUMNA[estado] ?? ETIQUETA_ESTADO[estado]}
               </option>
             ))}
           </select>
@@ -119,7 +126,7 @@ export default function ColaPedidosPage() {
               <header className={styles.columnaTitulo}>
                 <h2 id={idTitulo} className={styles.columnaNombre}>
                   <span className={styles.columnaPunto} aria-hidden="true" />
-                  {ETIQUETA_ESTADO[estado]}
+                  {TITULO_COLUMNA[estado] ?? ETIQUETA_ESTADO[estado]}
                 </h2>
                 <span className={styles.contador} key={items.length}>
                   {items.length}

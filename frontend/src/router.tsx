@@ -5,10 +5,18 @@ import LoginPage from "./features/auth/LoginPage";
 import RegistroPage from "./features/auth/RegistroPage";
 import ColaPedidosPage from "./features/pedidos/ColaPedidosPage";
 import HistorialPage from "./features/pedidos/HistorialPage";
+import AnaliticasPage from "./features/analiticas/AnaliticasPage";
 import DashboardPage from "./features/analiticas/DashboardPage";
+import { useAuthStore } from "./shared/stores/authStore";
 import UsuariosPage from "./features/usuarios/UsuariosPage";
 import IntegracionesPage from "./features/integraciones/IntegracionesPage";
 import UberCallbackPage from "./features/integraciones/uber/UberCallbackPage";
+
+/** Pantalla de inicio según el rol: el administrador ve el Dashboard; el operador, la cola. */
+function Inicio() {
+  const rol = useAuthStore((s) => s.usuario?.rol);
+  return rol === "ADMIN" ? <DashboardPage /> : <Navigate to="/cola" replace />;
+}
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -19,12 +27,13 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: "/", element: <ColaPedidosPage /> },
+          { path: "/", element: <Inicio /> },
+          { path: "/cola", element: <ColaPedidosPage /> },
           { path: "/historial", element: <HistorialPage /> },
           {
             element: <ProtectedRoute roles={["ADMIN"]} />,
             children: [
-              { path: "/analiticas", element: <DashboardPage /> },
+              { path: "/analiticas", element: <AnaliticasPage /> },
               { path: "/usuarios", element: <UsuariosPage /> },
               { path: "/integraciones", element: <IntegracionesPage /> },
               { path: "/integraciones/uber/callback", element: <UberCallbackPage /> },

@@ -12,7 +12,8 @@ const TITULOS: Array<[string, string]> = [
   ["/analiticas", "Analíticas"],
   ["/usuarios", "Usuarios"],
   ["/historial", "Historial"],
-  ["/", "Cola de pedidos"],
+  ["/cola", "Cola de pedidos"],
+  ["/", "Dashboard"],
 ];
 
 function tituloPara(pathname: string) {

@@ -56,8 +56,14 @@ export default function Sidebar({ abierto, onNavegar }: Props) {
         <div className={styles.marcaSub}>Más que pedidos, experiencias</div>
       </div>
 
+      {rol === "ADMIN" && (
+        <Enlace to="/" end icono="panel" onNavegar={onNavegar}>
+          Dashboard
+        </Enlace>
+      )}
+
       <div className={styles.seccion}>Operación</div>
-      <Enlace to="/" end icono="cola" contador={nuevos} onNavegar={onNavegar}>
+      <Enlace to="/cola" icono="cola" contador={nuevos} onNavegar={onNavegar}>
         Cola de pedidos
       </Enlace>
       <Enlace to="/historial" icono="historial" onNavegar={onNavegar}>

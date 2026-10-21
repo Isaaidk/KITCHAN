@@ -188,6 +188,14 @@ const PATHS = {
     </>
   ),
   rayo: <path d="M13 2 3 14h9l-1 8 10-12h-9Z" />,
+  panel: (
+    <>
+      <rect x="3" y="3" width="7.5" height="9" rx="2" />
+      <rect x="13.5" y="3" width="7.5" height="5.5" rx="2" />
+      <rect x="13.5" y="12" width="7.5" height="9" rx="2" />
+      <rect x="3" y="15.5" width="7.5" height="5.5" rx="2" />
+    </>
+  ),
   correo: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="2.5" />
