@@ -32,3 +32,6 @@ class KitchanOrderDTO(BaseModel):
     items: list[KitchanOrderItem]
     total: float
     estado: str = "NUEVA"
+    # Método de pago ya normalizado (ver core/domain/metodos_pago.py); None si
+    # el canal no lo informó.
+    metodo_pago: Optional[str] = None

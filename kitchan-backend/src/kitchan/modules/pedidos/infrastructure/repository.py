@@ -28,8 +28,19 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
         if modelo is None:
             return False
         modelo.estado = nuevo_estado
+        self._marcar_momentos_de_cocina(modelo, nuevo_estado)
         await self.session.commit()
         return True
+
+    @staticmethod
+    def _marcar_momentos_de_cocina(modelo: PedidoModel, nuevo_estado) -> None:
+        """Guarda cuándo la cocina aceptó y terminó el pedido (solo la primera vez)."""
+        estado = getattr(nuevo_estado, "value", nuevo_estado)
+        ahora = datetime.now(timezone.utc)
+        if estado == EstadoPedido.EN_PREPARACION.value and modelo.fecha_aceptacion is None:
+            modelo.fecha_aceptacion = ahora
+        if estado == EstadoPedido.LISTA.value and modelo.fecha_lista is None:
+            modelo.fecha_lista = ahora
 
     async def actualizar_estado_entrega(
         self, pedido_id: str, estado_entrega: str

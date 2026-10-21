@@ -47,6 +47,7 @@ class PedidoResponse(BaseModel):
     total: float
     estado: str
     estado_entrega: Optional[str] = None
+    metodo_pago: Optional[str] = None
     fecha_creacion: str
 
     @staticmethod
@@ -62,6 +63,7 @@ class PedidoResponse(BaseModel):
             total=pedido.total,
             estado=pedido.estado.value,
             estado_entrega=pedido.estado_entrega,
+            metodo_pago=pedido.metodo_pago,
             fecha_creacion=pedido.fecha_creacion.isoformat(),
         )
 

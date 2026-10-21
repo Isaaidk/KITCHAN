@@ -173,6 +173,29 @@ async def test_new_order_valido_lo_persiste(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_new_order_guarda_el_metodo_de_pago_normalizado(client, db_session):
+    payload = _payload_valido(order_id="RAPPI-PAGO")
+    payload["order_detail"]["payment_method"] = "cc"
+
+    respuesta = await _post(client, URL_NEW_ORDER, payload)
+
+    assert respuesta.status_code == 200
+    repo = PostgresPedidoRepository(session=db_session)
+    pedido = await repo.buscar_por_id_externo("RAPPI", "RAPPI-PAGO")
+    assert pedido.metodo_pago == "TARJETA"
+
+
+@pytest.mark.asyncio
+async def test_new_order_sin_metodo_de_pago_no_lo_inventa(client, db_session):
+    respuesta = await _post(client, URL_NEW_ORDER, _payload_valido(order_id="RAPPI-SINPAGO"))
+
+    assert respuesta.status_code == 200
+    repo = PostgresPedidoRepository(session=db_session)
+    pedido = await repo.buscar_por_id_externo("RAPPI", "RAPPI-SINPAGO")
+    assert pedido.metodo_pago is None
+
+
+@pytest.mark.asyncio
 async def test_new_order_duplicado_no_se_duplica(client, db_session):
     payload = _payload_valido(order_id="RAPPI-DUP")
     r1 = await _post(client, URL_NEW_ORDER, payload)

@@ -39,6 +39,13 @@ class PedidoModel(Base):
     fecha_actualizacion: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    metodo_pago: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    fecha_aceptacion: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    fecha_lista: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     def to_domain(self) -> Pedido:
         return Pedido(
@@ -54,6 +61,9 @@ class PedidoModel(Base):
             estado_entrega=self.estado_entrega,
             fecha_creacion=self.fecha_creacion,
             fecha_actualizacion=self.fecha_actualizacion,
+            metodo_pago=self.metodo_pago,
+            fecha_aceptacion=self.fecha_aceptacion,
+            fecha_lista=self.fecha_lista,
         )
 
     @staticmethod
@@ -69,4 +79,5 @@ class PedidoModel(Base):
             total=pedido.total,
             estado=pedido.estado,
             estado_entrega=pedido.estado_entrega,
+            metodo_pago=pedido.metodo_pago,
         )
