@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
+import KitchanLogo from "../../shared/components/KitchanLogo";
 import { useAuthStore } from "../../shared/stores/authStore";
 import type { LoginResponse } from "../../shared/types/usuario";
 import AuthLayout from "./AuthLayout";
@@ -131,7 +132,7 @@ export default function RegistroPage() {
   return (
     <AuthLayout ancho={600}>
       <div className={styles.logoMovil}>
-        <div className={styles.logo}>K</div>
+        <KitchanLogo tamano={34} />
       </div>
       <h2 className={styles.formTitulo}>Crea tu restaurante</h2>
       <p className={styles.formBajada}>Dos pasos: los datos del local y la cuenta del administrador.</p>

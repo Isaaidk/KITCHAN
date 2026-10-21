@@ -2,7 +2,7 @@
   width: var(--sidebar-width);
   flex-shrink: 0;
   background:
-    radial-gradient(120% 60% at 0% 0%, rgba(79, 70, 229, 0.22), transparent 60%),
+    radial-gradient(120% 50% at 0% 0%, rgba(107, 30, 60, 0.35), transparent 60%),
     var(--sidebar-bg);
   color: var(--sidebar-text);
   display: flex;
@@ -16,37 +16,19 @@
 
 .marca {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 10px 22px;
-}
-
-.logo {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--gradient-brand);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.1rem;
-  box-shadow:
-    0 8px 20px -6px rgba(79, 70, 229, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-.marcaNombre {
-  color: var(--sidebar-text-active);
-  font-weight: 800;
-  font-size: 1.02rem;
-  letter-spacing: 0.04em;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 10px 20px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed rgba(248, 246, 239, 0.14);
 }
 
 .marcaSub {
-  font-size: 0.72rem;
-  color: var(--sidebar-text);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  color: var(--brand-ambar);
+  letter-spacing: 0.01em;
 }
 
 .seccion {
@@ -55,7 +37,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: #9aa6b2;
 }
 
 .link {
@@ -76,8 +58,8 @@
 }
 
 .link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
+  background: rgba(248, 246, 239, 0.07);
+  color: var(--brand-crema);
   transform: translateX(2px);
 }
 
@@ -100,9 +82,9 @@
 
 .linkActivo,
 .linkActivo:hover {
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.95), rgba(79, 70, 229, 0.9));
+  background: linear-gradient(90deg, #7d2549, #6b1e3c);
   color: var(--sidebar-text-active);
-  box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.8);
+  box-shadow: 0 8px 20px -8px rgba(107, 30, 60, 0.9);
   transform: none;
 }
 
@@ -117,12 +99,13 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #ef4444;
-  color: #fff;
+  /* Ámbar con texto pizarra: se ve en el menú oscuro y llama la atención como una campanita de cocina */
+  background: var(--brand-ambar);
+  color: var(--brand-pizarra);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  --pulse-color: rgba(239, 68, 68, 0.55);
+  --pulse-color: rgba(244, 185, 66, 0.55);
   animation: kt-pulse-ring 1.6s ease-out infinite;
 }
 
@@ -146,7 +129,7 @@
 }
 
 .pie svg {
-  color: #a5b4fc;
+  color: var(--brand-ambar);
 }
 
 /* Tablet / móvil: el sidebar pasa a ser un drawer lateral. */

@@ -107,12 +107,12 @@
 
 .estadoOk {
   --punto: var(--color-success);
-  color: #166534;
+  color: #0f5c5c;
 }
 
 .estadoOk::before {
   animation: kt-pulse-ring 2s ease-out infinite;
-  --pulse-color: rgba(22, 163, 74, 0.4);
+  --pulse-color: rgba(44, 177, 177, 0.45);
 }
 
 .estadoInfo {

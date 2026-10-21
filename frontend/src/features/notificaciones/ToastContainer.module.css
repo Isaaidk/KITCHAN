@@ -36,7 +36,7 @@
 
 .critica {
   --tono: var(--color-danger);
-  border-color: #fecaca;
+  border-color: #f1c4c1;
 }
 
 .saliendo {
@@ -79,7 +79,7 @@
 }
 
 .nuevo .icono {
-  --pulse-color: rgba(37, 99, 235, 0.4);
+  --pulse-color: rgba(107, 30, 60, 0.4);
   animation: kt-pulse-ring 1.5s ease-out 3;
 }
 

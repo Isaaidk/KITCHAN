@@ -33,11 +33,11 @@ const CANALES: Record<string, { nombre: string; color: string }> = {
   PEDIDOSYA: { nombre: "PedidosYa", color: "#EA004B" },
   WHATSAPP: { nombre: "WhatsApp", color: "#25D366" },
   ODOO: { nombre: "Odoo", color: "#714B67" },
-  LOCAL: { nombre: "Local", color: "#64748b" },
+  LOCAL: { nombre: "Local", color: "#2e3a46" },
 };
 
 export function infoCanal(origen: string): { nombre: string; color: string } {
-  return CANALES[origen] ?? { nombre: origen.replace(/_/g, " "), color: "#64748b" };
+  return CANALES[origen] ?? { nombre: origen.replace(/_/g, " "), color: "#5e6b78" };
 }
 
 export function minutosTranscurridos(fechaCreacion: string): number {

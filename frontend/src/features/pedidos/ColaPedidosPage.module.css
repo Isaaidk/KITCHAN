@@ -16,10 +16,12 @@
   align-items: start;
 }
 
+/* Riel de comandas: cada columna es un carril con su encabezado de color sólido
+   (granate = nuevas, ámbar = en preparación, turquesa = listas), como el KDS de la marca. */
 .columna {
-  /* Columna teñida con el color de su estado, sin degradado gris */
-  background: color-mix(in srgb, var(--color-columna) 5%, #eef1f7);
-  border: 1px solid color-mix(in srgb, var(--color-columna) 14%, var(--color-border));
+  --tinta-columna: #fff;
+  background: color-mix(in srgb, var(--color-columna) 7%, #f1ede1);
+  border: 1px solid color-mix(in srgb, var(--color-columna) 22%, var(--color-border));
   border-radius: var(--radius-xl);
   padding: 14px;
   min-height: 260px;
@@ -27,41 +29,29 @@
   overflow: hidden;
 }
 
-/* Resplandor del color del estado en la esquina superior */
-.columna::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 120px;
-  background: radial-gradient(70% 100% at 0% 0%, color-mix(in srgb, var(--color-columna) 16%, transparent), transparent 75%);
-  pointer-events: none;
-}
-
-.columna > * {
-  position: relative;
-}
-
 .columnaTitulo {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 4px 14px;
+  /* El encabezado sangra hasta los bordes de la columna */
+  margin: -14px -14px 14px;
+  padding: 12px 16px;
+  background: var(--color-columna);
+  color: var(--tinta-columna);
 }
 
 .columnaNombre {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
+/* El punto ya no hace falta: el color vive en todo el encabezado */
 .columnaPunto {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-columna);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-columna) 18%, transparent);
+  display: none;
 }
 
 .contador {
@@ -71,12 +61,12 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: var(--color-columna);
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 700;
+  /* Invierte los colores del encabezado para que el número destaque */
+  background: var(--tinta-columna);
+  color: var(--color-columna);
+  font-size: 0.8rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 4px 10px -4px var(--color-columna);
   /* key={items.length}: el número "rebota" cada vez que cambia */
   animation: contador-bump 360ms var(--ease-spring) both;
 }

@@ -22,7 +22,7 @@ function iniciales(nombre: string) {
 }
 
 // Color de avatar estable a partir del nombre.
-const TONOS = ["#2563eb", "#7c3aed", "#0891b2", "#16a34a", "#d97706", "#db2777"];
+const TONOS = ["#6b1e3c", "#1f8f8f", "#2e3a46", "#9a6410", "#b4533a", "#5f7d4e"];
 function tonoPara(nombre: string) {
   let h = 5381;
   for (const c of nombre) h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;

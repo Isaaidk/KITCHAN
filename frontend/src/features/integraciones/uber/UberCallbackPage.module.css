@@ -111,7 +111,7 @@
 
 .enCurso {
   background: var(--color-primary);
-  --pulse-color: rgba(37, 99, 235, 0.4);
+  --pulse-color: rgba(107, 30, 60, 0.4);
   animation: kt-pulse-ring 1.4s ease-out infinite;
 }
 

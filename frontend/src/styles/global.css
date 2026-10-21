@@ -7,55 +7,74 @@
    ============================================================ */
 
 :root {
-  /* Superficies y texto */
-  --color-bg: #f5f7fb;
+  /* Paleta de marca (lámina de identidad): granate, turquesa, crema, pizarra, ámbar */
+  --brand-granate: #6b1e3c;
+  --brand-turquesa: #2cb1b1;
+  --brand-crema: #f8f6ef;
+  --brand-pizarra: #2e3a46;
+  --brand-ambar: #f4b942;
+
+  /* Superficies y texto (crema cálido en vez de gris azulado) */
+  --color-bg: #f8f6ef;
   --color-surface: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-border: #e5e8ef;
-  --color-border-strong: #d4d9e3;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-subtle: #94a3b8;
+  --color-surface-muted: #f4f1e8;
+  --color-border: #e8e2d3;
+  --color-border-strong: #d6cdb9;
+  --color-text: #2e3a46;
+  --color-text-muted: #5e6b78;
+  --color-text-subtle: #7a8591;
 
-  /* Marca */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-soft: #eff4ff;
-  --color-primary-ring: rgba(37, 99, 235, 0.22);
-  --gradient-brand: linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%);
+  /* Marca: el granate es el color principal */
+  --color-primary: #6b1e3c;
+  --color-primary-hover: #561830;
+  --color-primary-soft: #f6e9ee;
+  --color-primary-ring: rgba(107, 30, 60, 0.22);
+  --gradient-brand: linear-gradient(135deg, #7d2549 0%, #6b1e3c 55%, #4f1530 100%);
 
-  /* Semánticos */
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-  --color-danger-soft: #fef2f2;
-  --color-success: #16a34a;
-  --color-success-hover: #15803d;
-  --color-success-soft: #f0fdf4;
-  --color-warning: #d97706;
-  --color-warning-soft: #fffbeb;
+  /* Acentos de la marca */
+  --color-teal: #2cb1b1;
+  --color-teal-soft: #e3f5f5;
+  --color-amber: #f4b942;
+  --color-amber-soft: #fdf3dc;
 
-  /* Estados de pedido */
-  --color-estado-nueva: #2563eb;
-  --color-estado-en-preparacion: #d97706;
-  --color-estado-lista: #16a34a;
-  --color-estado-entregada: #64748b;
-  --color-estado-cancelada: #dc2626;
+  /* Semánticos: el éxito usa el turquesa (oscurecido para que el texto blanco se lea) */
+  --color-danger: #c8453f;
+  --color-danger-hover: #a93631;
+  --color-danger-soft: #fbeceb;
+  --color-success: #187c7c;
+  --color-success-hover: #126363;
+  --color-success-soft: #e3f5f5;
+  /* Texto y íconos de aviso: ámbar oscuro (el ámbar de marca no pasa contraste sobre blanco) */
+  --color-warning: #9a6410;
+  --color-warning-soft: #fdf3dc;
 
-  /* Sidebar */
-  --sidebar-bg: #0f172a;
-  --sidebar-text: #94a3b8;
+  /* Estados de pedido (como el KDS de la lámina: ámbar en preparación, turquesa listo) */
+  --color-estado-nueva: #6b1e3c;
+  --color-estado-en-preparacion: #f4b942;
+  --color-estado-lista: #2cb1b1;
+  --color-estado-entregada: #8a949f;
+  --color-estado-cancelada: #c8453f;
+
+  /* Sidebar: pizarra oscura */
+  --sidebar-bg: #2e3a46;
+  --sidebar-text: #aeb8c2;
   --sidebar-text-active: #ffffff;
   --sidebar-width: 248px;
 
-  /* Forma y profundidad */
+  /* Tipografía de acento (solo para frases de marca) */
+  --font-display: "Kaushan Script", "Brush Script MT", cursive;
+  /* Serif de la marca Vangalia (solo para su nombre) */
+  --font-marca: "Playfair Display", Georgia, "Times New Roman", serif;
+
+  /* Forma y profundidad (sombras teñidas de pizarra) */
   --radius-sm: 8px;
   --radius: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-hover: 0 4px 6px -2px rgba(15, 23, 42, 0.05), 0 12px 24px -6px rgba(15, 23, 42, 0.12);
-  --shadow-pop: 0 24px 56px -12px rgba(15, 23, 42, 0.3);
+  --shadow-xs: 0 1px 2px rgba(46, 58, 70, 0.06);
+  --shadow-card: 0 1px 2px rgba(46, 58, 70, 0.05), 0 1px 3px rgba(46, 58, 70, 0.08);
+  --shadow-hover: 0 4px 6px -2px rgba(46, 58, 70, 0.06), 0 12px 24px -6px rgba(46, 58, 70, 0.14);
+  --shadow-pop: 0 24px 56px -12px rgba(46, 58, 70, 0.34);
 
   /* Movimiento */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -105,7 +124,7 @@ textarea,
 label,
 summary {
   touch-action: manipulation;
-  -webkit-tap-highlight-color: rgba(37, 99, 235, 0.12);
+  -webkit-tap-highlight-color: rgba(107, 30, 60, 0.12);
 }
 
 button {
@@ -233,11 +252,11 @@ a {
   --btn-bg-hover: var(--color-primary-hover);
   --btn-fg: #fff;
   --btn-border: transparent;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 2px rgba(107, 30, 60, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 8px 18px -6px rgba(37, 99, 235, 0.55);
+  box-shadow: 0 8px 18px -6px rgba(107, 30, 60, 0.55);
 }
 
 .btn-success {
@@ -248,7 +267,7 @@ a {
 }
 
 .btn-success:hover:not(:disabled) {
-  box-shadow: 0 8px 18px -6px rgba(22, 163, 74, 0.5);
+  box-shadow: 0 8px 18px -6px rgba(24, 124, 124, 0.5);
 }
 
 .btn-danger {
@@ -259,12 +278,12 @@ a {
 }
 
 .btn-danger:hover:not(:disabled) {
-  box-shadow: 0 8px 18px -6px rgba(220, 38, 38, 0.5);
+  box-shadow: 0 8px 18px -6px rgba(200, 69, 63, 0.5);
 }
 
 .btn-danger-soft {
   --btn-bg: var(--color-danger-soft);
-  --btn-bg-hover: #fee2e2;
+  --btn-bg-hover: #f6d9d7;
   --btn-fg: var(--color-danger);
   --btn-border: transparent;
 }
@@ -372,7 +391,7 @@ a {
 .input:hover:not(:disabled):not(:focus),
 .select:hover:not(:disabled):not(:focus),
 .textarea:hover:not(:disabled):not(:focus) {
-  border-color: #b8c0cf;
+  border-color: #bfb59c;
 }
 
 .input:focus,
@@ -393,13 +412,13 @@ a {
 /* Validación visual nativa: solo se marca después de interactuar. */
 .input:user-invalid {
   border-color: var(--color-danger);
-  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+  box-shadow: 0 0 0 4px rgba(200, 69, 63, 0.14);
 }
 
 .select {
   appearance: none;
   padding-right: 36px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e6b78' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   cursor: pointer;
@@ -433,21 +452,21 @@ a {
 
 .alert-error {
   background: var(--color-danger-soft);
-  border-color: #fecaca;
-  color: #991b1b;
+  border-color: #f1c4c1;
+  color: #8f2d28;
   animation: kt-shake 0.42s var(--ease-out) both;
 }
 
 .alert-success {
   background: var(--color-success-soft);
-  border-color: #bbf7d0;
-  color: #166534;
+  border-color: #a8dcdc;
+  color: #0f5c5c;
 }
 
 .alert-warning {
   background: var(--color-warning-soft);
-  border-color: #fde68a;
-  color: #92400e;
+  border-color: #f4d58a;
+  color: #7a4f0c;
 }
 
 /* ============================================================
@@ -463,8 +482,9 @@ a {
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
-  background: color-mix(in srgb, var(--badge-color, #64748b) 12%, white);
-  color: color-mix(in srgb, var(--badge-color, #64748b) 85%, black);
+  background: color-mix(in srgb, var(--badge-color, #7a8591) 14%, white);
+  /* 55% de color + negro: el texto pasa contraste incluso con ámbar o turquesa */
+  color: color-mix(in srgb, var(--badge-color, #7a8591) 55%, black);
   transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 
@@ -612,7 +632,7 @@ a {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-sm);
-  background: #eceff5;
+  background: #ece7da;
 }
 
 .skeleton::after {
@@ -701,7 +721,7 @@ a {
 
 @keyframes kt-pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 var(--pulse-color, rgba(37, 99, 235, 0.45));
+    box-shadow: 0 0 0 0 var(--pulse-color, rgba(107, 30, 60, 0.4));
   }
   100% {
     box-shadow: 0 0 0 8px transparent;
@@ -728,11 +748,11 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cfd5df;
+  background: #d6cdb9;
   border-radius: 999px;
   border: 3px solid var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b5bdca;
+  background: #bfb59c;
 }

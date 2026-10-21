@@ -23,21 +23,21 @@ import type { AnaliticasPedidos } from "./types";
 import styles from "./DashboardPage.module.css";
 
 // Paleta fija para los gráficos (SVG de recharts no resuelve bien var()).
-const PRIMARIO = "#2563eb";
-const SECUNDARIO = "#94a3b8";
-const GRILLA = "#eef1f6";
-const EJE = "#94a3b8";
+const PRIMARIO = "#6b1e3c";
+const SECUNDARIO = "#8a949f";
+const GRILLA = "#eee9dc";
+const EJE = "#7a8591";
 
 const estiloTooltip = {
   contentStyle: {
     borderRadius: 12,
-    border: "1px solid #e5e8ef",
-    boxShadow: "0 12px 28px -8px rgba(15,23,42,0.18)",
+    border: "1px solid #e8e2d3",
+    boxShadow: "0 12px 28px -8px rgba(46,58,70,0.2)",
     fontSize: 12,
     padding: "8px 12px",
   },
-  labelStyle: { fontWeight: 700, color: "#0f172a", marginBottom: 4 },
-  cursor: { fill: "rgba(37,99,235,0.06)", stroke: "rgba(37,99,235,0.2)" },
+  labelStyle: { fontWeight: 700, color: "#2e3a46", marginBottom: 4 },
+  cursor: { fill: "rgba(107,30,60,0.06)", stroke: "rgba(107,30,60,0.2)" },
 };
 
 interface Kpi {
@@ -180,7 +180,7 @@ export default function DashboardPage() {
       valor: datos.pedidos_totales_hoy,
       formato: (n) => Math.round(n).toString(),
       icono: "recibo",
-      color: "#2563eb",
+      color: "#6b1e3c",
       detalle: `${datosPorCanal.length} ${datosPorCanal.length === 1 ? "canal activo" : "canales activos"}`,
     },
     {
@@ -188,7 +188,7 @@ export default function DashboardPage() {
       valor: datos.ticket_promedio,
       formato: moneda,
       icono: "dinero",
-      color: "#16a34a",
+      color: "#2cb1b1",
       detalle: "Por pedido del día",
     },
     {
@@ -196,7 +196,7 @@ export default function DashboardPage() {
       valor: datos.tiempo_promedio_preparacion_minutos,
       formato: (n) => `${numero(n, 1)} min`,
       icono: "reloj",
-      color: "#d97706",
+      color: "#f4b942",
       detalle: "Desde que se acepta hasta lista",
     },
     {
@@ -204,7 +204,7 @@ export default function DashboardPage() {
       valor: datos.pedidos_cancelados_hoy,
       formato: (n) => Math.round(n).toString(),
       icono: "prohibido",
-      color: "#dc2626",
+      color: "#c8453f",
       detalle:
         datos.pedidos_totales_hoy > 0
           ? `${porcentaje((datos.pedidos_cancelados_hoy / datos.pedidos_totales_hoy) * 100)} del total`

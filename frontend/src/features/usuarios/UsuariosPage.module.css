@@ -36,7 +36,7 @@
   letter-spacing: 0.02em;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 6px 14px -8px color-mix(in srgb, var(--tono) 75%, #0f172a);
+    0 6px 14px -8px color-mix(in srgb, var(--tono) 75%, #2e3a46);
   transition: filter var(--dur) ease;
 }
 
@@ -88,13 +88,13 @@
 }
 
 .rolAdmin {
-  background: #f3effe;
-  color: #6d28d9;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
 
 .rolOperador {
-  background: #ecf7fa;
-  color: #0e7490;
+  background: var(--color-teal-soft);
+  color: #0f5c5c;
 }
 
 /* Estado: punto + texto plano */
@@ -116,7 +116,7 @@
 }
 
 .estadoActivo {
-  color: #166534;
+  color: #0f5c5c;
 }
 
 .estadoActivo::before {

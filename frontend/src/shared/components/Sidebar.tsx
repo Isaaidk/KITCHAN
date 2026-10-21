@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrdersStore } from "../stores/ordersStore";
 import Icon, { type NombreIcono } from "./Icon";
+import KitchanLogo from "./KitchanLogo";
 import styles from "./Sidebar.module.css";
 
 const enlace = ({ isActive }: { isActive: boolean }) =>
@@ -51,11 +52,8 @@ export default function Sidebar({ abierto, onNavegar }: Props) {
   return (
     <nav className={`${styles.sidebar} ${abierto ? styles.abierto : ""}`} aria-label="Navegación principal">
       <div className={styles.marca}>
-        <div className={styles.logo}>K</div>
-        <div>
-          <div className={styles.marcaNombre}>KITCHAN</div>
-          <div className={styles.marcaSub}>Gestión de pedidos</div>
-        </div>
+        <KitchanLogo tono="claro" tamano={36} />
+        <div className={styles.marcaSub}>Más que pedidos, experiencias</div>
       </div>
 
       <div className={styles.seccion}>Operación</div>

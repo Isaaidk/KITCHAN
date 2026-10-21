@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrdersStore } from "../stores/ordersStore";
 import Icon from "./Icon";
 import styles from "./Topbar.module.css";
+
+const formatoReloj = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
 
 const TITULOS: Array<[string, string]> = [
   ["/integraciones", "Integraciones"],
@@ -36,6 +39,13 @@ export default function Topbar({ onMenu }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  // La hora se actualiza cada 15 s: basta para ver minutos sin recargar el componente a cada segundo.
+  const [ahora, setAhora] = useState(() => new Date());
+  useEffect(() => {
+    const intervalo = setInterval(() => setAhora(new Date()), 15000);
+    return () => clearInterval(intervalo);
+  }, []);
+
   const salir = () => {
     logout();
     navigate("/login", { replace: true });
@@ -56,6 +66,12 @@ export default function Topbar({ onMenu }: Props) {
       </nav>
 
       <div className={styles.derecha}>
+        {/* Reloj de cocina, como el del KDS de la marca */}
+        <time className={styles.reloj} dateTime={ahora.toISOString()}>
+          <Icon name="reloj" size={14} />
+          {formatoReloj.format(ahora)}
+        </time>
+
         <span
           className={`${styles.enVivo} ${conectado ? styles.conectado : ""}`}
           title={conectado ? "Recibiendo pedidos en tiempo real" : "Reconectando…"}

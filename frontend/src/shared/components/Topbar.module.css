@@ -4,7 +4,7 @@
   z-index: 40;
   height: 64px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(248, 246, 239, 0.86);
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--color-border);
@@ -61,6 +61,25 @@
   gap: 14px;
 }
 
+/* Reloj de cocina: pastilla pizarra con la hora, como en el KDS de la lámina */
+.reloj {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--brand-pizarra);
+  color: var(--brand-crema);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.reloj svg {
+  color: var(--brand-ambar);
+}
+
 .enVivo {
   display: inline-flex;
   align-items: center;
@@ -70,7 +89,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   background: var(--color-warning-soft);
-  color: #92400e;
+  color: #7a4f0c;
   transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 
@@ -78,17 +97,17 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-warning);
+  background: var(--color-amber);
 }
 
 .conectado {
   background: var(--color-success-soft);
-  color: #166534;
+  color: #0f5c5c;
 }
 
 .conectado .punto {
-  background: var(--color-success);
-  --pulse-color: rgba(22, 163, 74, 0.5);
+  background: var(--color-teal);
+  --pulse-color: rgba(44, 177, 177, 0.5);
   animation: kt-pulse-ring 1.8s ease-out infinite;
 }
 
@@ -143,6 +162,7 @@
 }
 
 @media (max-width: 640px) {
+  .reloj,
   .usuarioDatos,
   .salirTexto,
   .enVivoTexto {

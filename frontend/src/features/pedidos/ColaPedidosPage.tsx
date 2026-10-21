@@ -112,6 +112,8 @@ export default function ColaPedidosPage() {
               style={{
                 ["--i" as string]: indiceColumna,
                 ["--color-columna" as string]: colorVarEstado(estado),
+                // Texto del encabezado: blanco sobre granate, pizarra sobre ámbar y turquesa (contraste)
+                ["--tinta-columna" as string]: estado === "NUEVA" ? "#fff" : "var(--brand-pizarra)",
               }}
             >
               <header className={styles.columnaTitulo}>

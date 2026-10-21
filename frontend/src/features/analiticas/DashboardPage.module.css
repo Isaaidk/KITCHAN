@@ -65,8 +65,9 @@
   display: grid;
   place-items: center;
   border-radius: 10px;
-  color: var(--kpi-color);
-  background: color-mix(in srgb, var(--kpi-color) 12%, white);
+  /* El color de marca (ámbar, turquesa) es claro: el ícono usa una versión más oscura para leerse */
+  color: color-mix(in srgb, var(--kpi-color) 62%, black);
+  background: color-mix(in srgb, var(--kpi-color) 16%, white);
 }
 
 .kpiValor {
@@ -133,12 +134,12 @@
 
 .deltaSube {
   background: var(--color-success-soft);
-  color: #166534;
+  color: #0f5c5c;
 }
 
 .deltaBaja {
   background: var(--color-danger-soft);
-  color: #991b1b;
+  color: #8f2d28;
 }
 
 .deltaIgual {

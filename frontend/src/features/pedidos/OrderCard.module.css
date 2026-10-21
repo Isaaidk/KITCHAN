@@ -178,7 +178,7 @@
 
 .itemNombre {
   min-width: 0;
-  color: #334155;
+  color: var(--color-text);
   overflow-wrap: anywhere;
 }
 
@@ -212,7 +212,7 @@
 
 .timerVencido {
   background: var(--color-danger-soft);
-  border-color: #fecaca;
+  border-color: #f1c4c1;
   color: var(--color-danger);
 }
 
@@ -221,7 +221,7 @@
   content: "";
   position: absolute;
   inset: -1px;
-  border: 2px solid rgba(220, 38, 38, 0.5);
+  border: 2px solid rgba(200, 69, 63, 0.5);
   border-radius: inherit;
   pointer-events: none;
   animation: timer-pulso 1.6s ease-out infinite;
