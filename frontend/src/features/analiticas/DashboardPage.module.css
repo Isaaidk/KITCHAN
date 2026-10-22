@@ -65,6 +65,42 @@
   text-transform: uppercase;
 }
 
+/* Frase optimista del día */
+.frase {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 46ch;
+  margin: 12px 0 0;
+  font-family: var(--font-marca);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--brand-crema);
+  animation: kt-fade-up var(--dur-slow) var(--ease-out) both;
+}
+
+.otraFrase {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(248, 246, 239, 0.3);
+  border-radius: 50%;
+  background: rgba(248, 246, 239, 0.1);
+  color: var(--brand-crema);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) ease,
+    transform var(--dur) var(--ease-spring);
+}
+
+.otraFrase:hover {
+  background: rgba(248, 246, 239, 0.22);
+  transform: rotate(120deg);
+}
+
 /* ---------- Indicadores principales ---------- */
 .kpis {
   display: grid;

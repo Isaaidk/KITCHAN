@@ -59,7 +59,7 @@
   --sidebar-bg: #2e3a46;
   --sidebar-text: #aeb8c2;
   --sidebar-text-active: #ffffff;
-  --sidebar-width: 248px;
+  --sidebar-width: 272px;
 
   /* Tipografía de acento (solo para frases de marca) */
   --font-display: "Kaushan Script", "Brush Script MT", cursive;
@@ -505,18 +505,55 @@ a {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  /* Línea punteada como el borde de una comanda de cocina */
   margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1.5px dashed var(--color-border-strong);
 }
 
 .page-title {
-  font-size: 1.5rem;
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding-bottom: 10px;
+  font-family: var(--font-marca);
+  font-size: 2.1rem;
   font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--brand-granate);
+}
+
+/* Trazo ámbar bajo el título, como el subrayado del logo */
+.page-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--brand-ambar);
 }
 
 .page-subtitle {
-  margin: 4px 0 0;
-  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  font-weight: 500;
   color: var(--color-text-muted);
+}
+
+.page-subtitle::before {
+  content: "";
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-turquesa);
+  box-shadow: 0 0 0 3px rgba(44, 177, 177, 0.18);
 }
 
 /* Superficie genérica tipo tarjeta */

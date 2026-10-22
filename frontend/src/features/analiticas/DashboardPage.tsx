@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Area,
@@ -39,6 +40,31 @@ const formatoFechaLarga = new Intl.DateTimeFormat(undefined, {
   day: "numeric",
   month: "long",
 });
+
+// Una frase por día: va rotando según la fecha, y el botón permite ver otra.
+const FRASES = [
+  "Hoy es un gran día para servir sonrisas.",
+  "Cada pedido bien hecho es un cliente que vuelve.",
+  "Un equipo afinado convierte la hora pico en un baile.",
+  "El mejor café empieza con buen ánimo.",
+  "Pequeños detalles, grandes recuerdos en cada mesa.",
+  "Hoy vamos a superar la meta de ayer.",
+  "La cocina huele a éxito.",
+  "Con buena energía todo sale más rico.",
+  "Cada plato que sale es una promesa cumplida.",
+  "Atender con cariño es nuestra mejor receta.",
+  "Que el día sea tan bueno como el primer sorbo de café.",
+  "Juntos hacemos que cada momento cuente.",
+  "Lo bueno se sirve caliente y con una sonrisa.",
+  "Hoy cada pedido tiene el toque Vangalia.",
+];
+
+/** Posición de la frase de hoy: cambia a medianoche (hora local). */
+function indiceFraseDeHoy(): number {
+  const hoy = new Date();
+  const dias = Math.floor(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()) / 86400000);
+  return dias % FRASES.length;
+}
 
 function saludo(): string {
   const hora = new Date().getHours();
@@ -310,7 +336,9 @@ export default function DashboardPage() {
   const [rango, setRango] = useRango();
   const { datos, cargando, error, reintentar } = useDashboard(rango);
   const nombre = useAuthStore((s) => s.usuario?.nombre ?? "");
-  const primerNombre = nombre.split(" ")[0];
+  // 0 = la frase de hoy; cada clic en "Otra frase" avanza a la siguiente.
+  const [desplazamiento, setDesplazamiento] = useState(0);
+  const frase = FRASES[(indiceFraseDeHoy() + desplazamiento) % FRASES.length];
   const contra = rango === "hoy" ? "que ayer" : `que ${RANGOS.find((r) => r.valor === rango)?.descripcion ?? "el periodo"} anteriores`;
 
   return (
@@ -319,8 +347,20 @@ export default function DashboardPage() {
         <img className={styles.cabeceraFoto} src={fotoCabecera} alt="" width={800} height={509} />
         <div className={styles.cabeceraTexto}>
           <p className={styles.saludo}>{saludo()}</p>
-          <h1 className={styles.titulo}>{primerNombre || "Dashboard"}</h1>
+          <h1 className={styles.titulo}>{nombre || "Dashboard"}</h1>
           <p className={styles.fecha}>{formatoFechaLarga.format(new Date())}</p>
+          <p className={styles.frase} aria-live="polite" key={frase}>
+            {frase}
+            <button
+              type="button"
+              className={styles.otraFrase}
+              onClick={() => setDesplazamiento((n) => n + 1)}
+              aria-label="Ver otra frase"
+              title="Otra frase"
+            >
+              <Icon name="sync" size={13} />
+            </button>
+          </p>
         </div>
         <div className={styles.cabeceraAcciones}>
           <SelectorRango valor={rango} onCambio={setRango} tono="claro" />

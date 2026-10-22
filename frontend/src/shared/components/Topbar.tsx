@@ -1,24 +1,11 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrdersStore } from "../stores/ordersStore";
 import Icon from "./Icon";
 import styles from "./Topbar.module.css";
 
 const formatoReloj = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
-
-const TITULOS: Array<[string, string]> = [
-  ["/integraciones", "Integraciones"],
-  ["/analiticas", "Analíticas"],
-  ["/usuarios", "Usuarios"],
-  ["/historial", "Historial"],
-  ["/cola", "Cola de pedidos"],
-  ["/", "Dashboard"],
-];
-
-function tituloPara(pathname: string) {
-  return TITULOS.find(([ruta]) => (ruta === "/" ? pathname === "/" : pathname.startsWith(ruta)))?.[1] ?? "";
-}
 
 function iniciales(nombre?: string) {
   if (!nombre) return "?";
@@ -38,7 +25,6 @@ export default function Topbar({ onMenu }: Props) {
   const { usuario, logout } = useAuthStore();
   const conectado = useOrdersStore((s) => s.conectado);
   const navigate = useNavigate();
-  const { pathname } = useLocation();
 
   // La hora se actualiza cada 15 s: basta para ver minutos sin recargar el componente a cada segundo.
   const [ahora, setAhora] = useState(() => new Date());
@@ -57,14 +43,6 @@ export default function Topbar({ onMenu }: Props) {
       <button className={`btn btn-ghost btn-icon ${styles.menu}`} onClick={onMenu} aria-label="Abrir menú">
         <Icon name="menu" size={20} />
       </button>
-
-      <nav className={styles.migas} aria-label="Ubicación">
-        <span className={styles.migaRaiz}>KITCHAN</span>
-        <span className={styles.separador}>/</span>
-        <span className={styles.titulo} key={pathname}>
-          {tituloPara(pathname)}
-        </span>
-      </nav>
 
       <div className={styles.derecha}>
         {/* Reloj de cocina, como el del KDS de la marca */}
