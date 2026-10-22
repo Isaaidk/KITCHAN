@@ -42,3 +42,19 @@ export async function conciliarFacturas(): Promise<number> {
   );
   return data.actualizadas;
 }
+
+export interface ResumenFacturacion {
+  total: number;
+  pendientes_sri: number;
+  autorizadas: number;
+  con_error: number;
+  anuladas: number;
+  monto_autorizado: number;
+  ultima_novedad: string | null;
+  ultima_autorizacion: string | null;
+}
+
+export async function resumenFacturacion(): Promise<ResumenFacturacion> {
+  const { data } = await httpClient.get<ResumenFacturacion>("/api/v1/facturacion/resumen");
+  return data;
+}
