@@ -51,3 +51,28 @@ export function fechaCorta(iso: string): string {
   const [anio, mes, dia] = iso.split("-").map(Number);
   return formatoDiaCorto.format(new Date(anio, mes - 1, dia));
 }
+
+const formatoFechaHora = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+/** "21 oct, 14:05" a partir de una fecha ISO con zona horaria. */
+export function fechaHora(iso: string): string {
+  return formatoFechaHora.format(new Date(iso));
+}
+
+const formatoRelativo = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
+/** "hace 5 minutos", "ayer", "hace 3 días"; pasado el mes, la fecha. */
+export function hace(iso: string, ahora: number = Date.now()): string {
+  const minutos = Math.floor((ahora - new Date(iso).getTime()) / 60000);
+  if (minutos < 60) return formatoRelativo.format(-Math.max(minutos, 0), "minute");
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return formatoRelativo.format(-horas, "hour");
+  const dias = Math.floor(horas / 24);
+  if (dias < 30) return formatoRelativo.format(-dias, "day");
+  return fechaHora(iso);
+}

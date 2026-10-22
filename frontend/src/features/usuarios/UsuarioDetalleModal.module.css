@@ -1,0 +1,283 @@
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.avatar {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--tono) 85%, white), var(--tono));
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.avatarInactivo {
+  filter: grayscale(1) opacity(0.55);
+}
+
+.cabeceraTexto {
+  min-width: 0;
+}
+
+.nombre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.tu {
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--color-primary-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.etiquetas {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.rolAdmin {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.rolOperador {
+  background: var(--color-teal-soft);
+  color: #0f5c5c;
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.estado::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+}
+
+.estadoActivo {
+  color: #0f5c5c;
+}
+
+.estadoActivo::before {
+  background: var(--color-success);
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 22px;
+}
+
+.datos > div,
+.kpis > div {
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+}
+
+.datos dt,
+.kpis dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.datos dd {
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.actividadCabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+.kpis dd {
+  margin: 2px 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.canales,
+.recientes {
+  list-style: none;
+  margin: 8px 0 20px;
+  padding: 0;
+}
+
+.canales {
+  display: grid;
+  gap: 10px;
+}
+
+.canales li {
+  display: grid;
+  grid-template-columns: 26px 92px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+}
+
+.canalNombre {
+  font-weight: 600;
+}
+
+.barraFondo {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.barra {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.canalNumero {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.recientes li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.recientes li:last-child {
+  border-bottom: none;
+}
+
+.recienteDatos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recienteCliente {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.recienteSub {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.recienteTotal {
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 20px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.vacioTitulo {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+@media (max-width: 560px) {
+  .datos {
+    grid-template-columns: 1fr;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .canales li {
+    grid-template-columns: 26px 80px minmax(0, 1fr) 30px;
+  }
+}

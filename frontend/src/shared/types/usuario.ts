@@ -7,6 +7,10 @@ export interface Usuario {
   email: string;
   rol: RolUsuario;
   estado: boolean;
+  /** Fecha de alta (ISO). */
+  creado_en?: string | null;
+  /** Último inicio de sesión (ISO); null si todavía no ha entrado. */
+  ultimo_acceso?: string | null;
 }
 
 export interface LoginResponse {
