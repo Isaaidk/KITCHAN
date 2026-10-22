@@ -1,5 +1,8 @@
 import type { EstadoPedido } from "../../shared/types/pedido";
 
+/** Minutos tras los que un pedido sin terminar se considera demorado. */
+export const LIMITE_DEMORA_MINUTOS = 10;
+
 export const ESTADOS_ACTIVOS: EstadoPedido[] = ["NUEVA", "EN_PREPARACION", "LISTA"];
 
 export const ETIQUETA_ESTADO: Record<EstadoPedido, string> = {

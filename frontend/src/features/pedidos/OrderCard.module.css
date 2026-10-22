@@ -271,3 +271,35 @@
 .acciones :global(.btn) {
   flex: 1;
 }
+
+/* Pedido sin terminar que ya pasó el límite: borde y brillo de alerta */
+.urgente {
+  border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-border));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-danger) 30%, transparent),
+    0 8px 22px -12px color-mix(in srgb, var(--color-danger) 70%, transparent);
+}
+
+.urgente::before {
+  background: var(--color-danger);
+}
+
+/* Nota del cliente (alergias, "sin cebolla"…): visible sin abrir el pedido */
+.notaCliente {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--color-amber-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-warning);
+}
+
+.notaCliente svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}

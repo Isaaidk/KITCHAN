@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { httpClient } from "../../shared/api/httpClient";
 import { useAuthStore } from "../../shared/stores/authStore";
 import { useOrdersStore } from "../../shared/stores/ordersStore";
+import { useSonidoStore } from "../../shared/stores/sonidoStore";
 import { useToastStore } from "../../shared/stores/toastStore";
+import { sonarNuevoPedido } from "../../shared/utils/sonido";
 import { crearSocketPedidos } from "../../shared/ws/socketClient";
 import type { EventoPedidoWS, PedidosPaginados } from "../../shared/types/pedido";
 
@@ -22,6 +24,7 @@ function manejarEvento(evento: EventoPedidoWS) {
     // Se adjunta el pedido para poder mostrar acciones rápidas
     // (Aceptar/Cancelar) directamente sobre el toast.
     addToast(`Nuevo pedido de ${evento.pedido.cliente}`, "normal", evento.pedido);
+    if (useSonidoStore.getState().activo) sonarNuevoPedido();
   } else if (evento.pedido.estado === "CANCELADA") {
     addToast(`Pedido de ${evento.pedido.cliente} cancelado`, "critica");
   } else if (evento.pedido.estado === "LISTA") {

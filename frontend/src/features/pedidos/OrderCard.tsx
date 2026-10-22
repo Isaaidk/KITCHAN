@@ -4,7 +4,7 @@ import type { Pedido } from "../../shared/types/pedido";
 import CanalLogo from "../../shared/components/CanalLogo";
 import { moneda } from "../../shared/utils/formato";
 import CancelarPedidoModal from "./CancelarPedidoModal";
-import { colorVarEstado, infoCanal, minutosTranscurridos } from "./estadoUtils";
+import { colorVarEstado, infoCanal, LIMITE_DEMORA_MINUTOS, minutosTranscurridos } from "./estadoUtils";
 import { usePedidoAcciones } from "./usePedidoAcciones";
 import styles from "./OrderCard.module.css";
 
@@ -15,7 +15,6 @@ interface Props {
   indice?: number;
 }
 
-const LIMITE_MINUTOS = 10;
 const MAX_ITEMS_VISIBLES = 3;
 
 export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
@@ -42,17 +41,19 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
     confirmarCancelacion,
   } = usePedidoAcciones(pedido);
 
-  const vencido = minutos >= LIMITE_MINUTOS;
+  const vencido = minutos >= LIMITE_DEMORA_MINUTOS;
+  // Un pedido ya listo que espera retiro no "se demora" en cocina: solo se alerta lo que falta preparar.
+  const urgente = vencido && pedido.estado !== "LISTA";
   const unidades = pedido.items.reduce((suma, item) => suma + item.cantidad, 0);
   const visibles = pedido.items.slice(0, MAX_ITEMS_VISIBLES);
   const ocultos = pedido.items.length - visibles.length;
   const canal = infoCanal(pedido.origen);
-  const progreso = Math.min(minutos / LIMITE_MINUTOS, 1);
+  const progreso = Math.min(minutos / LIMITE_DEMORA_MINUTOS, 1);
   const cargando = procesando ? "is-loading" : "";
 
   return (
     <article
-      className={styles.tarjeta}
+      className={`${styles.tarjeta} ${urgente ? styles.urgente : ""}`}
       style={{
         ["--borde-estado" as string]: colorVarEstado(pedido.estado),
         ["--i" as string]: Math.min(indice, 6),
@@ -107,6 +108,16 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
           ))}
           {ocultos > 0 && <li className={styles.masItems}>+{ocultos} más</li>}
         </ul>
+      )}
+
+      {pedido.nota_cliente && (
+        <p className={styles.notaCliente}>
+          <Icon name="nota" size={14} />
+          <span>
+            <span className="sr-only">Nota del cliente: </span>
+            {pedido.nota_cliente}
+          </span>
+        </p>
       )}
 
       <div className={styles.meta}>
