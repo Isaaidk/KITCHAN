@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrdersStore } from "../stores/ordersStore";
+import { useTemaStore } from "../stores/temaStore";
 import Icon from "./Icon";
 import styles from "./Topbar.module.css";
 
@@ -25,6 +26,8 @@ export default function Topbar({ onMenu }: Props) {
   const { usuario, logout } = useAuthStore();
   const conectado = useOrdersStore((s) => s.conectado);
   const navigate = useNavigate();
+  const tema = useTemaStore((s) => s.tema);
+  const alternarTema = useTemaStore((s) => s.alternar);
 
   // La hora se actualiza cada 15 s: basta para ver minutos sin recargar el componente a cada segundo.
   const [ahora, setAhora] = useState(() => new Date());
@@ -59,6 +62,17 @@ export default function Topbar({ onMenu }: Props) {
           <span className={styles.punto} />
           <span className={styles.enVivoTexto}>{conectado ? "En vivo" : "Reconectando"}</span>
         </span>
+
+        <button
+          type="button"
+          className={`btn btn-ghost btn-icon ${styles.tema}`}
+          onClick={alternarTema}
+          aria-pressed={tema === "oscuro"}
+          aria-label="Modo oscuro de cocina"
+          title={tema === "oscuro" ? "Volver al modo claro" : "Modo oscuro de cocina"}
+        >
+          <Icon name={tema === "oscuro" ? "sol" : "luna"} size={18} />
+        </button>
 
         <div className={styles.usuario}>
           <div className={styles.avatar}>{iniciales(usuario?.nombre)}</div>

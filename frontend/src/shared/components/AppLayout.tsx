@@ -3,11 +3,21 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import ToastContainer from "../../features/notificaciones/ToastContainer";
+import Celebracion from "./Celebracion";
+import { useTemaStore } from "../stores/temaStore";
 import { useOrdersSocket } from "../../features/pedidos/useOrdersSocket";
 import styles from "./AppLayout.module.css";
 
 export default function AppLayout() {
   useOrdersSocket();
+  const tema = useTemaStore((s) => s.tema);
+  // El modo oscuro solo vive dentro de la aplicación: el login siempre se ve claro.
+  useEffect(() => {
+    document.documentElement.dataset.tema = tema;
+    return () => {
+      delete document.documentElement.dataset.tema;
+    };
+  }, [tema]);
   const { pathname } = useLocation();
   // Drawer del sidebar en tablet/móvil.
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -47,6 +57,7 @@ export default function AppLayout() {
         </main>
       </div>
       <ToastContainer />
+      <Celebracion />
     </div>
   );
 }

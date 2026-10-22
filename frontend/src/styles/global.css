@@ -13,6 +13,10 @@
   --brand-crema: #f8f6ef;
   --brand-pizarra: #2e3a46;
   --brand-ambar: #f4b942;
+  /* Color de los títulos de página: granate en claro, rosa suave en oscuro */
+  --color-titulo: #6b1e3c;
+  /* Con qué se mezcla un color de marca para que su texto/ícono tenga contraste sobre un tinte suave */
+  --tinta-contraste: black;
 
   /* Superficies y texto (crema cálido en vez de gris azulado) */
   --color-bg: #f8f6ef;
@@ -36,6 +40,11 @@
   --color-teal-soft: #e3f5f5;
   --color-amber: #f4b942;
   --color-amber-soft: #fdf3dc;
+
+  /* Textos de las alertas (más oscuros que el color base para cumplir contraste) */
+  --color-alerta-texto-error: #8f2d28;
+  --color-alerta-texto-exito: #0f5c5c;
+  --color-alerta-texto-aviso: #7a4f0c;
 
   /* Semánticos: el éxito usa el turquesa (oscurecido para que el texto blanco se lea) */
   --color-danger: #c8453f;
@@ -65,6 +74,11 @@
   --font-display: "Kaushan Script", "Brush Script MT", cursive;
   /* Serif de la marca Vangalia (solo para su nombre) */
   --font-marca: "Playfair Display", Georgia, "Times New Roman", serif;
+  /* Cifras grandes (indicadores): misma serif, con números alineados a la línea base */
+  --font-cifras: var(--font-marca);
+
+  /* Textura: un azulejo de cocina casi invisible sobre el fondo */
+  --textura: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%236b1e3c' stroke-opacity='0.055' stroke-width='1.2'%3E%3Cpath d='M28 8l20 20-20 20L8 28z'/%3E%3Ccircle cx='28' cy='28' r='3.2'/%3E%3C/g%3E%3Cg fill='%236b1e3c' fill-opacity='0.055'%3E%3Ccircle cx='0' cy='0' r='2'/%3E%3Ccircle cx='56' cy='0' r='2'/%3E%3Ccircle cx='0' cy='56' r='2'/%3E%3Ccircle cx='56' cy='56' r='2'/%3E%3C/g%3E%3C/svg%3E");
 
   /* Forma y profundidad (sombras teñidas de pizarra) */
   --radius-sm: 8px;
@@ -96,7 +110,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
+  background-image: var(--textura);
   color: var(--color-text);
   font-family:
     "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -283,7 +298,7 @@ a {
 
 .btn-danger-soft {
   --btn-bg: var(--color-danger-soft);
-  --btn-bg-hover: #f6d9d7;
+  --btn-bg-hover: color-mix(in srgb, var(--color-danger) 18%, var(--color-surface));
   --btn-fg: var(--color-danger);
   --btn-border: transparent;
 }
@@ -452,21 +467,21 @@ a {
 
 .alert-error {
   background: var(--color-danger-soft);
-  border-color: #f1c4c1;
-  color: #8f2d28;
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+  color: var(--color-alerta-texto-error);
   animation: kt-shake 0.42s var(--ease-out) both;
 }
 
 .alert-success {
   background: var(--color-success-soft);
-  border-color: #a8dcdc;
-  color: #0f5c5c;
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+  color: var(--color-alerta-texto-exito);
 }
 
 .alert-warning {
   background: var(--color-warning-soft);
-  border-color: #f4d58a;
-  color: #7a4f0c;
+  border-color: color-mix(in srgb, var(--color-warning) 40%, var(--color-border));
+  color: var(--color-alerta-texto-aviso);
 }
 
 /* ============================================================
@@ -482,9 +497,9 @@ a {
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
-  background: color-mix(in srgb, var(--badge-color, #7a8591) 14%, white);
+  background: color-mix(in srgb, var(--badge-color, #7a8591) 14%, var(--color-surface));
   /* 55% de color + negro: el texto pasa contraste incluso con ámbar o turquesa */
-  color: color-mix(in srgb, var(--badge-color, #7a8591) 55%, black);
+  color: color-mix(in srgb, var(--badge-color, #7a8591) 55%, var(--tinta-contraste));
   transition: background-color var(--dur) ease, color var(--dur) ease;
 }
 
@@ -521,7 +536,7 @@ a {
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.01em;
-  color: var(--brand-granate);
+  color: var(--color-titulo);
 }
 
 /* Trazo ámbar bajo el título, como el subrayado del logo */
@@ -537,23 +552,10 @@ a {
 }
 
 .page-subtitle {
-  display: flex;
-  align-items: center;
-  gap: 9px;
   margin: 8px 0 0;
   font-size: 0.92rem;
   font-weight: 500;
   color: var(--color-text-muted);
-}
-
-.page-subtitle::before {
-  content: "";
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand-turquesa);
-  box-shadow: 0 0 0 3px rgba(44, 177, 177, 0.18);
 }
 
 /* Superficie genérica tipo tarjeta */
@@ -647,8 +649,11 @@ a {
 }
 
 .empty-title {
-  font-weight: 600;
-  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-primary);
 }
 
 /* ============================================================
@@ -669,7 +674,7 @@ a {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-sm);
-  background: #ece7da;
+  background: var(--color-surface-muted);
 }
 
 .skeleton::after {
@@ -677,7 +682,7 @@ a {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-surface) 80%, transparent), transparent);
   animation: kt-shimmer 1.4s ease-in-out infinite;
 }
 
@@ -792,4 +797,75 @@ a {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #bfb59c;
+}
+
+/* ============================================================
+   Modo oscuro de cocina: [data-tema="oscuro"] en <html>.
+   Solo redefine los tokens; los componentes ya los usan.
+   ============================================================ */
+[data-tema="oscuro"] {
+  color-scheme: dark;
+
+  --color-bg: #131a21;
+  --color-surface: #1d252d;
+  --color-surface-muted: #252f39;
+  --color-border: #2e3945;
+  --color-border-strong: #43515f;
+  --color-text: #eef0ea;
+  --color-text-muted: #a9b4bf;
+  --color-text-subtle: #8b97a3;
+
+  --color-titulo: #ec97b5;
+  --tinta-contraste: white;
+  --color-primary: #d4698f;
+  --color-primary-hover: #c2577d;
+  --color-primary-soft: rgba(212, 105, 143, 0.16);
+  --color-primary-ring: rgba(212, 105, 143, 0.35);
+
+  --color-teal-soft: rgba(44, 177, 177, 0.16);
+  --color-amber-soft: rgba(244, 185, 66, 0.16);
+
+  --color-danger: #e8706a;
+  --color-danger-hover: #d85c56;
+  --color-danger-soft: rgba(232, 112, 106, 0.16);
+  --color-success: #2fb0b0;
+  --color-success-hover: #26a0a0;
+  --color-success-soft: rgba(44, 177, 177, 0.16);
+  --color-warning: #f2bd5a;
+  --color-warning-soft: rgba(244, 185, 66, 0.16);
+
+  --color-alerta-texto-error: #f2a9a5;
+  --color-alerta-texto-exito: #8fdcdc;
+  --color-alerta-texto-aviso: #f4d08a;
+
+  --color-estado-entregada: #7b8794;
+
+  --textura: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.035' stroke-width='1.2'%3E%3Cpath d='M28 8l20 20-20 20L8 28z'/%3E%3Ccircle cx='28' cy='28' r='3.2'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='0.035'%3E%3Ccircle cx='0' cy='0' r='2'/%3E%3Ccircle cx='56' cy='0' r='2'/%3E%3Ccircle cx='0' cy='56' r='2'/%3E%3Ccircle cx='56' cy='56' r='2'/%3E%3C/g%3E%3C/svg%3E");
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 4px 6px -2px rgba(0, 0, 0, 0.35), 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 24px 56px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* Botones con fondo de color: se mantienen oscuros para que el texto blanco se lea */
+[data-tema="oscuro"] .btn-primary {
+  --btn-bg: #8a2a4d;
+  --btn-bg-hover: #9c3358;
+}
+
+[data-tema="oscuro"] .btn-success {
+  --btn-bg: #187c7c;
+  --btn-bg-hover: #1b8c8c;
+}
+
+[data-tema="oscuro"] .btn-danger {
+  --btn-bg: #b23a35;
+  --btn-bg-hover: #c4443e;
+}
+
+[data-tema="oscuro"] .input,
+[data-tema="oscuro"] .select,
+[data-tema="oscuro"] .textarea {
+  background: var(--color-surface-muted);
 }
