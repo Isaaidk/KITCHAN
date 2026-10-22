@@ -12,6 +12,9 @@ from src.kitchan.modules.pedidos.infrastructure.dependencias import (
 from src.kitchan.modules.reportes.application.analiticas_pedidos import (
     ObtenerAnaliticasPedidosUseCase,
 )
+from src.kitchan.modules.reportes.application.actividad_canales import (
+    ObtenerActividadCanalesUseCase,
+)
 from src.kitchan.modules.reportes.application.actividad_usuarios import (
     ObtenerActividadUsuariosUseCase,
 )
@@ -208,6 +211,22 @@ def get_actividad_use_case(
     )
 
 
+class ActividadCanal(BaseModel):
+    canal: str
+    pedidos_hoy: int
+    pedidos_30d: int
+    ultimo_pedido: Optional[str] = None
+
+
+def get_actividad_canales_use_case(
+    db: AsyncSession = Depends(get_db),
+) -> ObtenerActividadCanalesUseCase:
+    zona = zona_horaria(os.getenv("KITCHAN_ZONA_HORARIA", ZONA_POR_DEFECTO))
+    return ObtenerActividadCanalesUseCase(
+        pedidos=PedidosLecturaAdapter(construir_repositorio_pedidos(db)), zona=zona
+    )
+
+
 def get_analiticas_use_case(
     db: AsyncSession = Depends(get_db),
 ) -> ObtenerAnaliticasPedidosUseCase:
@@ -280,3 +299,12 @@ async def actividad_de_un_usuario(
         usuario_actual["restaurante_id"], rango, usuario_id=usuario_id
     )
     return ActividadUsuariosResponse(**datos)
+
+
+@router.get("/canales/actividad", response_model=list[ActividadCanal])
+async def actividad_de_canales(
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ObtenerActividadCanalesUseCase = Depends(get_actividad_canales_use_case),
+):
+    """Pedidos de hoy y último pedido de cada canal (para la pantalla de Integraciones)."""
+    return await use_case.ejecutar(usuario_actual["restaurante_id"])

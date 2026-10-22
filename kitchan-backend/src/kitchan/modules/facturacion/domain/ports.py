@@ -48,6 +48,10 @@ class FacturaRepositoryPort(ABC):
     async def listar_pendientes(self) -> list[FacturaPedido]:
         """Facturas que esperan respuesta del SRI."""
 
+    async def listar_por_restaurante(self, restaurante_id: str) -> list[FacturaPedido]:
+        """Todas las facturas de un restaurante (para el resumen de Integraciones)."""
+        raise NotImplementedError
+
 
 class PedidosFacturablesPort(ABC):
     """De dónde obtiene Facturación los datos del pedido."""

@@ -54,6 +54,16 @@ class PostgresFacturaRepository(FacturaRepositoryPort):
         modelo = resultado.scalar_one_or_none()
         return modelo.to_domain() if modelo else None
 
+    async def listar_por_restaurante(self, restaurante_id: str) -> list[FacturaPedido]:
+        try:
+            clave = uuid.UUID(str(restaurante_id))
+        except ValueError:
+            return []
+        resultado = await self.session.execute(
+            select(FacturaPedidoModel).where(FacturaPedidoModel.restaurante_id == clave)
+        )
+        return [modelo.to_domain() for modelo in resultado.scalars()]
+
     async def listar_pendientes(self) -> list[FacturaPedido]:
         resultado = await self.session.execute(
             select(FacturaPedidoModel).where(

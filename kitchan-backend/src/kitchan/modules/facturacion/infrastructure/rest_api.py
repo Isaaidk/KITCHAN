@@ -13,6 +13,9 @@ from src.kitchan.modules.facturacion.application.facturar_pedido import (
     ConsultarFacturaPedidoUseCase,
     FacturarPedidoUseCase,
 )
+from src.kitchan.modules.facturacion.application.resumen_facturacion import (
+    ObtenerResumenFacturacionUseCase,
+)
 from src.kitchan.modules.facturacion.domain.entities import FacturaPedido
 from src.kitchan.modules.facturacion.domain.exceptions import (
     OdooError,
@@ -27,6 +30,7 @@ from src.kitchan.modules.facturacion.infrastructure.dependencias import (
     get_consultar_use_case,
     get_facturar_use_case,
     get_odoo,
+    get_resumen_use_case,
 )
 from src.kitchan.modules.usuarios.domain.entities import RolUsuario
 from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
@@ -69,12 +73,34 @@ class ConciliacionResponse(BaseModel):
     actualizadas: int
 
 
+class ResumenFacturacionResponse(BaseModel):
+    total: int
+    pendientes_sri: int
+    autorizadas: int
+    con_error: int
+    anuladas: int
+    monto_autorizado: float
+    ultima_novedad: Optional[str] = None
+    ultima_autorizacion: Optional[str] = None
+
+
 @router.get("/estado", response_model=EstadoOdooResponse)
 async def estado_odoo(
     _usuario: dict = Depends(obtener_usuario_actual),
     odoo: OdooFacturacionPort = Depends(get_odoo),
 ):
     return EstadoOdooResponse(configurado=odoo.configurado())
+
+
+@router.get("/resumen", response_model=ResumenFacturacionResponse)
+async def resumen_facturacion(
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ObtenerResumenFacturacionUseCase = Depends(get_resumen_use_case),
+):
+    """Facturas del restaurante por estado ante el SRI (para la pantalla de Integraciones)."""
+    return ResumenFacturacionResponse(
+        **await use_case.ejecutar(usuario_actual["restaurante_id"])
+    )
 
 
 @router.get("/pedidos/{pedido_id}", response_model=Optional[FacturaResponse])
