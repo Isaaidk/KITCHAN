@@ -40,6 +40,7 @@ class PedidosLecturaAdapter(PedidosLecturaPort):
                 metodo_pago=p.metodo_pago,
                 fecha_aceptacion=p.fecha_aceptacion,
                 fecha_lista=p.fecha_lista,
+                aceptado_por_id=p.aceptado_por_id,
             )
             for p in pedidos
         ]

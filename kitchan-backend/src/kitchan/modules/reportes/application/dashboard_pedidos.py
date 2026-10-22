@@ -60,10 +60,14 @@ class ObtenerDashboardPedidosUseCase:
         # Inyectable para probar el cálculo con una fecha fija.
         self.ahora = ahora
 
-    async def ejecutar(self, restaurante_id: str, rango: str = "hoy") -> dict:
+    async def ejecutar(
+        self, restaurante_id: str, rango: str = "hoy", canal: Optional[str] = None
+    ) -> dict:
+        """Con `canal` el reporte se limita a los pedidos de ese canal de venta."""
         dias = RANGOS_DIAS.get(rango)
         if dias is None:
             raise RangoInvalidoError(f"Rango no válido: {rango}")
+        canal = _normalizar_canal(canal)
 
         hoy = self.ahora().astimezone(self.zona).date()
         primer_dia = hoy - timedelta(days=dias - 1)
@@ -73,6 +77,8 @@ class ObtenerDashboardPedidosUseCase:
         )
 
         todos = await self.pedidos.listar_desde(restaurante_id, inicio_anterior)
+        if canal:
+            todos = [p for p in todos if _normalizar_canal(p.origen) == canal]
         periodo = [p for p in todos if self._local(p.fecha_creacion) >= inicio]
         anterior = [
             p
@@ -83,6 +89,7 @@ class ObtenerDashboardPedidosUseCase:
         resumen = self._resumen(periodo)
         return {
             "rango": rango,
+            "canal": canal,
             "desde": primer_dia.isoformat(),
             "hasta": hoy.isoformat(),
             "resumen": resumen,
@@ -90,6 +97,7 @@ class ObtenerDashboardPedidosUseCase:
             "por_hora": self._por_hora(periodo, anterior),
             "hora_pico": self._hora_pico(periodo),
             "por_dia": self._por_dia(periodo, primer_dia, dias),
+            "por_dia_semana": self._por_dia_semana(periodo),
             "por_canal": self._por_canal(periodo, resumen["ventas_totales"]),
             "umbral_demora_minutos": UMBRAL_DEMORA_MINUTOS,
             **self._productos(periodo),
@@ -139,7 +147,9 @@ class ObtenerDashboardPedidosUseCase:
             m for m in (self._minutos_preparacion(p) for p in validos) if m is not None
         ]
         cancelados = len(pedidos) - len(validos)
+        unidades = sum(i.cantidad for p in validos for i in p.items if i.cantidad > 0)
         return {
+            "unidades_por_pedido": round(unidades / len(validos), 1) if validos else 0.0,
             "pedidos_totales": len(pedidos),
             "pedidos_cancelados": cancelados,
             "tasa_cancelacion": _pct(cancelados, len(pedidos)),
@@ -189,6 +199,20 @@ class ObtenerDashboardPedidosUseCase:
                 }
             )
         return resultado
+
+    def _por_dia_semana(self, periodo: list[PedidoResumen]) -> list[dict]:
+        """Pedidos y ventas según el día de la semana (0 = lunes), para ver
+        qué días trabaja más un canal."""
+        pedidos = [0] * 7
+        ventas = [0.0] * 7
+        for p in self._validos(periodo):
+            dia = self._local(p.fecha_creacion).weekday()
+            pedidos[dia] += 1
+            ventas[dia] += p.total
+        return [
+            {"dia": d, "pedidos": pedidos[d], "ventas": round(ventas[d], 2)}
+            for d in range(7)
+        ]
 
     def _por_canal(self, periodo: list[PedidoResumen], ventas_totales: float) -> list[dict]:
         grupos: dict[str, list[PedidoResumen]] = defaultdict(list)
@@ -251,9 +275,14 @@ class ObtenerDashboardPedidosUseCase:
         ranking = sorted(
             platos.values(), key=lambda f: (-f["cantidad"], -f["ventas"], f["nombre"])
         )
-        resto = ranking[TOP:]
+        # Con muchos platos, "los menos vendidos" salen de fuera del top. Con pocos
+        # (típico de un canal nuevo) se toma la mitad más floja para no dejarlo vacío.
+        resto = ranking[TOP:] if len(ranking) > TOP else ranking[(len(ranking) + 1) // 2 :]
         menos = sorted(
             resto, key=lambda f: (f["cantidad"], f["ventas"], f["nombre"])
+        )[:TOP]
+        mayor_ingreso = sorted(
+            platos.values(), key=lambda f: (-f["ventas"], -f["cantidad"], f["nombre"])
         )[:TOP]
         ranking_combos = sorted(
             combos.values(), key=lambda f: (-f["cantidad"], -f["ventas"], f["nombre"])
@@ -261,6 +290,7 @@ class ObtenerDashboardPedidosUseCase:
         return {
             "productos_mas_vendidos": formatear(ranking[:TOP]),
             "productos_menos_vendidos": formatear(menos),
+            "productos_mayor_ingreso": formatear(mayor_ingreso),
             "combos_mas_vendidos": formatear(ranking_combos),
             "productos_distintos": len(platos),
         }
@@ -348,9 +378,21 @@ class ObtenerDashboardPedidosUseCase:
         }
 
 
+def _normalizar_canal(canal: Optional[str]) -> Optional[str]:
+    """Código de canal en mayúsculas y con una sola grafía de PedidosYa."""
+    if not canal or not canal.strip():
+        return None
+    codigo = canal.strip().upper()
+    return "PEDIDOS_YA" if codigo == "PEDIDOSYA" else codigo
+
+
 def _promedio(valores: list[float], decimales: int) -> float:
     return round(sum(valores) / len(valores), decimales) if valores else 0.0
 
 
 def _pct(parte: float, total: float) -> float:
     return round(parte / total * 100, 1) if total else 0.0
+
+
+# Para otros reportes que miden el mismo tiempo de preparación.
+minutos_preparacion = ObtenerDashboardPedidosUseCase._minutos_preparacion

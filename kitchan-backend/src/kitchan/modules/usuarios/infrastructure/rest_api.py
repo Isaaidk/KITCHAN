@@ -1,10 +1,18 @@
 # Adaptador de entrada
+from datetime import datetime
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Importamos la conexión a BD y el núcleo
 from src.kitchan.core.database import get_db
+from src.kitchan.modules.usuarios.application.recuperacion_password import (
+    RestablecerPasswordUseCase,
+    SolicitarRecuperacionUseCase,
+    VerificarCodigoRecuperacionUseCase,
+)
 from src.kitchan.modules.usuarios.application.use_cases import (
     CambiarEstadoUsuarioUseCase,
     CrearUsuarioPorAdminUseCase,
@@ -19,7 +27,11 @@ from src.kitchan.modules.usuarios.infrastructure.auth_dependencies import (
     obtener_usuario_actual,
     requiere_rol,
 )
+from src.kitchan.modules.usuarios.infrastructure.correo import (
+    construir_enviador_correo,
+)
 from src.kitchan.modules.usuarios.infrastructure.repository import (
+    PostgresCodigosRecuperacionRepository,
     PostgresUsuarioRepository,
 )
 from src.kitchan.modules.usuarios.infrastructure.security import (
@@ -58,11 +70,48 @@ class UsuarioResponse(BaseModel):
     email: str
     rol: str
     estado: bool
+    creado_en: Optional[datetime] = None
+    ultimo_acceso: Optional[datetime] = None
+
+    @classmethod
+    def desde_dominio(cls, usuario) -> "UsuarioResponse":
+        return cls(
+            id=str(usuario.id),
+            restaurante_id=str(usuario.restaurante_id),
+            nombre=usuario.nombre,
+            email=usuario.email,
+            rol=usuario.rol.value,
+            estado=usuario.estado,
+            creado_en=usuario.creado_en,
+            ultimo_acceso=usuario.ultimo_acceso,
+        )
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class SolicitarRecuperacionRequest(BaseModel):
+    email: EmailStr
+
+
+class VerificarCodigoRequest(BaseModel):
+    email: EmailStr
+    codigo: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class TokenRestablecimientoResponse(BaseModel):
+    token_restablecimiento: str
+
+
+class RestablecerPasswordRequest(BaseModel):
+    token_restablecimiento: str
+    nueva_password: str = Field(min_length=8, max_length=128)
+
+
+class MensajeResponse(BaseModel):
+    mensaje: str
 
 
 class LoginResponse(BaseModel):
@@ -105,14 +154,7 @@ async def crear_usuario_por_admin(
             datos_nuevo_usuario=request.model_dump(),
         )
 
-        return UsuarioResponse(
-            id=str(usuario.id),
-            restaurante_id=str(usuario.restaurante_id),
-            nombre=usuario.nombre,
-            email=usuario.email,
-            rol=usuario.rol.value,
-            estado=usuario.estado,
-        )
+        return UsuarioResponse.desde_dominio(usuario)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -161,14 +203,7 @@ async def editar_usuario_por_admin(
             rol=request.rol.value,
             admin_restaurante_id=usuario_actual["restaurante_id"],
         )
-        return UsuarioResponse(
-            id=str(usuario.id),
-            restaurante_id=str(usuario.restaurante_id),
-            nombre=usuario.nombre,
-            email=usuario.email,
-            rol=usuario.rol.value,
-            estado=usuario.estado,
-        )
+        return UsuarioResponse.desde_dominio(usuario)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -197,14 +232,7 @@ async def cambiar_estado_usuario(
             estado=request.estado,
             admin_restaurante_id=usuario_actual["restaurante_id"],
         )
-        return UsuarioResponse(
-            id=str(usuario.id),
-            restaurante_id=str(usuario.restaurante_id),
-            nombre=usuario.nombre,
-            email=usuario.email,
-            rol=usuario.rol.value,
-            estado=usuario.estado,
-        )
+        return UsuarioResponse.desde_dominio(usuario)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
@@ -251,14 +279,7 @@ async def listar_usuarios_por_restaurante(
     usuarios = await caso_uso.ejecutar(restaurante_id)
 
     return [
-        UsuarioResponse(
-            id=str(u.id),
-            restaurante_id=str(u.restaurante_id),
-            nombre=u.nombre,
-            email=u.email,
-            rol=u.rol.value,
-            estado=u.estado,
-        )
+        UsuarioResponse.desde_dominio(u)
         for u in usuarios
     ]
 
@@ -278,14 +299,7 @@ async def listar_usuarios(
     usuarios = await caso_uso.ejecutar(usuario_actual["restaurante_id"])
 
     return [
-        UsuarioResponse(
-            id=str(u.id),
-            restaurante_id=str(u.restaurante_id),
-            nombre=u.nombre,
-            email=u.email,
-            rol=u.rol.value,
-            estado=u.estado,
-        )
+        UsuarioResponse.desde_dominio(u)
         for u in usuarios
     ]
 
@@ -310,14 +324,7 @@ async def login_usuario(request: LoginRequest, db: AsyncSession = Depends(get_db
 
         return LoginResponse(
             access_token=token,
-            usuario=UsuarioResponse(
-                id=str(usuario.id),
-                restaurante_id=str(usuario.restaurante_id),
-                nombre=usuario.nombre,
-                email=usuario.email,
-                rol=usuario.rol.value,
-                estado=usuario.estado,
-            ),
+            usuario=UsuarioResponse.desde_dominio(usuario),
         )
     except ValueError as e:
         detail = str(e)
@@ -326,3 +333,96 @@ async def login_usuario(request: LoginRequest, db: AsyncSession = Depends(get_db
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
             )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+
+# -------------------------------------------------
+# Recuperación de contraseña con código por correo (rutas públicas: quien la
+# olvidó no tiene sesión). Ver application/recuperacion_password.py
+#
+@router.post("/recuperar/solicitar", response_model=MensajeResponse)
+async def solicitar_recuperacion(
+    request: SolicitarRecuperacionRequest, db: AsyncSession = Depends(get_db)
+):
+    caso_uso = SolicitarRecuperacionUseCase(
+        usuarios=PostgresUsuarioRepository(session=db),
+        codigos=PostgresCodigosRecuperacionRepository(session=db),
+        correo=construir_enviador_correo(),
+    )
+    await caso_uso.ejecutar(request.email)
+    # Misma respuesta exista o no el correo, para no revelar quién tiene cuenta.
+    return MensajeResponse(
+        mensaje="Si el correo está registrado, te enviamos un código de 6 dígitos."
+    )
+
+
+@router.post("/recuperar/verificar", response_model=TokenRestablecimientoResponse)
+async def verificar_codigo_recuperacion(
+    request: VerificarCodigoRequest, db: AsyncSession = Depends(get_db)
+):
+    caso_uso = VerificarCodigoRecuperacionUseCase(
+        usuarios=PostgresUsuarioRepository(session=db),
+        codigos=PostgresCodigosRecuperacionRepository(session=db),
+    )
+    try:
+        token = await caso_uso.ejecutar(request.email, request.codigo)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return TokenRestablecimientoResponse(token_restablecimiento=token)
+
+
+@router.post("/recuperar/restablecer", status_code=status.HTTP_204_NO_CONTENT)
+async def restablecer_password(
+    request: RestablecerPasswordRequest, db: AsyncSession = Depends(get_db)
+):
+    caso_uso = RestablecerPasswordUseCase(
+        usuarios=PostgresUsuarioRepository(session=db),
+        codigos=PostgresCodigosRecuperacionRepository(session=db),
+        hasher=BcryptPasswordHasher(),
+    )
+    try:
+        await caso_uso.ejecutar(request.token_restablecimiento, request.nueva_password)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# Protegida: un ADMIN le envía a un usuario de su restaurante el código para que
+# cree una contraseña nueva (flujo de /recuperar, sin que el admin la conozca).
+@router.post(
+    "/{usuario_id}/codigo-recuperacion",
+    response_model=MensajeResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def enviar_codigo_recuperacion_a_usuario(
+    usuario_id: str,
+    db: AsyncSession = Depends(get_db),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+):
+    repo = PostgresUsuarioRepository(session=db)
+    try:
+        usuario = await repo.buscar_por_id(usuario_id)
+    except ValueError:
+        usuario = None
+    # Aislamiento multi-tenant: solo usuarios del propio restaurante.
+    if usuario is None or str(usuario.restaurante_id) != str(
+        usuario_actual["restaurante_id"]
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado"
+        )
+    if not usuario.estado:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El usuario está desactivado. Actívalo antes de enviarle un código.",
+        )
+
+    caso_uso = SolicitarRecuperacionUseCase(
+        usuarios=repo,
+        codigos=PostgresCodigosRecuperacionRepository(session=db),
+        correo=construir_enviador_correo(),
+    )
+    if not await caso_uso.ejecutar(usuario.email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Ya se envió un código hace menos de un minuto. Espera un momento.",
+        )
+    return MensajeResponse(mensaje=f"Enviamos un código a {usuario.email}.")

@@ -36,3 +36,5 @@ class PedidoResumen:
     # Momentos exactos de cocina (None en pedidos anteriores a que se guardaran).
     fecha_aceptacion: Optional[datetime] = None
     fecha_lista: Optional[datetime] = None
+    # Usuario de KITCHAN que aceptó el pedido (None si no se sabe).
+    aceptado_por_id: Optional[str] = None

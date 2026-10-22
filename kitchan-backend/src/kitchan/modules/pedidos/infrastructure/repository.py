@@ -5,6 +5,7 @@ from typing import Optional
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.kitchan.core.contexto_usuario import usuario_actual_id
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido
 from src.kitchan.modules.pedidos.domain.ports import PedidoRepositoryPort
 from src.kitchan.modules.pedidos.infrastructure.models import PedidoModel
@@ -39,6 +40,7 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
         ahora = datetime.now(timezone.utc)
         if estado == EstadoPedido.EN_PREPARACION.value and modelo.fecha_aceptacion is None:
             modelo.fecha_aceptacion = ahora
+            modelo.aceptado_por_id = usuario_actual_id()
         if estado == EstadoPedido.LISTA.value and modelo.fecha_lista is None:
             modelo.fecha_lista = ahora
 

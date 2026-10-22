@@ -12,6 +12,9 @@ from src.kitchan.modules.pedidos.infrastructure.dependencias import (
 from src.kitchan.modules.reportes.application.analiticas_pedidos import (
     ObtenerAnaliticasPedidosUseCase,
 )
+from src.kitchan.modules.reportes.application.actividad_usuarios import (
+    ObtenerActividadUsuariosUseCase,
+)
 from src.kitchan.modules.reportes.application.dashboard_pedidos import (
     ZONA_POR_DEFECTO,
     ObtenerDashboardPedidosUseCase,
@@ -46,6 +49,7 @@ class AnaliticasPedidosResponse(BaseModel):
 
 
 class ResumenPeriodo(BaseModel):
+    unidades_por_pedido: float = 0.0
     pedidos_totales: int
     pedidos_cancelados: int
     tasa_cancelacion: float
@@ -67,6 +71,12 @@ class HoraPico(BaseModel):
 
 class PuntoDia(BaseModel):
     fecha: str
+    pedidos: int
+    ventas: float
+
+
+class PuntoDiaSemana(BaseModel):
+    dia: int
     pedidos: int
     ventas: float
 
@@ -128,6 +138,7 @@ class MetodosPago(BaseModel):
 
 class DashboardPedidosResponse(BaseModel):
     rango: str
+    canal: Optional[str] = None
     desde: str
     hasta: str
     resumen: ResumenPeriodo
@@ -135,14 +146,66 @@ class DashboardPedidosResponse(BaseModel):
     por_hora: list[PuntoHora]
     hora_pico: Optional[HoraPico]
     por_dia: list[PuntoDia]
+    por_dia_semana: list[PuntoDiaSemana]
     por_canal: list[CanalResumen]
     umbral_demora_minutos: int
     productos_mas_vendidos: list[ProductoVendido]
     productos_menos_vendidos: list[ProductoVendido]
+    productos_mayor_ingreso: list[ProductoVendido]
     combos_mas_vendidos: list[ProductoVendido]
     productos_distintos: int
     clientes: ClientesResumen
     metodos_pago: MetodosPago
+
+
+class ResumenActividad(BaseModel):
+    pedidos_atendidos: int
+    pedidos_cancelados: int
+    ventas: float
+    tiempo_promedio_minutos: float
+    tasa_demora: float
+    ultima_actividad: Optional[str] = None
+
+
+class ActividadUsuario(ResumenActividad):
+    usuario_id: str
+
+
+class CanalActividad(BaseModel):
+    canal: str
+    pedidos: int
+
+
+class PedidoReciente(BaseModel):
+    canal: str
+    cliente: str
+    total: float
+    estado: str
+    fecha: str
+    minutos_preparacion: Optional[float] = None
+
+
+class DetalleActividadUsuario(ActividadUsuario):
+    por_canal: list[CanalActividad]
+    recientes: list[PedidoReciente]
+
+
+class ActividadUsuariosResponse(BaseModel):
+    rango: str
+    desde: str
+    hasta: str
+    sin_atribuir: int
+    usuarios: list[ActividadUsuario]
+    detalle: Optional[DetalleActividadUsuario] = None
+
+
+def get_actividad_use_case(
+    db: AsyncSession = Depends(get_db),
+) -> ObtenerActividadUsuariosUseCase:
+    zona = zona_horaria(os.getenv("KITCHAN_ZONA_HORARIA", ZONA_POR_DEFECTO))
+    return ObtenerActividadUsuariosUseCase(
+        pedidos=PedidosLecturaAdapter(construir_repositorio_pedidos(db)), zona=zona
+    )
 
 
 def get_analiticas_use_case(
@@ -177,11 +240,43 @@ async def dashboard_pedidos(
     rango: Literal["hoy", "7d", "30d"] = Query(
         "hoy", description="Periodo a analizar: hoy, últimos 7 días o últimos 30 días"
     ),
+    canal: Optional[str] = Query(
+        None,
+        max_length=30,
+        description="Limita el reporte a un canal (UBER_EATS, RAPPI, PEDIDOS_YA, WHATSAPP, LOCAL)",
+    ),
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
     use_case: ObtenerDashboardPedidosUseCase = Depends(get_dashboard_use_case),
 ):
     try:
-        datos = await use_case.ejecutar(usuario_actual["restaurante_id"], rango)
+        datos = await use_case.ejecutar(usuario_actual["restaurante_id"], rango, canal)
     except RangoInvalidoError as error:
         raise HTTPException(status_code=422, detail=str(error))
     return DashboardPedidosResponse(**datos)
+
+
+@router.get("/usuarios/actividad", response_model=ActividadUsuariosResponse)
+async def actividad_de_usuarios(
+    rango: Literal["hoy", "7d", "30d"] = Query("7d"),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ObtenerActividadUsuariosUseCase = Depends(get_actividad_use_case),
+):
+    """Pedidos aceptados por cada usuario del restaurante en el rango."""
+    datos = await use_case.ejecutar(usuario_actual["restaurante_id"], rango)
+    return ActividadUsuariosResponse(**datos)
+
+
+@router.get(
+    "/usuarios/{usuario_id}/actividad", response_model=ActividadUsuariosResponse
+)
+async def actividad_de_un_usuario(
+    usuario_id: str,
+    rango: Literal["hoy", "7d", "30d"] = Query("7d"),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ObtenerActividadUsuariosUseCase = Depends(get_actividad_use_case),
+):
+    """Lo mismo que /usuarios/actividad, con el detalle de un usuario (canales y últimos pedidos)."""
+    datos = await use_case.ejecutar(
+        usuario_actual["restaurante_id"], rango, usuario_id=usuario_id
+    )
+    return ActividadUsuariosResponse(**datos)

@@ -4,6 +4,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from src.kitchan.core.contexto_usuario import fijar_usuario_actual
 from src.kitchan.modules.usuarios.infrastructure.security import JWTTokenGenerator
 
 _bearer_scheme = HTTPBearer(auto_error=False)
@@ -21,7 +22,10 @@ async def obtener_usuario_actual(
 
     token_generator = JWTTokenGenerator()
     try:
-        return token_generator.decodificar_token(credenciales.credentials)
+        claims = token_generator.decodificar_token(credenciales.credentials)
+        # Queda disponible para registrar quién hace cada acción (ver core/contexto_usuario).
+        fijar_usuario_actual(claims.get("id"))
+        return claims
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 

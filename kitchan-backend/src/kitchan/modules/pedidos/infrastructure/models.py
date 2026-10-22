@@ -46,6 +46,7 @@ class PedidoModel(Base):
     fecha_lista: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    aceptado_por_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
     def to_domain(self) -> Pedido:
         return Pedido(
@@ -64,6 +65,7 @@ class PedidoModel(Base):
             metodo_pago=self.metodo_pago,
             fecha_aceptacion=self.fecha_aceptacion,
             fecha_lista=self.fecha_lista,
+            aceptado_por_id=self.aceptado_por_id,
         )
 
     @staticmethod

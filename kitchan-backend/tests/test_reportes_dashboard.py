@@ -204,6 +204,45 @@ async def test_productos_mas_y_menos_vendidos_y_combos():
 
 
 @pytest.mark.asyncio
+async def test_el_reporte_se_puede_limitar_a_un_canal():
+    _, use_case = _use_case(
+        [
+            _pedido(origen="RAPPI", total=20.0, items=[("Brownie", 2, 3.5)], creado=_utc(8, 17)),
+            _pedido(origen="RAPPI", total=10.0, items=[("Muffin", 1, 2.5)], creado=_utc(8, 18)),
+            _pedido(origen="PEDIDOS_YA", total=50.0, items=[("Combo desayuno", 5, 7.0)]),
+            _pedido(origen="UBER_EATS", total=30.0, items=[("Brownie", 9, 3.5)]),
+        ]
+    )
+
+    datos = await use_case.ejecutar("rest-1", "hoy", canal="rappi")
+
+    assert datos["canal"] == "RAPPI"
+    assert datos["resumen"]["pedidos_totales"] == 2
+    assert datos["resumen"]["ventas_totales"] == 30.0
+    assert [c["canal"] for c in datos["por_canal"]] == ["RAPPI"]
+    # Solo cuentan los platos del canal (Brownie: 2 de Rappi, no los 9 de Uber).
+    assert datos["productos_mas_vendidos"][0] == {"nombre": "Brownie", "cantidad": 2, "ventas": 7.0}
+    assert datos["combos_mas_vendidos"] == []
+    # Con pocos platos, "menos vendidos" sale de la mitad más floja en vez de quedar vacío.
+    assert [p["nombre"] for p in datos["productos_menos_vendidos"]] == ["Muffin"]
+    assert datos["productos_mayor_ingreso"][0]["nombre"] == "Brownie"
+    assert sum(d["pedidos"] for d in datos["por_dia_semana"]) == 2
+    # 08/10/2026 fue jueves (weekday 3).
+    assert datos["por_dia_semana"][3]["pedidos"] == 2
+    assert datos["resumen"]["unidades_por_pedido"] == 1.5
+
+
+@pytest.mark.asyncio
+async def test_pedidosya_se_acepta_con_las_dos_grafias():
+    _, use_case = _use_case([_pedido(origen="PEDIDOS_YA")])
+
+    datos = await use_case.ejecutar("rest-1", "hoy", canal="PEDIDOSYA")
+
+    assert datos["canal"] == "PEDIDOS_YA"
+    assert datos["resumen"]["pedidos_totales"] == 1
+
+
+@pytest.mark.asyncio
 async def test_frecuencia_de_compra_por_cliente():
     _, use_case = _use_case(
         [
