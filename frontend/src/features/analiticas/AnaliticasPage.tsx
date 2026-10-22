@@ -1,27 +1,20 @@
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import CanalLogo from "../../shared/components/CanalLogo";
+import CargandoGorro from "../../shared/components/CargandoGorro";
 import Icon from "../../shared/components/Icon";
 import { fechaCorta, horaEtiqueta, minutos, moneda, numero, porcentaje } from "../../shared/utils/formato";
 import { infoCanal, nombreMetodoPago } from "../pedidos/estadoUtils";
 import compartido from "./Compartido.module.css";
 import ExportModal from "./ExportModal";
-import {
-  COLOR_AMBAR,
-  COLOR_BARRA_SUAVE,
-  COLOR_EJE,
-  COLOR_GRILLA,
-  COLOR_PRINCIPAL,
-  COLOR_TURQUESA,
-  estiloTooltip,
-} from "./estilosGraficos";
+import { useGraficos } from "./estilosGraficos";
+import { DegradadoVertical, etiquetaDelMaximo } from "./etiquetasGraficos";
 import RankingProductos from "./RankingProductos";
 import SelectorRango from "./SelectorRango";
 import type { CanalResumen, DashboardPedidos } from "./types";
 import { RANGOS, useDashboard, useRango } from "./useDashboard";
 import styles from "./AnaliticasPage.module.css";
 
-const COLORES_PAGO = [COLOR_PRINCIPAL, COLOR_TURQUESA, COLOR_AMBAR, "#2e3a46", "#b4533a", "#5f7d4e"];
 
 /** Frase corta con el canal de mayor demanda y el que más demora. */
 function conclusionesCanales(canales: CanalResumen[]) {
@@ -207,7 +200,9 @@ function Productos({ datos }: { datos: DashboardPedidos }) {
 }
 
 export function Horarios({ datos }: { datos: DashboardPedidos }) {
+  const g = useGraficos();
   const pico = datos.hora_pico;
+  const indicePico = pico ? datos.por_hora.findIndex((p) => p.hora === pico.hora) : -1;
   const total = datos.por_hora.reduce((s, p) => s + p.pedidos, 0);
   return (
     <section className={compartido.panel} aria-labelledby="an-horarios">
@@ -221,7 +216,7 @@ export function Horarios({ datos }: { datos: DashboardPedidos }) {
         {pico && (
           <span className={styles.picoChip}>
             <Icon name="rayo" size={13} />
-            Hora pico {horaEtiqueta(pico.hora)} · {numero(pico.pedidos)} pedidos
+            Hora pico a las {horaEtiqueta(pico.hora)}, con {numero(pico.pedidos)} pedidos
           </span>
         )}
       </div>
@@ -232,27 +227,31 @@ export function Horarios({ datos }: { datos: DashboardPedidos }) {
       ) : (
         <div role="img" aria-label={`Pedidos por hora. Hora pico ${pico ? horaEtiqueta(pico.hora) : "sin datos"}`}>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={datos.por_hora} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLOR_GRILLA} vertical={false} />
+            <BarChart data={datos.por_hora} margin={{ top: 18, right: 8, left: -18, bottom: 0 }}>
+              <defs>
+                <DegradadoVertical id="gradPicoHoras" color={g.principal} hasta={0.55} />
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={g.grilla} vertical={false} />
               <XAxis
                 dataKey="hora"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                stroke={COLOR_EJE}
+                stroke={g.eje}
                 interval={2}
                 tickFormatter={(h: number) => `${h}h`}
               />
-              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={COLOR_EJE} />
+              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={g.eje} />
               <Tooltip
-                {...estiloTooltip}
+                {...g.tooltip}
                 labelFormatter={(h: number) => horaEtiqueta(h)}
                 formatter={(v: number) => [v, "Pedidos"]}
               />
               <Bar dataKey="pedidos" radius={[5, 5, 0, 0]} maxBarSize={22} animationDuration={800}>
                 {datos.por_hora.map((p) => (
-                  <Cell key={p.hora} fill={pico && p.hora === pico.hora ? COLOR_PRINCIPAL : COLOR_BARRA_SUAVE} />
+                  <Cell key={p.hora} fill={pico && p.hora === pico.hora ? "url(#gradPicoHoras)" : g.barraSuave} />
                 ))}
+                <LabelList dataKey="pedidos" content={etiquetaDelMaximo(indicePico, (v) => `${v}`, g.principal)} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -318,7 +317,7 @@ export function Clientes({ datos }: { datos: DashboardPedidos }) {
                   <li key={f.cliente}>
                     <span className={styles.frecuenteNombre}>{f.cliente}</span>
                     <span className={styles.frecuenteCifras}>
-                      {numero(f.pedidos)} pedidos · {moneda(f.ventas)}
+                      {numero(f.pedidos)} pedidos por {moneda(f.ventas)}
                     </span>
                   </li>
                 ))}
@@ -332,6 +331,8 @@ export function Clientes({ datos }: { datos: DashboardPedidos }) {
 }
 
 export function MetodosPago({ datos }: { datos: DashboardPedidos }) {
+  const g = useGraficos();
+  const COLORES_PAGO = [g.principal, g.turquesa, g.ambar, g.pizarra, "#b4533a", "#5f7d4e"];
   const pagos = datos.metodos_pago;
   return (
     <section className={`${compartido.panel} ${styles.ancho}`} aria-labelledby="an-pagos">
@@ -372,7 +373,7 @@ export function MetodosPago({ datos }: { datos: DashboardPedidos }) {
                   ))}
                 </Pie>
                 <Tooltip
-                  {...estiloTooltip}
+                  {...g.tooltip}
                   formatter={(v: number, _n: string, p: { payload?: { metodo: string } }) => [
                     moneda(v),
                     nombreMetodoPago(p.payload?.metodo ?? ""),
@@ -443,7 +444,7 @@ export default function AnaliticasPage() {
           <h1 className="page-title">Analíticas</h1>
           <p className="page-subtitle" aria-live="polite">
             Detalle de {descripcion}
-            {datos && datos.rango !== "hoy" ? ` · del ${fechaCorta(datos.desde)} al ${fechaCorta(datos.hasta)}` : ""}
+            {datos && datos.rango !== "hoy" ? `, del ${fechaCorta(datos.desde)} al ${fechaCorta(datos.hasta)}` : ""}
           </p>
         </div>
         <div className={styles.acciones}>
@@ -470,11 +471,7 @@ export default function AnaliticasPage() {
 
       {!datos && !error && (
         <div className={compartido.panel} aria-busy="true">
-          <div className="skeleton" style={{ height: 14, width: "30%", marginBottom: 20 }} />
-          <div className="skeleton" style={{ height: 220 }} />
-          <span className="sr-only" role="status">
-            Cargando las analíticas…
-          </span>
+          <CargandoGorro texto="Preparando las analíticas…" />
         </div>
       )}
 

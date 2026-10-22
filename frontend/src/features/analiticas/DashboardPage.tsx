@@ -6,7 +6,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   Legend,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -21,13 +23,9 @@ import { useOrdersStore } from "../../shared/stores/ordersStore";
 import { fechaCorta, horaEtiqueta, minutos, moneda, numero } from "../../shared/utils/formato";
 import { infoCanal } from "../pedidos/estadoUtils";
 import compartido from "./Compartido.module.css";
-import {
-  COLOR_EJE,
-  COLOR_GRILLA,
-  COLOR_PRINCIPAL,
-  COLOR_SECUNDARIO,
-  estiloTooltip,
-} from "./estilosGraficos";
+import { useGraficos } from "./estilosGraficos";
+import { DegradadoVertical, etiquetaDelMaximo } from "./etiquetasGraficos";
+import PlatoEstrella from "./PlatoEstrella";
 import RankingProductos from "./RankingProductos";
 import SelectorRango from "./SelectorRango";
 import type { DashboardPedidos, ResumenPeriodo } from "./types";
@@ -194,6 +192,7 @@ function CocinaAhora() {
 }
 
 function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
+  const g = useGraficos();
   if (datos.rango === "hoy") {
     const total = datos.por_hora.reduce((s, p) => s + p.pedidos, 0);
     const totalAnterior = datos.por_hora.reduce((s, p) => s + p.pedidos_anterior, 0);
@@ -203,7 +202,7 @@ function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
           <div>
             <h2 className={compartido.panelTitulo}>Pedidos por hora</h2>
             <p className={compartido.panelSub}>
-              Hoy {numero(total)} · ayer {numero(totalAnterior)}
+              Hoy {numero(total)}, ayer {numero(totalAnterior)}
             </p>
           </div>
         </div>
@@ -212,21 +211,21 @@ function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
             <AreaChart data={datos.por_hora} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradPedidosHoy" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={COLOR_PRINCIPAL} stopOpacity={0.28} />
-                  <stop offset="100%" stopColor={COLOR_PRINCIPAL} stopOpacity={0} />
+                  <stop offset="0%" stopColor={g.principal} stopOpacity={0.28} />
+                  <stop offset="100%" stopColor={g.principal} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLOR_GRILLA} vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={g.grilla} vertical={false} />
               <XAxis
                 dataKey="hora"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                stroke={COLOR_EJE}
+                stroke={g.eje}
                 tickFormatter={(h: number) => `${h}h`}
               />
-              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={COLOR_EJE} />
-              <Tooltip {...estiloTooltip} labelFormatter={(h: number) => horaEtiqueta(h)} />
+              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={g.eje} />
+              <Tooltip {...g.tooltip} labelFormatter={(h: number) => horaEtiqueta(h)} />
               <Legend
                 iconType="circle"
                 iconSize={8}
@@ -236,7 +235,7 @@ function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
               <Area
                 type="monotone"
                 dataKey="pedidos_anterior"
-                stroke={COLOR_SECUNDARIO}
+                stroke={g.secundario}
                 strokeWidth={2}
                 strokeDasharray="5 4"
                 fill="transparent"
@@ -246,13 +245,24 @@ function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
               <Area
                 type="monotone"
                 dataKey="pedidos"
-                stroke={COLOR_PRINCIPAL}
+                stroke={g.principal}
                 strokeWidth={2.5}
                 fill="url(#gradPedidosHoy)"
                 dot={false}
                 activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
                 animationDuration={900}
               />
+              {datos.hora_pico && (
+                <ReferenceDot
+                  x={datos.hora_pico.hora}
+                  y={datos.hora_pico.pedidos}
+                  r={5}
+                  fill={g.principal}
+                  stroke="#fff"
+                  strokeWidth={2}
+                  label={{ value: `${datos.hora_pico.pedidos}`, position: "top", fill: g.principal, fontSize: 11, fontWeight: 700 }}
+                />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -274,14 +284,17 @@ function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
       </div>
       <div role="img" aria-label={`Ventas por día en ${descripcion}: ${moneda(ventas)} en total`}>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={datos.por_dia} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={COLOR_GRILLA} vertical={false} />
+          <BarChart data={datos.por_dia} margin={{ top: 18, right: 8, left: -8, bottom: 0 }}>
+            <defs>
+              <DegradadoVertical id="gradVentasDia" color={g.principal} hasta={0.55} />
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={g.grilla} vertical={false} />
             <XAxis
               dataKey="fecha"
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              stroke={COLOR_EJE}
+              stroke={g.eje}
               tickFormatter={(f: string) => fechaCorta(f)}
               minTickGap={18}
             />
@@ -289,15 +302,24 @@ function GraficoVentas({ datos }: { datos: DashboardPedidos }) {
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              stroke={COLOR_EJE}
+              stroke={g.eje}
               tickFormatter={(v: number) => moneda(v).replace(/[.,]00$/, "")}
             />
             <Tooltip
-              {...estiloTooltip}
+              {...g.tooltip}
               labelFormatter={(f: string) => fechaCorta(f)}
               formatter={(v: number) => [moneda(v), "Ventas"]}
             />
-            <Bar dataKey="ventas" fill={COLOR_PRINCIPAL} radius={[6, 6, 0, 0]} maxBarSize={36} animationDuration={800} />
+            <Bar dataKey="ventas" fill="url(#gradVentasDia)" radius={[6, 6, 0, 0]} maxBarSize={36} animationDuration={800}>
+              <LabelList
+                dataKey="ventas"
+                content={etiquetaDelMaximo(
+                  datos.por_dia.reduce((mejor, d, i, todos) => (d.ventas > todos[mejor].ventas ? i : mejor), 0),
+                  (v) => moneda(v),
+                  g.principal,
+                )}
+              />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -397,6 +419,8 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          <PlatoEstrella datos={datos} periodo={rango === "hoy" ? "el día de hoy" : (RANGOS.find((r) => r.valor === rango)?.descripcion ?? "el periodo")} />
+
           <CocinaAhora />
 
           <div className={compartido.dosColumnas}>
@@ -445,7 +469,7 @@ export default function DashboardPage() {
                       <div className={styles.canalDatos}>
                         <span className={styles.canalNombre}>{nombreCanal}</span>
                         <span className={styles.canalSub}>
-                          {numero(c.pedidos)} {c.pedidos === 1 ? "pedido" : "pedidos"} · {minutos(c.tiempo_promedio_minutos)}
+                          {numero(c.pedidos)} {c.pedidos === 1 ? "pedido" : "pedidos"}, {minutos(c.tiempo_promedio_minutos)} de preparación
                         </span>
                       </div>
                       <span className={styles.canalVentas}>{moneda(c.ventas)}</span>

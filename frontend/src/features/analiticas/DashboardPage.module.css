@@ -152,8 +152,8 @@
   place-items: center;
   border-radius: 12px;
   /* El color de marca (ámbar, turquesa) es claro: el ícono usa una versión más oscura */
-  color: color-mix(in srgb, var(--kpi-color) 62%, black);
-  background: color-mix(in srgb, var(--kpi-color) 16%, white);
+  color: color-mix(in srgb, var(--kpi-color) 62%, var(--tinta-contraste));
+  background: color-mix(in srgb, var(--kpi-color) 16%, var(--color-surface));
 }
 
 .kpiValor {
@@ -328,4 +328,13 @@
   .kpis {
     grid-template-columns: 1fr;
   }
+}
+
+
+/* Cifras con la tipografía de la marca */
+.kpiValor,
+.cocinaNumero {
+  font-family: var(--font-cifras);
+  font-weight: 700;
+  font-feature-settings: "lnum" 1;
 }

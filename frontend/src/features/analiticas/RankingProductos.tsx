@@ -35,11 +35,11 @@ export default function RankingProductos({ items, menos = false, porVentas = fal
           <span className={styles.puestoCifras}>
             {porVentas ? (
               <>
-                <strong>{moneda(item.ventas)}</strong> · {numero(item.cantidad)} {item.cantidad === 1 ? "unidad" : "unidades"}
+                <strong>{moneda(item.ventas)}</strong> en {numero(item.cantidad)} {item.cantidad === 1 ? "unidad" : "unidades"}
               </>
             ) : (
               <>
-                <strong>{numero(item.cantidad)}</strong> {item.cantidad === 1 ? "unidad" : "unidades"} · {moneda(item.ventas)}
+                <strong>{numero(item.cantidad)}</strong> {item.cantidad === 1 ? "unidad" : "unidades"} por {moneda(item.ventas)}
               </>
             )}
           </span>

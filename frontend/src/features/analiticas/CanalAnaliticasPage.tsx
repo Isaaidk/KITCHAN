@@ -1,13 +1,15 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import CanalLogo from "../../shared/components/CanalLogo";
+import CargandoGorro from "../../shared/components/CargandoGorro";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
 import { fechaCorta, horaEtiqueta, minutos, moneda, numero, porcentaje } from "../../shared/utils/formato";
 import { infoCanal } from "../pedidos/estadoUtils";
 import { Clientes, Horarios, MetodosPago } from "./AnaliticasPage";
 import { canalPorSlug } from "./canales";
 import compartido from "./Compartido.module.css";
-import { COLOR_BARRA_SUAVE, COLOR_EJE, COLOR_GRILLA, COLOR_PRINCIPAL, estiloTooltip } from "./estilosGraficos";
+import { useGraficos } from "./estilosGraficos";
+import { DegradadoVertical, etiquetaDelMaximo } from "./etiquetasGraficos";
 import RankingProductos from "./RankingProductos";
 import SelectorRango from "./SelectorRango";
 import type { DashboardPedidos, ResumenPeriodo } from "./types";
@@ -101,6 +103,7 @@ function Destacados({ datos }: { datos: DashboardPedidos }) {
 }
 
 function DiasSemana({ datos }: { datos: DashboardPedidos }) {
+  const g = useGraficos();
   const total = datos.por_dia_semana.reduce((s, d) => s + d.pedidos, 0);
   const maximo = Math.max(...datos.por_dia_semana.map((d) => d.pedidos));
   const filas = datos.por_dia_semana.map((d) => ({ ...d, nombre: DIAS[d.dia].slice(0, 3) }));
@@ -121,12 +124,15 @@ function DiasSemana({ datos }: { datos: DashboardPedidos }) {
       ) : (
         <div role="img" aria-label={`Pedidos por día de la semana: ${filas.map((f) => `${f.nombre} ${f.pedidos}`).join(", ")}`}>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={filas} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLOR_GRILLA} vertical={false} />
-              <XAxis dataKey="nombre" fontSize={11} tickLine={false} axisLine={false} stroke={COLOR_EJE} />
-              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={COLOR_EJE} />
+            <BarChart data={filas} margin={{ top: 18, right: 8, left: -18, bottom: 0 }}>
+              <defs>
+                <DegradadoVertical id="gradPicoDias" color={g.principal} hasta={0.55} />
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke={g.grilla} vertical={false} />
+              <XAxis dataKey="nombre" fontSize={11} tickLine={false} axisLine={false} stroke={g.eje} />
+              <YAxis allowDecimals={false} fontSize={11} tickLine={false} axisLine={false} stroke={g.eje} />
               <Tooltip
-                {...estiloTooltip}
+                {...g.tooltip}
                 labelFormatter={(_: string, items: { payload?: { dia: number } }[]) =>
                   DIAS[items?.[0]?.payload?.dia ?? 0]
                 }
@@ -134,8 +140,9 @@ function DiasSemana({ datos }: { datos: DashboardPedidos }) {
               />
               <Bar dataKey="pedidos" radius={[5, 5, 0, 0]} maxBarSize={32} animationDuration={800}>
                 {filas.map((f) => (
-                  <Cell key={f.dia} fill={f.pedidos === maximo ? COLOR_PRINCIPAL : COLOR_BARRA_SUAVE} />
+                  <Cell key={f.dia} fill={f.pedidos === maximo ? "url(#gradPicoDias)" : g.barraSuave} />
                 ))}
+                <LabelList dataKey="pedidos" content={etiquetaDelMaximo(filas.findIndex((f) => f.pedidos === maximo), (v) => `${v}`, g.principal)} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -258,7 +265,7 @@ export default function CanalAnaliticasPage() {
             <h1 className="page-title">{nombre}</h1>
             <p className="page-subtitle" aria-live="polite">
               Analíticas de {descripcion}
-              {datos && datos.rango !== "hoy" ? ` · del ${fechaCorta(datos.desde)} al ${fechaCorta(datos.hasta)}` : ""}
+              {datos && datos.rango !== "hoy" ? `, del ${fechaCorta(datos.desde)} al ${fechaCorta(datos.hasta)}` : ""}
             </p>
           </div>
         </div>
@@ -280,11 +287,7 @@ export default function CanalAnaliticasPage() {
 
       {!datos && !error && (
         <div className={compartido.panel} aria-busy="true">
-          <div className="skeleton" style={{ height: 14, width: "30%", marginBottom: 20 }} />
-          <div className="skeleton" style={{ height: 220 }} />
-          <span className="sr-only" role="status">
-            Cargando las analíticas de {nombre}…
-          </span>
+          <CargandoGorro texto={`Preparando las analíticas de ${nombre}…`} />
         </div>
       )}
 

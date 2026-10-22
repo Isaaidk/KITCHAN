@@ -94,8 +94,8 @@ export default function ExportModal({ datos, onClose }: Props) {
         <div className={styles.vistaTitulo}>
           Vista previa
           <span className={styles.vistaResumen}>
-            {canales.length} {canales.length === 1 ? "canal" : "canales"} · {numero(pedidos)}{" "}
-            {pedidos === 1 ? "pedido" : "pedidos"} · {moneda(ventas)}
+            {canales.length} {canales.length === 1 ? "canal" : "canales"}, {numero(pedidos)}{" "}
+            {pedidos === 1 ? "pedido" : "pedidos"} y {moneda(ventas)} en ventas
           </span>
         </div>
         {canales.length === 0 ? (
