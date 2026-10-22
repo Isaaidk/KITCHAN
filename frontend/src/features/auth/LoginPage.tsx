@@ -171,11 +171,9 @@ export default function LoginPage() {
             </span>
             Recordarme
           </label>
-          {/* La recuperación de contraseña aún no existe en el backend. */}
-          <button type="button" className={styles.pronto} disabled title="Próximamente">
+          <Link to="/recuperar" className={styles.olvido}>
             ¿Olvidaste tu contraseña?
-            <span className="sr-only"> (próximamente)</span>
-          </button>
+          </Link>
         </div>
 
         {error && (
@@ -204,10 +202,6 @@ export default function LoginPage() {
         <span className={styles.googleEtiqueta}>Próximamente</span>
       </button>
 
-      <p className={styles.alternativa}>
-        ¿Primera vez en KITCHAN? <Link to="/registro">Crear restaurante nuevo</Link>
-      </p>
-
       {(DEMO_ADMIN.email || DEMO_OPERADOR.email) && (
         <div className={styles.demo}>
           {DEMO_ADMIN.email && DEMO_ADMIN.password && (
@@ -228,12 +222,6 @@ export default function LoginPage() {
           )}
         </div>
       )}
-
-      <p className={styles.pie}>
-        <span>KITCHAN</span>
-        <span aria-hidden="true">•</span>
-        <span>Vangalia</span>
-      </p>
     </AuthLayout>
   );
 }

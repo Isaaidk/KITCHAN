@@ -305,13 +305,16 @@
 }
 
 /* Funciones del diseño que aún no existen en el backend: visibles pero deshabilitadas */
-.pronto {
-  padding: 0;
-  background: none;
-  border: none;
-  font-size: 0.8rem;
-  color: var(--color-text-subtle);
-  cursor: not-allowed;
+.olvido {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.olvido:hover {
+  text-decoration: underline;
 }
 
 .submit {
@@ -366,34 +369,6 @@
   font-size: 0.68rem;
   font-weight: 700;
   color: var(--color-primary);
-}
-
-.pie {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin: 28px 0 0;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--color-primary);
-}
-
-.alternativa {
-  text-align: center;
-  margin: 22px 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.alternativa a {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.alternativa a:hover {
-  text-decoration: underline;
 }
 
 .demo {
