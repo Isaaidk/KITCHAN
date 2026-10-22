@@ -325,52 +325,6 @@
   letter-spacing: 0.01em;
 }
 
-.separador {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 26px 0 18px;
-  font-size: 0.78rem;
-  color: var(--color-text-subtle);
-}
-
-.separador::before,
-.separador::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--color-border);
-}
-
-.google {
-  width: 100%;
-  min-height: 52px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 20px;
-  border: 1.5px solid rgba(107, 30, 60, 0.4);
-  border-radius: 999px;
-  background: transparent;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.google:disabled {
-  opacity: 0.62;
-}
-
-.googleEtiqueta {
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--color-primary-soft);
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
 .demo {
   display: flex;
   gap: 8px;

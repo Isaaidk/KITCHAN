@@ -283,7 +283,7 @@ export default function RecuperarPasswordPage() {
           <span className={recuperar.exitoIcono}>
             <Icon name="check" size={30} strokeWidth={3} />
           </span>
-          <h2 className={styles.formTitulo}>¡Contraseña actualizada!</h2>
+          <h2 className={`${styles.formTitulo} ${recuperar.exitoTitulo}`}>¡Contraseña actualizada!</h2>
           <p className={styles.formBajada}>Ya puedes iniciar sesión con tu contraseña nueva.</p>
           <button
             type="button"
