@@ -40,6 +40,31 @@ if errorlevel 1 goto esperar_docker
 docker start kitchan_postgres kitchan_redis >nul
 timeout /t 3 /nobreak >nul
 
+rem Aplica las migraciones pendientes (alembic upgrade head). Sin esto, una base
+rem desactualizada hace fallar el dashboard, la cola y el historial. Si Postgres
+rem acaba de encenderse tarda unos segundos en aceptar conexiones: se reintenta.
+echo     Aplicando migraciones de la base de datos...
+set "INTENTOS=0"
+:migrar
+set /a INTENTOS+=1
+pushd "%BACKEND%"
+set PYTHONUTF8=1
+"%PYTHON%" -m alembic upgrade head >"%TEMP%\kitchan_migracion.log" 2>&1
+set "RESULTADO=%errorlevel%"
+popd
+if "%RESULTADO%"=="0" goto migraciones_listas
+if %INTENTOS% GEQ 10 goto migracion_fallida
+timeout /t 3 /nobreak >nul
+goto migrar
+:migracion_fallida
+type "%TEMP%\kitchan_migracion.log"
+echo.
+echo No se pudieron aplicar las migraciones de la base de datos.
+echo Revisa el mensaje de arriba y ejecuta a mano: alembic upgrade head
+pause
+exit /b 1
+:migraciones_listas
+
 echo [2/6] API falsa de Rappi (puerto 8010)...
 start "KITCHAN - API Rappi falsa" /min cmd /k "cd /d "%BACKEND%" && set PYTHONUTF8=1&& "%PYTHON%" -m uvicorn scripts.simulador_rappi.api_rappi_falsa:app --port 8010"
 
