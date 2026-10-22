@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import { mensajeDeError } from "../../shared/api/mensajeDeError";
 import Icon, { type NombreIcono } from "../../shared/components/Icon";
+import Ilustracion from "../../shared/components/Ilustracion";
 import Modal from "../../shared/components/Modal";
 import { useAuthStore } from "../../shared/stores/authStore";
 import { useToastStore } from "../../shared/stores/toastStore";
@@ -186,7 +187,7 @@ export default function UsuariosPage() {
           <p className="page-subtitle" aria-live="polite">
             {cargando
               ? "Cargando equipo…"
-              : `${usuarios.length} en el equipo · ${activos} ${activos === 1 ? "activo" : "activos"}`}
+              : `${usuarios.length} en el equipo, ${activos} ${activos === 1 ? "activo" : "activos"}`}
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => setEditando("nuevo")}>
@@ -401,9 +402,7 @@ export default function UsuariosPage() {
 
         {!cargando && !errorLista && usuarios.length === 0 && (
           <div className="empty">
-            <div className="empty-icon">
-              <Icon name="usuarios" size={20} />
-            </div>
+            <Ilustracion tipo="gorro" />
             <span className="empty-title">Todavía no hay usuarios</span>
             <span>Agrega a tu equipo para que pueda operar la cola de pedidos.</span>
           </div>
@@ -411,9 +410,7 @@ export default function UsuariosPage() {
 
         {!cargando && usuarios.length > 0 && visibles.length === 0 && (
           <div className="empty">
-            <div className="empty-icon">
-              <Icon name="buscar" size={20} />
-            </div>
+            <Ilustracion tipo="lupa" />
             <span className="empty-title">Ningún usuario coincide</span>
             <span>Prueba con otro nombre o limpia los filtros.</span>
           </div>

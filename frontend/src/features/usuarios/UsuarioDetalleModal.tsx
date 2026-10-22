@@ -146,8 +146,8 @@ export default function UsuarioDetalleModal({ usuario, esYo, onClose, onEditar, 
                   <div className={styles.recienteDatos}>
                     <span className={styles.recienteCliente}>{r.cliente || "Sin nombre"}</span>
                     <span className={styles.recienteSub}>
-                      {fechaHora(r.fecha)} · {ETIQUETA_ESTADO[r.estado as keyof typeof ETIQUETA_ESTADO] ?? r.estado}
-                      {r.minutos_preparacion !== null && ` · ${minutos(r.minutos_preparacion)}`}
+                      {ETIQUETA_ESTADO[r.estado as keyof typeof ETIQUETA_ESTADO] ?? r.estado} el {fechaHora(r.fecha)}
+                      {r.minutos_preparacion !== null && ` (${minutos(r.minutos_preparacion)})`}
                     </span>
                   </div>
                   <span className={styles.recienteTotal}>{moneda(r.total)}</span>

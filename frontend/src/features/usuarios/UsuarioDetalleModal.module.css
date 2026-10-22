@@ -281,3 +281,11 @@
     grid-template-columns: 26px 80px minmax(0, 1fr) 30px;
   }
 }
+
+
+/* Cifras con la tipografía de la marca */
+.kpis dd {
+  font-family: var(--font-cifras);
+  font-weight: 700;
+  font-feature-settings: "lnum" 1;
+}

@@ -193,7 +193,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--tono) 12%, white);
+  background: color-mix(in srgb, var(--tono) 12%, var(--color-surface));
   color: var(--tono);
 }
 
@@ -297,4 +297,12 @@
   .resumen {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+
+/* Cifras con la tipografía de la marca */
+.tarjetaValor {
+  font-family: var(--font-cifras);
+  font-weight: 700;
+  font-feature-settings: "lnum" 1;
 }
