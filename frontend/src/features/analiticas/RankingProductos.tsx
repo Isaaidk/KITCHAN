@@ -6,12 +6,14 @@ interface Props {
   items: ProductoVendido[];
   /** Estilo ámbar para el ranking de lo que menos se pide. */
   menos?: boolean;
+  /** Mide cada plato por lo que facturó (la barra y la cifra principal son dinero) en vez de por unidades. */
+  porVentas?: boolean;
   /** Texto cuando todavía no hay ventas que mostrar. */
   vacio: string;
 }
 
 /** Lista numerada de platos con una barra proporcional a las unidades vendidas. */
-export default function RankingProductos({ items, menos = false, vacio }: Props) {
+export default function RankingProductos({ items, menos = false, porVentas = false, vacio }: Props) {
   if (items.length === 0) {
     return (
       <div className={styles.vacio}>
@@ -20,7 +22,8 @@ export default function RankingProductos({ items, menos = false, vacio }: Props)
     );
   }
 
-  const maximo = Math.max(...items.map((i) => i.cantidad), 1);
+  const medida = (item: ProductoVendido) => (porVentas ? item.ventas : item.cantidad);
+  const maximo = Math.max(...items.map(medida), 1);
   return (
     <ol className={`${styles.ranking} ${menos ? styles.menos : ""}`}>
       {items.map((item, i) => (
@@ -30,10 +33,18 @@ export default function RankingProductos({ items, menos = false, vacio }: Props)
             {item.nombre}
           </span>
           <span className={styles.puestoCifras}>
-            <strong>{numero(item.cantidad)}</strong> {item.cantidad === 1 ? "unidad" : "unidades"} · {moneda(item.ventas)}
+            {porVentas ? (
+              <>
+                <strong>{moneda(item.ventas)}</strong> · {numero(item.cantidad)} {item.cantidad === 1 ? "unidad" : "unidades"}
+              </>
+            ) : (
+              <>
+                <strong>{numero(item.cantidad)}</strong> {item.cantidad === 1 ? "unidad" : "unidades"} · {moneda(item.ventas)}
+              </>
+            )}
           </span>
           <span className={styles.barraFondo} aria-hidden="true">
-            <span className={styles.barraRelleno} style={{ width: `${(item.cantidad / maximo) * 100}%` }} />
+            <span className={styles.barraRelleno} style={{ width: `${(medida(item) / maximo) * 100}%` }} />
           </span>
         </li>
       ))}

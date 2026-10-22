@@ -1,6 +1,7 @@
 export type Rango = "hoy" | "7d" | "30d";
 
 export interface ResumenPeriodo {
+  unidades_por_pedido: number;
   pedidos_totales: number;
   pedidos_cancelados: number;
   tasa_cancelacion: number;
@@ -17,6 +18,13 @@ export interface PuntoHora {
 
 export interface PuntoDia {
   fecha: string;
+  pedidos: number;
+  ventas: number;
+}
+
+export interface PuntoDiaSemana {
+  /** 0 = lunes … 6 = domingo */
+  dia: number;
   pedidos: number;
   ventas: number;
 }
@@ -68,6 +76,8 @@ export interface MetodosPago {
 /** Respuesta de GET /api/v1/reportes/pedidos/dashboard?rango=... */
 export interface DashboardPedidos {
   rango: Rango;
+  /** Canal al que se limitó el reporte (null = todos). */
+  canal: string | null;
   desde: string;
   hasta: string;
   resumen: ResumenPeriodo;
@@ -75,10 +85,12 @@ export interface DashboardPedidos {
   por_hora: PuntoHora[];
   hora_pico: { hora: number; pedidos: number } | null;
   por_dia: PuntoDia[];
+  por_dia_semana: PuntoDiaSemana[];
   por_canal: CanalResumen[];
   umbral_demora_minutos: number;
   productos_mas_vendidos: ProductoVendido[];
   productos_menos_vendidos: ProductoVendido[];
+  productos_mayor_ingreso: ProductoVendido[];
   combos_mas_vendidos: ProductoVendido[];
   productos_distintos: number;
   clientes: ClientesResumen;

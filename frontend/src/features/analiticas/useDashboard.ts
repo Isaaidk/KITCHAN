@@ -30,7 +30,7 @@ export function useRango(): [Rango, (rango: Rango) => void] {
 }
 
 /** Carga el dashboard del rango pedido; conserva los datos anteriores mientras llegan los nuevos. */
-export function useDashboard(rango: Rango) {
+export function useDashboard(rango: Rango, canal?: string) {
   const [datos, setDatos] = useState<DashboardPedidos | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
@@ -43,7 +43,7 @@ export function useDashboard(rango: Rango) {
     setCargando(true);
     setError(false);
     httpClient
-      .get<DashboardPedidos>("/api/v1/reportes/pedidos/dashboard", { params: { rango } })
+      .get<DashboardPedidos>("/api/v1/reportes/pedidos/dashboard", { params: { rango, canal } })
       .then(({ data }) => {
         if (vigente) setDatos(data);
       })
@@ -58,7 +58,7 @@ export function useDashboard(rango: Rango) {
     return () => {
       vigente = false;
     };
-  }, [rango, intento]);
+  }, [rango, canal, intento]);
 
   return { datos, cargando, error, reintentar: () => setIntento((n) => n + 1) };
 }

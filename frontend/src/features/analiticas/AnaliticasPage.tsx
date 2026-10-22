@@ -206,7 +206,7 @@ function Productos({ datos }: { datos: DashboardPedidos }) {
   );
 }
 
-function Horarios({ datos }: { datos: DashboardPedidos }) {
+export function Horarios({ datos }: { datos: DashboardPedidos }) {
   const pico = datos.hora_pico;
   const total = datos.por_hora.reduce((s, p) => s + p.pedidos, 0);
   return (
@@ -262,7 +262,7 @@ function Horarios({ datos }: { datos: DashboardPedidos }) {
   );
 }
 
-function Clientes({ datos }: { datos: DashboardPedidos }) {
+export function Clientes({ datos }: { datos: DashboardPedidos }) {
   const c = datos.clientes;
   const maximo = Math.max(...c.distribucion.map((d) => d.clientes), 1);
   return (
@@ -331,7 +331,7 @@ function Clientes({ datos }: { datos: DashboardPedidos }) {
   );
 }
 
-function MetodosPago({ datos }: { datos: DashboardPedidos }) {
+export function MetodosPago({ datos }: { datos: DashboardPedidos }) {
   const pagos = datos.metodos_pago;
   return (
     <section className={`${compartido.panel} ${styles.ancho}`} aria-labelledby="an-pagos">

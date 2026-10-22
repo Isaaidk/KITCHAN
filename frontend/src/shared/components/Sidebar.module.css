@@ -1,10 +1,10 @@
 .sidebar {
+  --menu-texto: rgba(248, 246, 239, 0.86);
   width: var(--sidebar-width);
   flex-shrink: 0;
-  background:
-    radial-gradient(120% 50% at 0% 0%, rgba(107, 30, 60, 0.35), transparent 60%),
-    var(--sidebar-bg);
-  color: var(--sidebar-text);
+  /* Granate de la marca que se funde hacia el turquesa profundo */
+  background: linear-gradient(165deg, #6b1e3c 0%, #4f1a3a 38%, #145f66 100%);
+  color: var(--menu-texto);
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
@@ -32,25 +32,26 @@
 }
 
 .seccion {
-  padding: 16px 12px 6px;
-  font-size: 0.68rem;
+  padding: 20px 14px 8px;
+  font-size: 0.74rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #9aa6b2;
+  color: rgba(248, 246, 239, 0.6);
 }
 
 .link {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  color: var(--sidebar-text);
+  gap: 14px;
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  color: var(--menu-texto);
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   transition:
     background-color var(--dur-fast) ease,
     color var(--dur-fast) ease,
@@ -82,9 +83,9 @@
 
 .linkActivo,
 .linkActivo:hover {
-  background: linear-gradient(90deg, #7d2549, #6b1e3c);
-  color: var(--sidebar-text-active);
-  box-shadow: 0 8px 20px -8px rgba(107, 30, 60, 0.9);
+  background: var(--brand-crema);
+  color: var(--brand-granate);
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.55);
   transform: none;
 }
 
@@ -92,9 +93,47 @@
   opacity: 1;
 }
 
+/* Canales dentro de Analíticas: una sangría y una línea guía los asocian al botón de arriba */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px 26px;
+  padding-left: 10px;
+  border-left: 1px dashed rgba(248, 246, 239, 0.18);
+}
+
+.subLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  color: var(--menu-texto);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
+}
+
+.subLink:hover {
+  background: rgba(248, 246, 239, 0.07);
+  color: var(--brand-crema);
+}
+
+.subLinkActivo,
+.subLinkActivo:hover {
+  background: rgba(248, 246, 239, 0.2);
+  color: #fff;
+  font-weight: 700;
+}
+
 .contador {
-  min-width: 22px;
-  height: 20px;
+  min-width: 24px;
+  height: 22px;
   padding: 0 6px;
   display: grid;
   place-items: center;
@@ -110,26 +149,9 @@
 }
 
 .linkActivo .contador {
-  background: #fff;
-  color: var(--color-primary);
-  --pulse-color: rgba(255, 255, 255, 0.5);
-}
-
-.pie {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.72rem;
-  color: var(--sidebar-text);
-}
-
-.pie svg {
-  color: var(--brand-ambar);
+  background: var(--brand-granate);
+  color: var(--brand-crema);
+  --pulse-color: rgba(107, 30, 60, 0.45);
 }
 
 /* Tablet / móvil: el sidebar pasa a ser un drawer lateral. */
