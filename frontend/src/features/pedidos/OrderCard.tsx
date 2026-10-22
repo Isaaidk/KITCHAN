@@ -59,6 +59,14 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
         ["--i" as string]: Math.min(indice, 6),
       }}
     >
+      {urgente && (
+        <span className={styles.vapor} aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+      )}
+
       <div className={styles.encabezado}>
         <CanalLogo canal={pedido.origen} color={canal.color} nombre={canal.nombre} size={34} />
         <div className={styles.identidad}>

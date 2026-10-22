@@ -123,7 +123,10 @@
 
 .referencia {
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  /* Número de pedido en letra de máquina de escribir, como el de una comanda */
+  font-family: "Courier New", ui-monospace, monospace;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--color-text-subtle);
 }
 
@@ -212,7 +215,7 @@
 
 .timerVencido {
   background: var(--color-danger-soft);
-  border-color: #f1c4c1;
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
   color: var(--color-danger);
 }
 
@@ -238,11 +241,36 @@
   }
 }
 
+/* Línea de corte de la comanda, con las dos muescas del ticket a los lados */
 .meta {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1.5px dashed var(--color-border-strong);
+}
+
+.meta::before,
+.meta::after {
+  content: "";
+  position: absolute;
+  top: -8.5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--fondo-columna, var(--color-bg));
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.meta::before {
+  left: -26px;
+}
+
+.meta::after {
+  right: -24px;
 }
 
 .detalle {
@@ -264,8 +292,6 @@
   z-index: 1;
   display: flex;
   gap: 8px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--color-border);
 }
 
 .acciones :global(.btn) {
@@ -302,4 +328,60 @@
 .notaCliente svg {
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+/* Vapor: tres hilos de humo suben junto al cronómetro de un pedido que se está pasando */
+.vapor {
+  position: absolute;
+  top: 6px;
+  right: 74px;
+  width: 26px;
+  height: 22px;
+  pointer-events: none;
+}
+
+.vapor i {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--color-danger) 70%, transparent), transparent);
+  opacity: 0;
+  animation: vapor-sube 2.4s ease-in-out infinite;
+}
+
+.vapor i:nth-child(1) {
+  left: 3px;
+}
+
+.vapor i:nth-child(2) {
+  left: 11px;
+  animation-delay: 0.8s;
+}
+
+.vapor i:nth-child(3) {
+  left: 19px;
+  animation-delay: 1.6s;
+}
+
+@keyframes vapor-sube {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px) scaleY(0.6);
+  }
+  35% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(3px, -14px) scaleY(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vapor i {
+    animation: none;
+    opacity: 0.6;
+  }
 }

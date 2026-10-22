@@ -48,8 +48,8 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
         <div className={styles.pedidoTexto}>
           <div className={styles.cliente}>{pedido.cliente}</div>
           <div className={styles.meta}>
-            {canal.nombre} · {unidades} {unidades === 1 ? "ítem" : "ítems"}
-            {pedido.id_externo && <span className={styles.referencia}> · #{pedido.id_externo}</span>}
+            {canal.nombre}, {unidades} {unidades === 1 ? "ítem" : "ítems"}
+            {pedido.id_externo && <span className={styles.referencia}> (#{pedido.id_externo})</span>}
           </div>
         </div>
         <span className={styles.total}>{moneda(pedido.total)}</span>
@@ -89,7 +89,7 @@ export default function CancelarPedidoModal({ pedido, onClose, onConfirmar }: Pr
 
       <div className="field">
         <label className="label" htmlFor="detalle-cancelacion">
-          Detalle <span className="label-hint">· opcional</span>
+          Detalle <span className="label-hint">(opcional)</span>
         </label>
         <input
           id="detalle-cancelacion"

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
+import Ilustracion from "../../shared/components/Ilustracion";
 import type { EstadoPedido, Pedido, PedidosPaginados } from "../../shared/types/pedido";
 import { moneda } from "../../shared/utils/formato";
 import CanalBadge from "./CanalBadge";
@@ -266,9 +267,7 @@ export default function HistorialPage() {
 
         {!cargando && !error && pedidos.length === 0 && (
           <div className="empty">
-            <div className="empty-icon">
-              <Icon name="buscar" size={20} />
-            </div>
+            <Ilustracion tipo="lupa" />
             <span className="empty-title">No hay pedidos para mostrar</span>
             <span>Prueba con otros filtros de búsqueda.</span>
           </div>

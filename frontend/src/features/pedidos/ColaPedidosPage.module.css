@@ -20,7 +20,8 @@
    (granate = nuevas, ámbar = en preparación, turquesa = listas), como el KDS de la marca. */
 .columna {
   --tinta-columna: #fff;
-  background: color-mix(in srgb, var(--color-columna) 7%, #f1ede1);
+  --fondo-columna: color-mix(in srgb, var(--color-columna) 7%, var(--color-surface-muted));
+  background: var(--fondo-columna);
   border: 1px solid color-mix(in srgb, var(--color-columna) 22%, var(--color-border));
   border-radius: var(--radius-xl);
   padding: 14px;

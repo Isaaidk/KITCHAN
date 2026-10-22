@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
+import Ilustracion, { type TipoIlustracion } from "../../shared/components/Ilustracion";
 import { useOrdersStore } from "../../shared/stores/ordersStore";
 import { useSonidoStore } from "../../shared/stores/sonidoStore";
 import { sonarNuevoPedido } from "../../shared/utils/sonido";
@@ -17,6 +18,13 @@ const TITULO_COLUMNA: Partial<Record<EstadoPedido, string>> = {
   NUEVA: "Pendientes",
   EN_PREPARACION: "En preparación",
   LISTA: "Listos para entregar",
+};
+
+// Un dibujo distinto para cada columna vacía.
+const ILUSTRACION_VACIA: Partial<Record<EstadoPedido, TipoIlustracion>> = {
+  NUEVA: "taza",
+  EN_PREPARACION: "gorro",
+  LISTA: "cloche",
 };
 
 const TEXTO_VACIO: Partial<Record<EstadoPedido, string>> = {
@@ -127,7 +135,7 @@ export default function ColaPedidosPage() {
           <h1 className="page-title">Cola de pedidos</h1>
           <p className="page-subtitle" aria-live="polite">
             {cargado
-              ? `${activos} ${activos === 1 ? "pedido activo" : "pedidos activos"} · se actualiza en tiempo real`
+              ? `${activos} ${activos === 1 ? "pedido activo" : "pedidos activos"}, actualizados en tiempo real`
               : "Cargando pedidos…"}
           </p>
         </div>
@@ -264,9 +272,7 @@ export default function ColaPedidosPage() {
 
                 {cargado && items.length === 0 && (
                   <div className="empty">
-                    <div className="empty-icon">
-                      <Icon name="bandeja" size={20} />
-                    </div>
+                    <Ilustracion tipo={ILUSTRACION_VACIA[estado] ?? "taza"} />
                     <span className="empty-title">Sin pedidos</span>
                     <span>{TEXTO_VACIO[estado]}</span>
                   </div>

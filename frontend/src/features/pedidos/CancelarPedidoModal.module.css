@@ -101,7 +101,7 @@
 
 .motivoActivo,
 .motivoActivo:hover {
-  border-color: color-mix(in srgb, var(--color-danger) 45%, white);
+  border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-surface));
   background: var(--color-danger-soft);
   font-weight: 600;
   color: #7f1d1d;
