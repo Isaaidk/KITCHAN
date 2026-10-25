@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 # nunca llegó a asignarse) puede terminar en CANCELADA.
 ESTADOS_QUE_YA_NO_SE_CANCELAN = {EstadoPedido.LISTA, EstadoPedido.ENTREGADA}
 
+# Estados terminales: ya no cambian por ningún evento (ni atrasado ni manual).
+ESTADOS_FINALES = {EstadoPedido.ENTREGADA, EstadoPedido.CANCELADA}
+
 
 class ActualizarEstadoPedidoUseCase:
     """
@@ -61,11 +64,34 @@ class ActualizarEstadoPedidoUseCase:
             )
             return pedido
 
+        if pedido.estado == nuevo_estado:
+            # Mismo estado (evento repetido o dos clics): no hay nada que hacer.
+            return pedido
+
+        if pedido.estado in ESTADOS_FINALES:
+            # Un evento atrasado no reabre un pedido que ya terminó.
+            logger.info(
+                "Se ignora el cambio de %s a %s del pedido %s: ya está finalizado.",
+                pedido.estado.value,
+                nuevo_estado.value,
+                pedido.id,
+            )
+            return pedido
+
+        # El cambio solo se aplica si el pedido sigue en el estado que leímos;
+        # así, si otro operador lo movió mientras tanto, no se pisa su cambio.
         actualizado = await self.repository.actualizar_estado(
-            pedido.id, nuevo_estado.value
+            pedido.id, nuevo_estado.value, estado_esperado=pedido.estado.value
         )
         if not actualizado:
-            return pedido
+            vigente = await self.repository.buscar_por_id(pedido.id)
+            logger.info(
+                "Conflicto al cambiar el pedido %s a %s: ya no estaba en %s.",
+                pedido.id,
+                nuevo_estado.value,
+                pedido.estado.value,
+            )
+            return vigente or pedido
 
         pedido.estado = nuevo_estado
         if self.notificador is not None:

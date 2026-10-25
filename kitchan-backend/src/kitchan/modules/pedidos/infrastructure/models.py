@@ -1,7 +1,17 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, UUID, DateTime, ForeignKey, Numeric, String, func
+from sqlalchemy import (
+    JSON,
+    UUID,
+    DateTime,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    func,
+    text,
+)
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -12,6 +22,18 @@ from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido, Pe
 
 class PedidoModel(Base):
     __tablename__ = "pedidos"
+    __table_args__ = (
+        # Un mismo pedido de una plataforma no puede guardarse dos veces. Los
+        # pedidos sin id externo (p. ej. LOCAL) quedan fuera del índice.
+        Index(
+            "uq_pedidos_origen_id_externo",
+            "origen",
+            "id_externo",
+            unique=True,
+            postgresql_where=text("id_externo IS NOT NULL"),
+            sqlite_where=text("id_externo IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True

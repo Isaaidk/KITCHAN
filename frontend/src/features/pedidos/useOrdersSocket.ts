@@ -68,6 +68,9 @@ export function useOrdersSocket() {
         if (!esVigente()) return;
         backoffRef.current = BACKOFF_INICIAL_MS;
         useOrdersStore.getState().setConectado(true);
+        // Se vuelve a sincronizar con el socket ya abierto: un pedido que
+        // llegó entre el GET inicial y la apertura del WS no se pierde.
+        hidratarPedidosActivos().catch(() => {});
       };
 
       socket.onmessage = (event) => {
