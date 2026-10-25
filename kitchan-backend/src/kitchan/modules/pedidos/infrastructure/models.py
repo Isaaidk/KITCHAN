@@ -68,7 +68,9 @@ class PedidoModel(Base):
     fecha_lista: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    aceptado_por_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    aceptado_por_id: Mapped[str | None] = mapped_column(
+        String(36), nullable=True, index=True
+    )
 
     def to_domain(self) -> Pedido:
         return Pedido(

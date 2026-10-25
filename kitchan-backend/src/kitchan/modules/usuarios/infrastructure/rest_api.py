@@ -278,10 +278,7 @@ async def listar_usuarios_por_restaurante(
 
     usuarios = await caso_uso.ejecutar(restaurante_id)
 
-    return [
-        UsuarioResponse.desde_dominio(u)
-        for u in usuarios
-    ]
+    return [UsuarioResponse.desde_dominio(u) for u in usuarios]
 
 
 # Protegida: solo un token con rol ADMIN puede ejecutarla. Multi-tenant:
@@ -298,10 +295,7 @@ async def listar_usuarios(
 
     usuarios = await caso_uso.ejecutar(usuario_actual["restaurante_id"])
 
-    return [
-        UsuarioResponse.desde_dominio(u)
-        for u in usuarios
-    ]
+    return [UsuarioResponse.desde_dominio(u) for u in usuarios]
 
 
 # -------------------------------------------------

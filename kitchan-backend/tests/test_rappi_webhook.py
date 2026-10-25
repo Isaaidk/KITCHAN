@@ -187,7 +187,9 @@ async def test_new_order_guarda_el_metodo_de_pago_normalizado(client, db_session
 
 @pytest.mark.asyncio
 async def test_new_order_sin_metodo_de_pago_no_lo_inventa(client, db_session):
-    respuesta = await _post(client, URL_NEW_ORDER, _payload_valido(order_id="RAPPI-SINPAGO"))
+    respuesta = await _post(
+        client, URL_NEW_ORDER, _payload_valido(order_id="RAPPI-SINPAGO")
+    )
 
     assert respuesta.status_code == 200
     repo = PostgresPedidoRepository(session=db_session)

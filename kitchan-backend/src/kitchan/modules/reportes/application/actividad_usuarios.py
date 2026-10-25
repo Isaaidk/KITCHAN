@@ -134,7 +134,9 @@ class ObtenerActividadUsuariosUseCase:
                     "total": round(p.total, 2),
                     "estado": p.estado,
                     "fecha": (p.fecha_aceptacion or p.fecha_creacion).isoformat(),
-                    "minutos_preparacion": None if minutos is None else round(minutos, 1),
+                    "minutos_preparacion": (
+                        None if minutos is None else round(minutos, 1)
+                    ),
                 }
             )
         return filas

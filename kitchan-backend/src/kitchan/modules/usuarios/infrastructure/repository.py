@@ -180,7 +180,9 @@ class PostgresCodigosRecuperacionRepository(ICodigosRecuperacionRepository):
         except ValueError:
             return None
         resultado = await self.session.execute(
-            select(CodigoRecuperacionModel).where(CodigoRecuperacionModel.id == id_codigo)
+            select(CodigoRecuperacionModel).where(
+                CodigoRecuperacionModel.id == id_codigo
+            )
         )
         modelo = resultado.scalar_one_or_none()
         return modelo.to_domain() if modelo else None

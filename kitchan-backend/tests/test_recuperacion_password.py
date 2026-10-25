@@ -17,7 +17,9 @@ class CorreoFalso(IEnviadorCorreo):
     def __init__(self):
         self.enviados = []
 
-    async def enviar_codigo_recuperacion(self, destinatario, nombre, codigo, minutos_validez):
+    async def enviar_codigo_recuperacion(
+        self, destinatario, nombre, codigo, minutos_validez
+    ):
         self.enviados.append({"para": destinatario, "codigo": codigo})
 
 
@@ -51,7 +53,9 @@ async def _login(client, password):
 
 
 async def _solicitar(client):
-    return await client.post("/api/v1/usuarios/recuperar/solicitar", json={"email": EMAIL})
+    return await client.post(
+        "/api/v1/usuarios/recuperar/solicitar", json={"email": EMAIL}
+    )
 
 
 async def _verificar(client, codigo):
@@ -156,7 +160,9 @@ async def test_el_token_de_restablecimiento_solo_se_usa_una_vez(client, correo):
 
 
 @pytest.mark.asyncio
-async def test_una_solicitud_nueva_invalida_el_codigo_anterior(client, correo, db_session):
+async def test_una_solicitud_nueva_invalida_el_codigo_anterior(
+    client, correo, db_session
+):
     await _crear_cuenta(client)
     await _solicitar(client)
     primero = correo.enviados[0]["codigo"]
@@ -177,7 +183,9 @@ async def test_una_solicitud_nueva_invalida_el_codigo_anterior(client, correo, d
 
 
 @pytest.mark.asyncio
-async def test_pedir_el_codigo_varias_veces_seguidas_envia_un_solo_correo(client, correo):
+async def test_pedir_el_codigo_varias_veces_seguidas_envia_un_solo_correo(
+    client, correo
+):
     await _crear_cuenta(client)
 
     for _ in range(3):
