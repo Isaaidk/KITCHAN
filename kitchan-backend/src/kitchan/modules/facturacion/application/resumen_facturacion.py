@@ -17,7 +17,9 @@ class ObtenerResumenFacturacionUseCase:
 
         autorizadas = [f for f in facturas if f.estado == EstadoFactura.AUTORIZADA]
         con_novedad = [f.fecha_actualizacion for f in facturas if f.fecha_actualizacion]
-        con_autorizacion = [f.fecha_autorizacion for f in autorizadas if f.fecha_autorizacion]
+        con_autorizacion = [
+            f.fecha_autorizacion for f in autorizadas if f.fecha_autorizacion
+        ]
         return {
             "total": len(facturas),
             "pendientes_sri": cuantas(EstadoFactura.PENDIENTE_SRI),
@@ -26,5 +28,7 @@ class ObtenerResumenFacturacionUseCase:
             "anuladas": cuantas(EstadoFactura.ANULADA),
             "monto_autorizado": round(sum(f.total for f in autorizadas), 2),
             "ultima_novedad": max(con_novedad).isoformat() if con_novedad else None,
-            "ultima_autorizacion": max(con_autorizacion).isoformat() if con_autorizacion else None,
+            "ultima_autorizacion": (
+                max(con_autorizacion).isoformat() if con_autorizacion else None
+            ),
         }

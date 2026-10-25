@@ -53,7 +53,9 @@ def _como_utc(fecha: datetime) -> datetime:
 
 def _hash_codigo(usuario_id: str, codigo: str) -> str:
     clave = (os.getenv("SECRET_KEY") or "").encode("utf-8")
-    return hmac.new(clave, f"{usuario_id}:{codigo}".encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac.new(
+        clave, f"{usuario_id}:{codigo}".encode("utf-8"), hashlib.sha256
+    ).hexdigest()
 
 
 class SolicitarRecuperacionUseCase:

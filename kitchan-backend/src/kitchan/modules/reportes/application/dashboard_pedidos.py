@@ -149,7 +149,9 @@ class ObtenerDashboardPedidosUseCase:
         cancelados = len(pedidos) - len(validos)
         unidades = sum(i.cantidad for p in validos for i in p.items if i.cantidad > 0)
         return {
-            "unidades_por_pedido": round(unidades / len(validos), 1) if validos else 0.0,
+            "unidades_por_pedido": (
+                round(unidades / len(validos), 1) if validos else 0.0
+            ),
             "pedidos_totales": len(pedidos),
             "pedidos_cancelados": cancelados,
             "tasa_cancelacion": _pct(cancelados, len(pedidos)),
@@ -181,7 +183,9 @@ class ObtenerDashboardPedidosUseCase:
             return None
         return {"hora": cuentas.index(maximo), "pedidos": maximo}
 
-    def _por_dia(self, periodo: list[PedidoResumen], primer_dia, dias: int) -> list[dict]:
+    def _por_dia(
+        self, periodo: list[PedidoResumen], primer_dia, dias: int
+    ) -> list[dict]:
         pedidos_dia: dict = defaultdict(int)
         ventas_dia: dict = defaultdict(float)
         for p in self._validos(periodo):
@@ -214,7 +218,9 @@ class ObtenerDashboardPedidosUseCase:
             for d in range(7)
         ]
 
-    def _por_canal(self, periodo: list[PedidoResumen], ventas_totales: float) -> list[dict]:
+    def _por_canal(
+        self, periodo: list[PedidoResumen], ventas_totales: float
+    ) -> list[dict]:
         grupos: dict[str, list[PedidoResumen]] = defaultdict(list)
         for p in periodo:
             grupos[p.origen].append(p)
@@ -235,7 +241,9 @@ class ObtenerDashboardPedidosUseCase:
                     "pedidos": len(pedidos),
                     "cancelados": len(pedidos) - len(validos),
                     "ventas": round(ventas, 2),
-                    "ticket_promedio": round(ventas / len(validos), 2) if validos else 0.0,
+                    "ticket_promedio": (
+                        round(ventas / len(validos), 2) if validos else 0.0
+                    ),
                     "tiempo_promedio_minutos": _promedio(tiempos, 1),
                     "tasa_demora": _pct(demorados, len(tiempos)),
                     "porcentaje_pedidos": _pct(len(pedidos), len(periodo)),
@@ -277,10 +285,12 @@ class ObtenerDashboardPedidosUseCase:
         )
         # Con muchos platos, "los menos vendidos" salen de fuera del top. Con pocos
         # (típico de un canal nuevo) se toma la mitad más floja para no dejarlo vacío.
-        resto = ranking[TOP:] if len(ranking) > TOP else ranking[(len(ranking) + 1) // 2 :]
-        menos = sorted(
-            resto, key=lambda f: (f["cantidad"], f["ventas"], f["nombre"])
-        )[:TOP]
+        resto = (
+            ranking[TOP:] if len(ranking) > TOP else ranking[(len(ranking) + 1) // 2 :]
+        )
+        menos = sorted(resto, key=lambda f: (f["cantidad"], f["ventas"], f["nombre"]))[
+            :TOP
+        ]
         mayor_ingreso = sorted(
             platos.values(), key=lambda f: (-f["ventas"], -f["cantidad"], f["nombre"])
         )[:TOP]
@@ -339,7 +349,8 @@ class ObtenerDashboardPedidosUseCase:
                     "ventas": round(f["ventas"], 2),
                 }
                 for f in sorted(
-                    recurrentes, key=lambda f: (-f["pedidos"], -f["ventas"], f["cliente"])
+                    recurrentes,
+                    key=lambda f: (-f["pedidos"], -f["ventas"], f["cliente"]),
                 )[:TOP]
             ],
             "pedidos_analizados": total_pedidos,
@@ -354,7 +365,9 @@ class ObtenerDashboardPedidosUseCase:
             if not p.metodo_pago or not p.metodo_pago.strip():
                 continue
             metodo = p.metodo_pago.strip().upper()
-            fila = grupos.setdefault(metodo, {"metodo": metodo, "pedidos": 0, "ventas": 0.0})
+            fila = grupos.setdefault(
+                metodo, {"metodo": metodo, "pedidos": 0, "ventas": 0.0}
+            )
             fila["pedidos"] += 1
             fila["ventas"] += p.total
 

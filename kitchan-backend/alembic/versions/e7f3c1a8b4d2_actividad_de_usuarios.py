@@ -35,7 +35,8 @@ def upgrade() -> None:
         ),
     )
     op.add_column(
-        "usuarios", sa.Column("ultimo_acceso", sa.DateTime(timezone=True), nullable=True)
+        "usuarios",
+        sa.Column("ultimo_acceso", sa.DateTime(timezone=True), nullable=True),
     )
     op.add_column(
         "pedidos", sa.Column("aceptado_por_id", sa.String(length=36), nullable=True)

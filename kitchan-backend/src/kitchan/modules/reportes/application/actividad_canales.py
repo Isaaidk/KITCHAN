@@ -37,10 +37,17 @@ class ObtenerActividadCanalesUseCase:
 
         canales: dict[str, dict] = {}
         for p in await self.pedidos.listar_desde(restaurante_id, desde):
-            origen = "PEDIDOS_YA" if p.origen.upper() == "PEDIDOSYA" else p.origen.upper()
+            origen = (
+                "PEDIDOS_YA" if p.origen.upper() == "PEDIDOSYA" else p.origen.upper()
+            )
             fila = canales.setdefault(
                 origen,
-                {"canal": origen, "pedidos_hoy": 0, "pedidos_30d": 0, "ultimo_pedido": None},
+                {
+                    "canal": origen,
+                    "pedidos_hoy": 0,
+                    "pedidos_30d": 0,
+                    "ultimo_pedido": None,
+                },
             )
             creado = (
                 p.fecha_creacion

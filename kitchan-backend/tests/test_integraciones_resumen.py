@@ -32,7 +32,9 @@ class PedidosFalsos(PedidosLecturaPort):
 
 
 def _pedido(origen, creado):
-    return PedidoResumen(origen=origen, total=10.0, estado="ENTREGADA", fecha_creacion=creado)
+    return PedidoResumen(
+        origen=origen, total=10.0, estado="ENTREGADA", fecha_creacion=creado
+    )
 
 
 @pytest.mark.asyncio
@@ -105,8 +107,12 @@ async def test_resumen_de_facturacion_cuenta_por_estado():
     use_case = ObtenerResumenFacturacionUseCase(
         FacturasFalsas(
             [
-                _factura(EstadoFactura.AUTORIZADA, 12.5, autorizada_en=t1, actualizada_en=t1),
-                _factura(EstadoFactura.AUTORIZADA, 7.5, autorizada_en=t2, actualizada_en=t2),
+                _factura(
+                    EstadoFactura.AUTORIZADA, 12.5, autorizada_en=t1, actualizada_en=t1
+                ),
+                _factura(
+                    EstadoFactura.AUTORIZADA, 7.5, autorizada_en=t2, actualizada_en=t2
+                ),
                 _factura(EstadoFactura.PENDIENTE_SRI),
                 _factura(EstadoFactura.CON_ERROR),
                 _factura(EstadoFactura.ANULADA),
@@ -147,7 +153,11 @@ async def _admin(client, sufijo="A", ruc="1790000000031"):
             "telefono": "0999999999",
             "email_corporativo": f"info{sufijo}@local.com",
         },
-        "admin": {"nombre": "Admin", "email": f"admin{sufijo}@local.com", "password": "Password123*"},
+        "admin": {
+            "nombre": "Admin",
+            "email": f"admin{sufijo}@local.com",
+            "password": "Password123*",
+        },
     }
     assert (await client.post("/api/v1/onboarding/", json=payload)).status_code == 201
     login = await client.post(
@@ -159,7 +169,9 @@ async def _admin(client, sufijo="A", ruc="1790000000031"):
 
 
 @pytest.mark.asyncio
-async def test_endpoints_de_integraciones_responden_para_el_administrador(client, db_session):
+async def test_endpoints_de_integraciones_responden_para_el_administrador(
+    client, db_session
+):
     admin, headers = await _admin(client)
     db_session.add(
         FacturaPedidoModel(

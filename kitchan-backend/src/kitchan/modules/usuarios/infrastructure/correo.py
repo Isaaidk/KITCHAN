@@ -42,7 +42,9 @@ def _html(nombre: str, codigo: str, minutos: int) -> str:
 
 
 class EnviadorCorreoSMTP(IEnviadorCorreo):
-    def __init__(self, host: str, puerto: int, usuario: str, clave: str, remitente: str):
+    def __init__(
+        self, host: str, puerto: int, usuario: str, clave: str, remitente: str
+    ):
         self.host = host
         self.puerto = puerto
         self.usuario = usuario

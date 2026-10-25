@@ -31,7 +31,8 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
     facturando,
     facturar,
   } = useFacturaPedido(pedido.id);
-  const facturable = pedido.estado === "LISTA" || pedido.estado === "ENTREGADA";
+  // Solo se factura al entregar: es un estado final y ya no se puede cancelar.
+  const facturable = pedido.estado === "ENTREGADA";
   const cancelado = pedido.estado === "CANCELADA";
   const indiceActual = PASOS.indexOf(pedido.estado);
   // Porcentaje de la línea de progreso entre el primer y el último paso.
@@ -224,7 +225,7 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
               aria-live="polite"
             >
               {cargandoFactura && "Consultando…"}
-              {!cargandoFactura && !factura && (facturable ? "Sin facturar" : "Se factura cuando el pedido esté listo")}
+              {!cargandoFactura && !factura && (facturable ? "Sin facturar" : "Se factura cuando el pedido esté entregado")}
               {factura && ETIQUETA_FACTURA[factura.estado]}
             </div>
             {factura?.numero_autorizacion && (

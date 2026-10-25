@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 
 from src.kitchan.core.database import AsyncSessionLocal
 from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
@@ -16,8 +17,20 @@ from src.kitchan.modules.pedidos.infrastructure.repository import (
 
 logger = logging.getLogger(__name__)
 
-MINUTOS_LIMITE = 20
+MINUTOS_LIMITE_POR_DEFECTO = 20
 INTERVALO_BARRIDO_SEGUNDOS = 60
+
+
+def minutos_limite() -> int:
+    """Minutos sin cambios tras los que un pedido se cancela solo. Se configura
+    con AUTO_CANCELAR_MINUTOS; un valor vacío, inválido o <= 0 usa el de por
+    defecto para no cancelar todo por error."""
+    valor = os.getenv("AUTO_CANCELAR_MINUTOS", "").strip()
+    try:
+        minutos = int(valor)
+    except ValueError:
+        return MINUTOS_LIMITE_POR_DEFECTO
+    return minutos if minutos > 0 else MINUTOS_LIMITE_POR_DEFECTO
 
 
 async def _barrer_una_vez(redis_url: str) -> None:
@@ -31,7 +44,8 @@ async def _barrer_una_vez(redis_url: str) -> None:
             repository=repo, notificador=notificador
         )
 
-        estancados = await repo.listar_estancados(MINUTOS_LIMITE)
+        limite = minutos_limite()
+        estancados = await repo.listar_estancados(limite)
         for pedido in estancados:
             # Se filtran antes para no reintentar (y loguear) en cada barrido
             # una cancelación que el caso de uso siempre va a ignorar.
@@ -45,7 +59,7 @@ async def _barrer_una_vez(redis_url: str) -> None:
             logger.info(
                 "⏱️ Pedido %s auto-cancelado: sin cambios en más de %s minutos.",
                 pedido.id,
-                MINUTOS_LIMITE,
+                limite,
             )
 
 

@@ -100,7 +100,9 @@ async def test_el_detalle_de_un_usuario_trae_canales_y_ultimos_pedidos():
 
 @pytest.mark.asyncio
 async def test_un_usuario_sin_actividad_devuelve_ceros():
-    datos = await _use_case([_pedido("luis")]).ejecutar("rest-1", "hoy", usuario_id="ana")
+    datos = await _use_case([_pedido("luis")]).ejecutar(
+        "rest-1", "hoy", usuario_id="ana"
+    )
 
     assert datos["detalle"]["pedidos_atendidos"] == 0
     assert datos["detalle"]["recientes"] == []
@@ -114,7 +116,9 @@ class CorreoFalso(IEnviadorCorreo):
     def __init__(self):
         self.enviados = []
 
-    async def enviar_codigo_recuperacion(self, destinatario, nombre, codigo, minutos_validez):
+    async def enviar_codigo_recuperacion(
+        self, destinatario, nombre, codigo, minutos_validez
+    ):
         self.enviados.append(destinatario)
 
 
@@ -154,7 +158,12 @@ async def _restaurante(client, sufijo, ruc):
 async def _operador(client, restaurante_id, headers, email="op@local.com"):
     res = await client.post(
         f"/api/v1/usuarios/restaurante/{restaurante_id}",
-        json={"nombre": "Operador", "email": email, "password": "Password123*", "rol": "OPERADOR"},
+        json={
+            "nombre": "Operador",
+            "email": email,
+            "password": "Password123*",
+            "rol": "OPERADOR",
+        },
         headers=headers,
     )
     assert res.status_code == 201
@@ -169,7 +178,8 @@ async def test_el_login_guarda_el_ultimo_acceso(client):
     assert operador["creado_en"] is not None
 
     await client.post(
-        "/api/v1/usuarios/login", json={"email": "op@local.com", "password": "Password123*"}
+        "/api/v1/usuarios/login",
+        json={"email": "op@local.com", "password": "Password123*"},
     )
     lista = await client.get(
         f"/api/v1/usuarios/restaurante/{admin['restaurante_id']}", headers=headers
@@ -227,12 +237,17 @@ async def test_endpoint_de_actividad_solo_para_administradores(client):
     admin, headers = await _restaurante(client, "D", "1790000000014")
     await _operador(client, admin["restaurante_id"], headers)
     login = await client.post(
-        "/api/v1/usuarios/login", json={"email": "op@local.com", "password": "Password123*"}
+        "/api/v1/usuarios/login",
+        json={"email": "op@local.com", "password": "Password123*"},
     )
     headers_op = {"Authorization": f"Bearer {login.json()['access_token']}"}
 
-    ok = await client.get("/api/v1/reportes/usuarios/actividad?rango=7d", headers=headers)
-    prohibido = await client.get("/api/v1/reportes/usuarios/actividad", headers=headers_op)
+    ok = await client.get(
+        "/api/v1/reportes/usuarios/actividad?rango=7d", headers=headers
+    )
+    prohibido = await client.get(
+        "/api/v1/reportes/usuarios/actividad", headers=headers_op
+    )
     detalle = await client.get(
         f"/api/v1/reportes/usuarios/{admin['id']}/actividad", headers=headers
     )
@@ -268,16 +283,22 @@ async def test_no_se_envia_codigo_a_usuarios_de_otro_restaurante_ni_desactivados
 ):
     admin_a, headers_a = await _restaurante(client, "F", "1790000000016")
     admin_b, headers_b = await _restaurante(client, "G", "1790000000017")
-    operador_b = await _operador(client, admin_b["restaurante_id"], headers_b, "opb@local.com")
+    operador_b = await _operador(
+        client, admin_b["restaurante_id"], headers_b, "opb@local.com"
+    )
 
     ajeno = await client.post(
         f"/api/v1/usuarios/{operador_b['id']}/codigo-recuperacion", headers=headers_a
     )
     assert ajeno.status_code == 404
 
-    operador_a = await _operador(client, admin_a["restaurante_id"], headers_a, "opa@local.com")
+    operador_a = await _operador(
+        client, admin_a["restaurante_id"], headers_a, "opa@local.com"
+    )
     await client.patch(
-        f"/api/v1/usuarios/{operador_a['id']}/estado", json={"estado": False}, headers=headers_a
+        f"/api/v1/usuarios/{operador_a['id']}/estado",
+        json={"estado": False},
+        headers=headers_a,
     )
     inactivo = await client.post(
         f"/api/v1/usuarios/{operador_a['id']}/codigo-recuperacion", headers=headers_a

@@ -25,9 +25,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("pedidos", sa.Column("metodo_pago", sa.String(length=30), nullable=True))
     op.add_column(
-        "pedidos", sa.Column("fecha_aceptacion", sa.DateTime(timezone=True), nullable=True)
+        "pedidos", sa.Column("metodo_pago", sa.String(length=30), nullable=True)
+    )
+    op.add_column(
+        "pedidos",
+        sa.Column("fecha_aceptacion", sa.DateTime(timezone=True), nullable=True),
     )
     op.add_column(
         "pedidos", sa.Column("fecha_lista", sa.DateTime(timezone=True), nullable=True)
