@@ -86,6 +86,20 @@ const INTEGRACIONES: Record<string, ConfigIntegracion> = {
     // tomado; /reject solo vale mientras el pedido está en SENT (NUEVA).
     cancelacionAceptado: null,
   },
+  WHATSAPP: {
+    base: "/api/v1/integraciones/whatsapp/orders",
+    bodyRechazo: (motivo, detalle) => ({
+      reason: detalle && detalle !== "Cancelado desde KITCHAN" ? `${motivo}: ${detalle}` : motivo,
+    }),
+    motivosRechazo: MOTIVOS_PEDIDOSYA,
+    // El bot le avisa al cliente por WhatsApp, también si se cancela ya aceptado.
+    cancelacionAceptado: {
+      body: (motivo, detalle) => ({
+        reason: detalle && detalle !== "Cancelado desde KITCHAN" ? `${motivo}: ${detalle}` : motivo,
+      }),
+      motivos: MOTIVOS_PEDIDOSYA,
+    },
+  },
   PEDIDOS_YA: {
     base: "/api/v1/integraciones/pedidosya/orders",
     bodyRechazo: bodyMotivoPedidosYa,
