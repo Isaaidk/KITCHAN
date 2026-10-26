@@ -145,6 +145,56 @@ async def test_pedido_valido_se_persiste_como_nueva(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_pedido_guarda_contacto_entrega_pago_y_especificaciones(client, db_session):
+    payload = _payload("WA-FULL") | {
+        "customer_phone": "593991112222",
+        "delivery_type": "DOMICILIO",
+        "delivery_address": "Av. Amazonas N24-15, piso 3",
+        "order_notes": "Tocar el timbre dos veces",
+    }
+    payload["items"] = [
+        {"name": "Latte", "quantity": 1, "unit_price": 3.0, "notes": "leche deslactosada, con crema"},
+        {"name": "Croissant", "quantity": 1, "unit_price": 2.0},
+    ]
+
+    assert (await _post(client, payload)).status_code == 200
+
+    pedido = await PostgresPedidoRepository(session=db_session).buscar_por_id_externo(
+        "WHATSAPP", "WA-FULL"
+    )
+    assert pedido.telefono_cliente == "593991112222"
+    assert pedido.tipo_entrega == "DOMICILIO"
+    assert pedido.direccion_entrega == "Av. Amazonas N24-15, piso 3"
+    assert pedido.nota_cliente == "Tocar el timbre dos veces"
+    assert pedido.metodo_pago == "EFECTIVO"  # normalizado desde "Efectivo"
+    assert pedido.items[0].notas == "leche deslactosada, con crema"
+    assert pedido.items[1].notas is None
+
+
+@pytest.mark.asyncio
+async def test_retiro_en_local_descarta_la_direccion(client, db_session):
+    payload = _payload("WA-RET") | {
+        "delivery_type": "RETIRO",
+        "delivery_address": "Calle que no aplica",
+    }
+
+    assert (await _post(client, payload)).status_code == 200
+
+    pedido = await PostgresPedidoRepository(session=db_session).buscar_por_id_externo(
+        "WHATSAPP", "WA-RET"
+    )
+    assert pedido.tipo_entrega == "RETIRO"
+    assert pedido.direccion_entrega is None
+
+
+@pytest.mark.asyncio
+async def test_tipo_de_entrega_desconocido_es_422(client):
+    respuesta = await _post(client, _payload("WA-BAD") | {"delivery_type": "DRON"})
+
+    assert respuesta.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_pedido_duplicado_no_se_duplica(client, db_session):
     r1 = await _post(client, _payload("WA-DUP"))
     r2 = await _post(client, _payload("WA-DUP"))

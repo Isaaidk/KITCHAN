@@ -9,6 +9,9 @@ from src.kitchan.modules.integraciones.core.domain.entities import (
     KitchanOrderDTO,
     KitchanOrderItem,
 )
+from src.kitchan.modules.integraciones.core.domain.metodos_pago import (
+    normalizar_metodo_pago,
+)
 from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
     OrderDispatcherPort,
 )
@@ -53,6 +56,14 @@ class WhatsAppWebhookUseCase:
             ],
             total=payload.total,
             estado="NUEVA",
+            metodo_pago=normalizar_metodo_pago(payload.payment_method),
+            telefono_cliente=payload.customer_phone,
+            tipo_entrega=payload.delivery_type,
+            # Un retiro en local no tiene dirección aunque el bot la enviara.
+            direccion_entrega=(
+                payload.delivery_address if payload.delivery_type == "DOMICILIO" else None
+            ),
+            nota_cliente=payload.order_notes,
         )
 
     async def procesar_nuevo_pedido(self, payload: WhatsAppOrderPayload) -> bool:

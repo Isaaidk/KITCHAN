@@ -6,7 +6,7 @@ terceros sino un servicio propio, así que el contrato es nuestro y estable.
 Los montos vienen en unidades de moneda (no centavos).
 """
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,7 +17,8 @@ class WhatsAppOrderItemPayload(BaseModel):
     name: str
     quantity: int = Field(default=1, ge=1)
     unit_price: float = Field(default=0.0, ge=0)
-    notes: Optional[str] = None
+    # Especificación del cliente para este producto (p. ej. "leche deslactosada, con crema").
+    notes: Optional[str] = Field(default=None, max_length=300)
 
 
 class WhatsAppOrderPayload(BaseModel):
@@ -34,3 +35,9 @@ class WhatsAppOrderPayload(BaseModel):
     total: float = Field(gt=0)
     currency: Optional[str] = None
     payment_method: Optional[str] = None
+    # Número de WhatsApp del cliente (contacto para el restaurante / repartidor).
+    customer_phone: Optional[str] = Field(default=None, max_length=30)
+    delivery_type: Optional[Literal["DOMICILIO", "RETIRO"]] = None
+    delivery_address: Optional[str] = Field(default=None, max_length=300)
+    # Indicaciones generales del cliente para todo el pedido.
+    order_notes: Optional[str] = Field(default=None, max_length=500)

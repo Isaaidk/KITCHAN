@@ -357,3 +357,30 @@
     font-size: 0.68rem;
   }
 }
+
+.entrega {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.85rem;
+}
+
+.entrega > div {
+  display: flex;
+  gap: 10px;
+}
+
+.entrega dt {
+  flex: 0 0 76px;
+  color: var(--color-text-muted);
+}
+
+.entrega dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}

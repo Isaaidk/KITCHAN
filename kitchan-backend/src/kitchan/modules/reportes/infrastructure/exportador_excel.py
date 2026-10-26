@@ -48,6 +48,13 @@ class ExportadorExcel(ExportadorAnaliticasPort):
             [[nombre, actual[k], previo[k]] for nombre, k in metricas],
             [42, 16, 18],
         )
+        pico = dashboard["hora_pico"]
+        for nombre, valor in (
+            ("Hora pico", f"{pico['hora']:02d}:00 ({pico['pedidos']} pedidos)" if pico else "Sin pedidos"),
+            ("Productos distintos vendidos", dashboard["productos_distintos"]),
+            ("Umbral de demora (min)", dashboard["umbral_demora_minutos"]),
+        ):
+            hoja.append([nombre, valor])
         hoja["E1"] = "Periodo"
         hoja["F1"] = f"{dashboard['desde']} al {dashboard['hasta']} ({dashboard['rango']})"
         hoja["E2"] = "Canal"
@@ -124,6 +131,45 @@ class ExportadorExcel(ExportadorAnaliticasPort):
             productos,
             [18, 40, 10, 12],
         )
+
+        pagos = dashboard["metodos_pago"]
+        hoja_pagos = libro.create_sheet("Métodos de pago")
+        _tabla(
+            hoja_pagos,
+            ["Método", "Pedidos", "Ventas ($)", "% pedidos", "% ventas"],
+            [
+                [m["metodo"], m["pedidos"], m["ventas"], m["porcentaje_pedidos"], m["porcentaje_ventas"]]
+                for m in pagos["items"]
+            ],
+            [20, 10, 12, 11, 11],
+        )
+        hoja_pagos.append([])
+        hoja_pagos.append(["Pedidos sin método informado", pagos["sin_dato"]])
+        hoja_pagos.append(["Cobertura del dato (%)", pagos["cobertura"]])
+
+        clientes = dashboard["clientes"]
+        hoja_clientes = libro.create_sheet("Clientes")
+        _tabla(
+            hoja_clientes,
+            ["Indicador", "Valor"],
+            [
+                ["Identificación de clientes por", clientes["identificacion"]],
+                ["Clientes únicos", clientes["clientes_unicos"]],
+                ["Clientes recurrentes", clientes["clientes_recurrentes"]],
+                ["Tasa de recurrencia (%)", clientes["tasa_recurrencia"]],
+                ["Pedidos por cliente", clientes["pedidos_por_cliente"]],
+                ["Pedidos analizados", clientes["pedidos_analizados"]],
+            ],
+            [34, 18, 12],
+        )
+        hoja_clientes.append([])
+        hoja_clientes.append(["Pedidos por cliente (distribución)", "Clientes"])
+        for d in clientes["distribucion"]:
+            hoja_clientes.append([d["etiqueta"], d["clientes"]])
+        hoja_clientes.append([])
+        hoja_clientes.append(["Clientes más frecuentes", "Pedidos", "Ventas ($)"])
+        for c in clientes["mas_frecuentes"]:
+            hoja_clientes.append([c["cliente"], c["pedidos"], c["ventas"]])
 
         salida = BytesIO()
         libro.save(salida)

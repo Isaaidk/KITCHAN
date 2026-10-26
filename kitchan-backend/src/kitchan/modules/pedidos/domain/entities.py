@@ -31,6 +31,10 @@ class Pedido(BaseModel):
     id_externo: Optional[str] = None  # El ID largo que nos manda Uber
     cliente: str
     nota_cliente: Optional[str] = None
+    # Datos de contacto y entrega que informa el canal; None cuando no los da.
+    telefono_cliente: Optional[str] = None
+    tipo_entrega: Optional[str] = None  # DOMICILIO | RETIRO
+    direccion_entrega: Optional[str] = None
     items: List[PedidoItem]
     total: float
     estado: EstadoPedido = EstadoPedido.NUEVA

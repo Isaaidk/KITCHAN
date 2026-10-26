@@ -38,7 +38,7 @@ def _dashboard(pedidos):
     )
 
 
-def _pedido(origen, total, estado="ENTREGADA", horas_atras=1):
+def _pedido(origen, total, estado="ENTREGADA", horas_atras=1, cliente="", metodo_pago=None):
     creado = AHORA - timedelta(hours=horas_atras)
     return PedidoResumen(
         origen=origen,
@@ -46,6 +46,8 @@ def _pedido(origen, total, estado="ENTREGADA", horas_atras=1):
         estado=estado,
         fecha_creacion=creado,
         fecha_actualizacion=creado + timedelta(minutes=12),
+        cliente=cliente,
+        metodo_pago=metodo_pago,
         items=[ItemResumen(nombre="Hamburguesa <Doble> & Papas", cantidad=2, precio_unitario=total / 2)],
     )
 
@@ -57,7 +59,11 @@ def _caso_de_uso(pedidos):
     )
 
 
-PEDIDOS = [_pedido("RAPPI", 20.0), _pedido("WHATSAPP", 10.0), _pedido("RAPPI", 5.0, "CANCELADA")]
+PEDIDOS = [
+    _pedido("RAPPI", 20.0, cliente="Ana Pérez", metodo_pago="TARJETA"),
+    _pedido("WHATSAPP", 10.0, cliente="Ana Pérez", metodo_pago="EFECTIVO"),
+    _pedido("RAPPI", 5.0, "CANCELADA", cliente="Luis Mora"),
+]
 
 
 @pytest.mark.asyncio
@@ -67,10 +73,18 @@ async def test_excel_incluye_las_hojas_y_los_datos_del_periodo():
     libro = load_workbook(BytesIO(contenido))
     assert libro.sheetnames == [
         "Resumen", "Por canal", "Por día", "Por hora", "Día de la semana", "Productos",
+        "Métodos de pago", "Clientes",
     ]
     assert libro["Resumen"]["B2"].value == 3  # pedidos totales
     canales = {fila[0].value for fila in libro["Por canal"].iter_rows(min_row=2)}
     assert canales == {"RAPPI", "WHATSAPP"}
+    metodos = {f[0].value: f[1].value for f in libro["Métodos de pago"].iter_rows(min_row=2, max_row=3)}
+    assert metodos == {"TARJETA": 1, "EFECTIVO": 1}
+    indicadores = {f[0].value: f[1].value for f in libro["Clientes"].iter_rows(min_row=2, max_row=7)}
+    assert indicadores["Clientes únicos"] == 1  # el pedido cancelado de Luis Mora no cuenta
+    assert indicadores["Clientes recurrentes"] == 1  # Ana Pérez pidió dos veces
+    resumen = {f[0].value for f in libro["Resumen"].iter_rows(min_row=2)}
+    assert {"Hora pico", "Productos distintos vendidos", "Umbral de demora (min)"} <= resumen
     assert exportador.extension == "xlsx"
     assert nombre == "kitchan-analiticas-7d-2026-10-08.xlsx"
 

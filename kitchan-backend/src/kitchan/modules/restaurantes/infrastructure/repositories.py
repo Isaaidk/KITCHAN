@@ -4,10 +4,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.modules.restaurantes.application.ports import IRestauranteRepository
-from src.kitchan.modules.restaurantes.domain.entities import Restaurante
+from src.kitchan.modules.restaurantes.domain.entities import (
+    AdministradorInicial,
+    Restaurante,
+)
 from src.kitchan.modules.restaurantes.domain.exceptions import RegistroDuplicadoError
 from src.kitchan.modules.restaurantes.infrastructure.models import RestauranteModel
-from src.kitchan.modules.usuarios.domain.entities import Usuario
+
+# Único punto donde Restaurantes toca la tabla de Usuarios: el onboarding debe
+# guardar restaurante y administrador en UNA transacción, así que comparten sesión.
 from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
 
 
@@ -34,8 +39,8 @@ class PostgresRestauranteRepository(IRestauranteRepository):
         self.session = session
 
     async def crear_con_admin(
-        self, restaurante: Restaurante, admin: Usuario
-    ) -> tuple[Restaurante, Usuario]:
+        self, restaurante: Restaurante, admin: AdministradorInicial
+    ) -> tuple[Restaurante, AdministradorInicial]:
         # 1. Mapeamos la Entidad de Dominio Restaurante al Modelo de SQLAlchemy
         restaurante_model = RestauranteModel(
             id=uuid.UUID(restaurante.id),
@@ -55,7 +60,7 @@ class PostgresRestauranteRepository(IRestauranteRepository):
             nombre=admin.nombre,
             email=admin.email,
             password_hash=admin.password_hash,
-            rol=admin.rol.value,  # Extraemos el string del Enum
+            rol=admin.rol,
             estado=admin.estado,
         )
 

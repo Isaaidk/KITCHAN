@@ -131,6 +131,7 @@ export default function OrderCard({ pedido, onAbrir, indice = 0 }: Props) {
       <div className={styles.meta}>
         <span className={styles.detalle}>
           {unidades} {unidades === 1 ? "ítem" : "ítems"}
+          {pedido.tipo_entrega && ` · ${pedido.tipo_entrega === "DOMICILIO" ? "Domicilio" : "Retira en local"}`}
         </span>
         <strong className={styles.total}>{moneda(pedido.total)}</strong>
       </div>

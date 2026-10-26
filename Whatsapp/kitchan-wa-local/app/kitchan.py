@@ -57,11 +57,15 @@ def build_payload(order: dict) -> dict:
         "order_id": order["kitchan_order_id"],
         "store_id": STORE_ID,
         "customer_name": order.get("customer_name") or f"WhatsApp ***{order['customer_phone'][-4:]}",
-        "items": [{"name": i["title"], "quantity": i["quantity"], "unit_price": i["unit_price"]}
-                  for i in order["items"]],
+        "items": [{"name": i["title"], "quantity": i["quantity"], "unit_price": i["unit_price"],
+                   "notes": i.get("notes") or None} for i in order["items"]],
         "total": order["total"],
         "currency": order.get("currency") or None,
         "payment_method": order.get("payment_method") or None,
+        "customer_phone": order.get("customer_phone") or None,
+        "delivery_type": order.get("delivery_type") or None,
+        "delivery_address": order.get("delivery_address") or None,
+        "order_notes": order.get("order_notes") or None,
     }
 
 
