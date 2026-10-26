@@ -1,10 +1,9 @@
-"""Caso de uso de Reportes: exporta las analíticas del día a un archivo."""
+"""Caso de uso de Reportes: exporta el dashboard de analíticas a un archivo."""
 
-from datetime import date
-from typing import Callable
+from typing import Optional
 
-from src.kitchan.modules.reportes.application.analiticas_pedidos import (
-    ObtenerAnaliticasPedidosUseCase,
+from src.kitchan.modules.reportes.application.dashboard_pedidos import (
+    ObtenerDashboardPedidosUseCase,
 )
 from src.kitchan.modules.reportes.domain.ports import ExportadorAnaliticasPort
 
@@ -16,22 +15,24 @@ class FormatoExportacionNoSoportado(ValueError):
 class ExportarAnaliticasPedidosUseCase:
     def __init__(
         self,
-        analiticas: ObtenerAnaliticasPedidosUseCase,
+        dashboard: ObtenerDashboardPedidosUseCase,
         exportadores: dict[str, ExportadorAnaliticasPort],
-        hoy: Callable[[], date] = date.today,
     ):
-        self.analiticas = analiticas
+        self.dashboard = dashboard
         self.exportadores = exportadores
-        self.hoy = hoy
 
     async def ejecutar(
-        self, restaurante_id: str, formato: str
+        self,
+        restaurante_id: str,
+        formato: str,
+        rango: str = "hoy",
+        canal: Optional[str] = None,
     ) -> tuple[bytes, ExportadorAnaliticasPort, str]:
         """Devuelve (contenido, exportador, nombre_de_archivo)."""
         exportador = self.exportadores.get(formato)
         if exportador is None:
             raise FormatoExportacionNoSoportado(formato)
-        datos = await self.analiticas.ejecutar(restaurante_id)
-        fecha = self.hoy().isoformat()
-        contenido = exportador.exportar(datos, fecha)
-        return contenido, exportador, f"kitchan-analiticas-{fecha}.{exportador.extension}"
+        datos = await self.dashboard.ejecutar(restaurante_id, rango, canal)
+        sufijo = f"-{canal.lower()}" if canal else ""
+        nombre = f"kitchan-analiticas-{rango}{sufijo}-{datos['hasta']}.{exportador.extension}"
+        return exportador.exportar(datos), exportador, nombre

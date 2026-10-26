@@ -2,7 +2,8 @@ import { FormEvent, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { httpClient } from "../../shared/api/httpClient";
 import Icon from "../../shared/components/Icon";
-import { useAuthStore } from "../../shared/stores/authStore";
+import KitchanLogo from "../../shared/components/KitchanLogo";
+import { recordarSesion, useAuthStore } from "../../shared/stores/authStore";
 import type { LoginResponse } from "../../shared/types/usuario";
 import AuthLayout from "./AuthLayout";
 import styles from "./LoginPage.module.css";
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [recordar, setRecordar] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   // Se incrementa en cada error para volver a reproducir la animación.
@@ -49,6 +51,8 @@ export default function LoginPage() {
         email: correo,
         password: clave,
       });
+      // Decide dónde se guarda la sesión: con "Recordarme" sobrevive al cerrar el navegador.
+      recordarSesion(recordar);
       login(data.access_token, data.usuario);
       navigate("/", { replace: true });
     } catch {
@@ -69,35 +73,43 @@ export default function LoginPage() {
   return (
     <AuthLayout>
       <div className={styles.logoMovil}>
-        <div className={styles.logo}>K</div>
+        <KitchanLogo tamano={34} />
       </div>
-      <h2 className={styles.formTitulo}>Bienvenido de nuevo</h2>
-      <p className={styles.formBajada}>Ingresa para ver la cola de pedidos de tu cocina.</p>
+      <h2 className={styles.saludo}>
+        ¡Bienvenido a<strong>Vangalia KITCHAN!</strong>
+      </h2>
+      <p className={styles.formBajada}>
+        Inicia sesión para gestionar tus pedidos y hacer que cada momento cuente.
+      </p>
 
       <form onSubmit={onSubmit}>
         <div className="field">
           <label className="label" htmlFor="email">
-            Email
+            Correo electrónico
           </label>
-          <input
-            id="email"
-            ref={emailRef}
-            name="email"
-            className="input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="username"
-            spellCheck={false}
-            placeholder="tu@restaurante.com…"
-          />
+          <div className={styles.campoIcono}>
+            <Icon name="correo" size={18} className={styles.iconoCampo} />
+            <input
+              id="email"
+              ref={emailRef}
+              name="email"
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              spellCheck={false}
+              placeholder="tu@correo.com…"
+            />
+          </div>
         </div>
 
         <div className="field">
           <label className="label" htmlFor="password">
             Contraseña
           </label>
-          <div className={styles.filaPassword}>
+          <div className={`${styles.campoIcono} ${styles.filaPassword}`}>
+            <Icon name="candado" size={18} className={styles.iconoCampo} />
             <input
               id="password"
               ref={passwordRef}
@@ -107,7 +119,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              placeholder="••••••••"
+              placeholder="Ingresa tu contraseña…"
             />
             <button
               type="button"
@@ -116,9 +128,28 @@ export default function LoginPage() {
               aria-label={mostrarPassword ? "Ocultar contraseña" : "Ver contraseña"}
               title={mostrarPassword ? "Ocultar" : "Ver"}
             >
-              <Icon name={mostrarPassword ? "ojoOff" : "ojo"} size={17} />
+              <Icon name={mostrarPassword ? "ojoOff" : "ojo"} size={18} />
             </button>
           </div>
+        </div>
+
+        <div className={styles.opciones}>
+          <label className={styles.recordar}>
+            <input
+              type="checkbox"
+              name="recordar"
+              className={styles.recordarInput}
+              checked={recordar}
+              onChange={(e) => setRecordar(e.target.checked)}
+            />
+            <span className={styles.recordarCaja} aria-hidden="true">
+              <Icon name="check" size={14} strokeWidth={3} />
+            </span>
+            Recordarme
+          </label>
+          <Link to="/recuperar" className={styles.olvido}>
+            ¿Olvidaste tu contraseña?
+          </Link>
         </div>
 
         {error && (
@@ -133,14 +164,10 @@ export default function LoginPage() {
           className={`btn btn-primary btn-block ${styles.submit} ${cargando ? "is-loading" : ""}`}
           disabled={cargando}
         >
-          {cargando ? "Ingresando…" : "Ingresar"}
-          {!cargando && <Icon name="flecha" size={16} />}
+          {cargando ? "Ingresando…" : "Iniciar sesión"}
+          {!cargando && <Icon name="flecha" size={18} />}
         </button>
       </form>
-
-      <p className={styles.alternativa}>
-        ¿Primera vez en KITCHAN? <Link to="/registro">Crear restaurante nuevo</Link>
-      </p>
 
       {(DEMO_ADMIN.email || DEMO_OPERADOR.email) && (
         <div className={styles.demo}>

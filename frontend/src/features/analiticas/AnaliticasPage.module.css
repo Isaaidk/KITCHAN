@@ -1,0 +1,320 @@
+.acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.secciones {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.secciones > :global(.dosColumnas),
+.secciones > div {
+  margin-bottom: 0;
+}
+
+.actualizando {
+  opacity: 0.6;
+  transition: opacity var(--dur) ease;
+}
+
+.ancho {
+  width: 100%;
+}
+
+/* ---------- Comparación de canales ---------- */
+.conclusiones {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.conclusiones li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  font-size: 0.82rem;
+  color: var(--color-primary);
+}
+
+.conclusiones strong {
+  font-weight: 800;
+}
+
+.conclusionDemora {
+  background: var(--color-amber-soft) !important;
+  color: var(--color-warning) !important;
+}
+
+.tablaScroll {
+  overflow-x: auto;
+}
+
+.canalCelda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.canalNombre {
+  font-weight: 700;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.etiqueta {
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.etiquetaDemanda {
+  background: var(--color-teal-soft);
+  color: #0f5c5c;
+}
+
+.etiquetaDemora {
+  background: var(--color-amber-soft);
+  color: var(--color-warning);
+}
+
+.pedidosCelda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
+}
+
+.participacionFondo {
+  flex: 1;
+  height: 6px;
+  min-width: 50px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.participacionRelleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left;
+  animation: crece 700ms var(--ease-out) both;
+}
+
+.participacionTexto {
+  min-width: 38px;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.sub {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--color-text-subtle);
+}
+
+.alerta {
+  font-weight: 800;
+  color: var(--color-danger);
+}
+
+@keyframes crece {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------- Horarios ---------- */
+.picoChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ---------- Clientes ---------- */
+.estadisticas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.estadisticas > div {
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+}
+
+.estadisticas dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.estadisticas dd {
+  margin: 2px 0 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.estadisticas small {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.distribucion {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.distribucion li {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.distribucionEtiqueta {
+  color: var(--color-text-muted);
+}
+
+.distribucionFondo {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.distribucionRelleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-teal);
+  transform-origin: left;
+  animation: crece 700ms var(--ease-out) both;
+}
+
+.distribucionNumero {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.subtitulo {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.frecuentes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.frecuentes li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--color-border);
+  font-size: 0.86rem;
+}
+
+.frecuentes li:last-child {
+  border-bottom: none;
+}
+
+.frecuenteNombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.frecuenteCifras {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Métodos de pago ---------- */
+.pagos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+}
+
+.pagos > :last-child {
+  flex: 1;
+  min-width: 260px;
+}
+
+.metodo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.metodoPunto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.nota {
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 560px) {
+  .estadisticas {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Cifras con la tipografía de la marca */
+.estadisticas dd {
+  font-family: var(--font-cifras);
+  font-weight: 700;
+  font-feature-settings: "lnum" 1;
+}

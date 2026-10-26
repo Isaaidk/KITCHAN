@@ -15,7 +15,7 @@
   position: relative;
   overflow: hidden;
   pointer-events: auto;
-  background: rgba(255, 255, 255, 0.96);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--color-border);
@@ -36,7 +36,7 @@
 
 .critica {
   --tono: var(--color-danger);
-  border-color: #fecaca;
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
 }
 
 .saliendo {
@@ -74,12 +74,12 @@
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tono) 12%, white);
+  background: color-mix(in srgb, var(--tono) 12%, var(--color-surface));
   color: var(--tono);
 }
 
 .nuevo .icono {
-  --pulse-color: rgba(37, 99, 235, 0.4);
+  --pulse-color: rgba(107, 30, 60, 0.4);
   animation: kt-pulse-ring 1.5s ease-out 3;
 }
 

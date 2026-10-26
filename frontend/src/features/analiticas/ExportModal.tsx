@@ -3,19 +3,33 @@ import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
 import { httpClient } from "../../shared/api/httpClient";
+import { moneda, numero } from "../../shared/utils/formato";
 import { infoCanal } from "../pedidos/estadoUtils";
-import type { AnaliticasPedidos } from "./types";
+import type { DashboardPedidos } from "./types";
 import styles from "./ExportModal.module.css";
 
 interface Props {
-  datos: AnaliticasPedidos;
+  datos: DashboardPedidos;
   onClose: () => void;
 }
 
-function generarCSV(datos: AnaliticasPedidos): string {
-  const filas = [["canal", "pedidos_hoy"]];
-  Object.entries(datos.por_canal).forEach(([canal, cantidad]) => {
-    filas.push([canal, String(cantidad)]);
+// Con puntos decimales fijos y sin separador de miles: el CSV debe abrirse igual en cualquier Excel.
+const dos = (n: number) => n.toFixed(2);
+
+function generarCSV(datos: DashboardPedidos): string {
+  const filas = [
+    ["canal", "pedidos", "cancelados", "ventas", "ticket_promedio", "tiempo_promedio_min", "porcentaje_demorados"],
+  ];
+  datos.por_canal.forEach((c) => {
+    filas.push([
+      c.canal,
+      String(c.pedidos),
+      String(c.cancelados),
+      dos(c.ventas),
+      dos(c.ticket_promedio),
+      c.tiempo_promedio_minutos.toFixed(1),
+      c.tasa_demora.toFixed(1),
+    ]);
   });
   return filas.map((fila) => fila.join(",")).join("\n");
 }
@@ -23,8 +37,8 @@ function generarCSV(datos: AnaliticasPedidos): string {
 // Fecha local (AAAA-MM-DD): toISOString usa UTC y de noche daría la fecha de mañana.
 const formatoFecha = new Intl.DateTimeFormat("sv-SE", { year: "numeric", month: "2-digit", day: "2-digit" });
 
-function nombreArchivo(extension: "csv" | "xlsx" | "pdf"): string {
-  return `kitchan-analiticas-${formatoFecha.format(new Date())}.${extension}`;
+function nombreArchivo(rango: string, extension: "csv" | "xlsx" | "pdf"): string {
+  return `kitchan-analiticas-${rango}-${formatoFecha.format(new Date())}.${extension}`;
 }
 
 export default function ExportModal({ datos, onClose }: Props) {
@@ -35,8 +49,9 @@ export default function ExportModal({ datos, onClose }: Props) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const csv = generarCSV(datos);
 
-  const canales = Object.entries(datos.por_canal);
-  const total = canales.reduce((suma, [, cantidad]) => suma + cantidad, 0);
+  const canales = datos.por_canal;
+  const ventas = canales.reduce((suma, c) => suma + c.ventas, 0);
+  const pedidos = canales.reduce((suma, c) => suma + c.pedidos, 0);
 
   useEffect(
     () => () => {
@@ -71,7 +86,7 @@ export default function ExportModal({ datos, onClose }: Props) {
   };
 
   const descargar = () =>
-    descargarBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), nombreArchivo("csv"));
+    descargarBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), nombreArchivo(datos.rango, "csv"));
 
   // Excel y PDF los genera el backend (mismas métricas que ve el dashboard).
   const descargarServidor = async (formato: "xlsx" | "pdf") => {
@@ -79,10 +94,10 @@ export default function ExportModal({ datos, onClose }: Props) {
     setGenerando(formato);
     try {
       const { data } = await httpClient.get<Blob>("/api/v1/reportes/pedidos/analiticas/exportar", {
-        params: { formato },
+        params: { formato, rango: datos.rango, ...(datos.canal ? { canal: datos.canal } : {}) },
         responseType: "blob",
       });
-      descargarBlob(data, nombreArchivo(formato));
+      descargarBlob(data, nombreArchivo(datos.rango, formato));
     } catch {
       setError(`No se pudo generar el archivo ${formato === "xlsx" ? "Excel" : "PDF"}. Inténtalo de nuevo.`);
     } finally {
@@ -93,28 +108,29 @@ export default function ExportModal({ datos, onClose }: Props) {
   return (
     <Modal titulo="Exportar analíticas" onClose={onClose}>
       <p className={styles.intro}>
-        Descarga las analíticas del día en Excel (.xlsx), PDF o CSV. Vista previa: pedidos de hoy por canal.
+        Analíticas del periodo ({datos.desde === datos.hasta ? datos.desde : `${datos.desde} al ${datos.hasta}`}) en
+        Excel o PDF con el dashboard completo, o el CSV de comparación de canales.
       </p>
 
       <div className={styles.vista}>
         <div className={styles.vistaTitulo}>
           Vista previa
           <span className={styles.vistaResumen}>
-            {canales.length} {canales.length === 1 ? "canal" : "canales"} · {total}{" "}
-            {total === 1 ? "pedido" : "pedidos"}
+            {canales.length} {canales.length === 1 ? "canal" : "canales"}, {numero(pedidos)}{" "}
+            {pedidos === 1 ? "pedido" : "pedidos"} y {moneda(ventas)} en ventas
           </span>
         </div>
         {canales.length === 0 ? (
-          <div className={styles.vacio}>Aún no hay pedidos hoy, así que el archivo solo tendría la cabecera.</div>
+          <div className={styles.vacio}>Aún no hay pedidos en este periodo, así que el archivo solo tendría la cabecera.</div>
         ) : (
           <ul className={styles.lista}>
-            {canales.map(([canal, cantidad]) => {
-              const { nombre, color } = infoCanal(canal);
+            {canales.map((c) => {
+              const { nombre, color } = infoCanal(c.canal);
               return (
-                <li key={canal} className={styles.fila}>
-                  <CanalLogo canal={canal} color={color} nombre={nombre} size={26} />
+                <li key={c.canal} className={styles.fila}>
+                  <CanalLogo canal={c.canal} color={color} nombre={nombre} size={26} />
                   <span className={styles.canal}>{nombre}</span>
-                  <span className={styles.cantidad}>{cantidad}</span>
+                  <span className={styles.cantidad}>{moneda(c.ventas)}</span>
                 </li>
               );
             })}

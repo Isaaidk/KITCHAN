@@ -4,7 +4,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
+from src.kitchan.modules.usuarios.domain.entities import (
+    CodigoRecuperacion,
+    RolUsuario,
+    Usuario,
+)
 
 
 class IUsuarioRepository(ABC):
@@ -45,12 +49,57 @@ class IUsuarioRepository(ABC):
         pass
 
     @abstractmethod
+    async def registrar_acceso(self, usuario_id: str) -> None:
+        """Guarda la fecha y hora del último inicio de sesión."""
+        pass
+
+    @abstractmethod
     async def listar_por_restaurante(self, restaurante_id: str) -> list[Usuario]:
         """Lista únicamente los usuarios que pertenecen a un restaurante específico (Multi-tenant)."""
         pass
 
     @abstractmethod
     async def listar(self) -> list[Usuario]:
+        pass
+
+
+class ICodigosRecuperacionRepository(ABC):
+    """Puerto de salida: códigos de verificación para restablecer la contraseña."""
+
+    @abstractmethod
+    async def crear(self, codigo: CodigoRecuperacion) -> CodigoRecuperacion:
+        pass
+
+    @abstractmethod
+    async def buscar_por_id(self, codigo_id: str) -> Optional[CodigoRecuperacion]:
+        pass
+
+    @abstractmethod
+    async def ultimo_de_usuario(self, usuario_id: str) -> Optional[CodigoRecuperacion]:
+        """Código más reciente del usuario (usado o no)."""
+        pass
+
+    @abstractmethod
+    async def registrar_intento_fallido(self, codigo_id: str) -> None:
+        pass
+
+    @abstractmethod
+    async def marcar_usado(self, codigo_id: str) -> None:
+        pass
+
+    @abstractmethod
+    async def invalidar_de_usuario(self, usuario_id: str) -> None:
+        """Marca como usados todos los códigos pendientes del usuario."""
+        pass
+
+
+class IEnviadorCorreo(ABC):
+    """Puerto de salida: envío de correos transaccionales."""
+
+    @abstractmethod
+    async def enviar_codigo_recuperacion(
+        self, destinatario: str, nombre: str, codigo: str, minutos_validez: int
+    ) -> None:
         pass
 
 

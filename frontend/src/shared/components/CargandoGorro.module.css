@@ -1,0 +1,56 @@
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 16px;
+}
+
+.gorro {
+  color: var(--color-primary);
+  animation: rebotar 0.9s cubic-bezier(0.3, 0, 0.4, 1) infinite;
+}
+
+.sombra {
+  width: 38px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  animation: sombra 0.9s cubic-bezier(0.3, 0, 0.4, 1) infinite;
+}
+
+.texto {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+@keyframes rebotar {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(4deg);
+  }
+}
+
+@keyframes sombra {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scaleX(0.6);
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gorro,
+  .sombra {
+    animation: none;
+  }
+}

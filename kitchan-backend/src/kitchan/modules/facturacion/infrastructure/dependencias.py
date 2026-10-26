@@ -11,6 +11,9 @@ from src.kitchan.modules.facturacion.application.facturar_pedido import (
     ConsultarFacturaPedidoUseCase,
     FacturarPedidoUseCase,
 )
+from src.kitchan.modules.facturacion.application.resumen_facturacion import (
+    ObtenerResumenFacturacionUseCase,
+)
 from src.kitchan.modules.facturacion.domain.ports import OdooFacturacionPort
 from src.kitchan.modules.facturacion.infrastructure.odoo_json2_adapter import (
     OdooJson2Adapter,
@@ -44,6 +47,12 @@ def get_consultar_use_case(
     db: AsyncSession = Depends(get_db),
 ) -> ConsultarFacturaPedidoUseCase:
     return ConsultarFacturaPedidoUseCase(facturas=PostgresFacturaRepository(db))
+
+
+def get_resumen_use_case(
+    db: AsyncSession = Depends(get_db),
+) -> ObtenerResumenFacturacionUseCase:
+    return ObtenerResumenFacturacionUseCase(facturas=PostgresFacturaRepository(db))
 
 
 def get_actualizar_use_case(

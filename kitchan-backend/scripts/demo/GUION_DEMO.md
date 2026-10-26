@@ -11,7 +11,8 @@ Duración sugerida: **8–10 minutos**.
 ## Arranque (5 minutos antes)
 
 1. Doble clic en `kitchan-backend/scripts/demo/iniciar_demo.cmd`.
-   Abre Docker, las APIs falsas, el backend, el frontend, el navegador y la ventana **"KITCHAN - Menu de la demo"**.
+   Abre Docker, **aplica las migraciones de la base de datos**, levanta las APIs falsas, el backend y el frontend, y abre el navegador y la ventana **"KITCHAN - Menu de la demo"**.
+   Si el script se detiene con "No se pudieron aplicar las migraciones", corre `alembic upgrade head` desde `kitchan-backend` y vuelve a intentarlo (sin ese paso el Dashboard, la cola y el historial fallan).
 2. Inicia sesión en KITCHAN con el usuario administrador.
 3. Deja lado a lado el **navegador (KDS)** y la ventana del **menú de la demo**.
 4. Si en la cola quedaron pedidos de ensayos anteriores, márcalos como **Entregado** para empezar con el tablero limpio (los que siguen en *Nueva* o *En preparación* se cancelan solos a los 20 minutos).
@@ -28,7 +29,7 @@ Duración sugerida: **8–10 minutos**.
 | 6 | Abres el detalle de un pedido | Línea de tiempo, productos y notas | "El detalle muestra el estado y lo que pidió el cliente." |
 | 7 | Menú → **1** y luego **4** (el cliente cancela) | La tarjeta se cancela con aviso rojo | "Si el cliente cancela desde la app de Rappi, KITCHAN lo refleja al instante." |
 | 8 | **Cancelar** el pedido de PedidosYa con un motivo | Se cancela y avisa a la plataforma | "Cada plataforma tiene sus propios motivos de rechazo y KITCHAN usa los correctos." |
-| 9 | **Analíticas** | Pedidos del día por canal | "Las métricas del día se calculan por canal." |
+| 9 | **Dashboard** y luego **Analíticas** | Ventas, ticket promedio y tiempo de preparación; comparación de canales, platos más vendidos y horas pico | "El dashboard resume el día y las analíticas comparan canales, platos y horarios." |
 
 ## Cierre (1 minuto)
 

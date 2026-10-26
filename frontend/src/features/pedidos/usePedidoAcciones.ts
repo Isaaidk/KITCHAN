@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { mensajeDeError } from "../../shared/api/mensajeDeError";
+import { useCelebracionStore } from "../../shared/stores/celebracionStore";
 import { useToastStore } from "../../shared/stores/toastStore";
 import type { Pedido } from "../../shared/types/pedido";
 import {
@@ -64,7 +65,12 @@ export function usePedidoAcciones(pedido: Pedido) {
     setMostrarCancelar,
     aceptar: () => ejecutar(aceptarPedido),
     marcarListo: () => ejecutar(marcarPedidoListo),
-    marcarEntregado: () => ejecutar(marcarPedidoEntregado),
+    marcarEntregado: async () => {
+      const entregado = await ejecutar(marcarPedidoEntregado);
+      // Pedido entregado: pequeña celebración para el equipo.
+      if (entregado) useCelebracionStore.getState().celebrar();
+      return entregado;
+    },
     // La cancelación deja que el error suba: el modal lo muestra en su
     // propio aviso y se mantiene abierto para reintentar.
     confirmarCancelacion,

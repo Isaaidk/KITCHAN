@@ -5,7 +5,7 @@
 # tambien se llama "KITCHAN") ni Windows Terminal con otras pestanas abiertas.
 # Despues detiene Postgres y Redis sin borrar datos.
 
-$patron = '(?i)kitchan.*(api_rappi_falsa|api_pedidosya_falsa|src\.kitchan\.main:app|demo_pedidos\.py|npm run dev)'
+$patron = '(?i)kitchan.*(api_rappi_falsa|api_pedidosya_falsa|src\.kitchan\.main:app|demo_pedidos\.py|npm run dev|ngrok http)'
 
 Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" |
     Where-Object { $_.CommandLine -match $patron } |
@@ -22,6 +22,9 @@ foreach ($puerto in 8000, 8010, 8011, 5173) {
             }
         }
 }
+
+# ngrok corre como proceso propio (no solo dentro de su ventana cmd).
+Get-Process -Name ngrok -ErrorAction SilentlyContinue | Stop-Process -Force
 
 docker stop kitchan_postgres kitchan_redis 2>$null | Out-Null
 Write-Host "Demo detenida."

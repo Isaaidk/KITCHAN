@@ -188,10 +188,93 @@ const PATHS = {
     </>
   ),
   rayo: <path d="M13 2 3 14h9l-1 8 10-12h-9Z" />,
+  panel: (
+    <>
+      <rect x="3" y="3" width="7.5" height="9" rx="2" />
+      <rect x="13.5" y="3" width="7.5" height="5.5" rx="2" />
+      <rect x="13.5" y="12" width="7.5" height="9" rx="2" />
+      <rect x="3" y="15.5" width="7.5" height="5.5" rx="2" />
+    </>
+  ),
+  correo: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m4 7.5 8 6 8-6" />
+    </>
+  ),
+  candado: (
+    <>
+      <rect x="5" y="11" width="14" height="9.5" rx="2.5" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  // Categorías del menú (iconografía de la lámina de marca)
+  cafe: (
+    <>
+      <path d="M5 11h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-5Z" />
+      <path d="M16 12h1.5a2.5 2.5 0 0 1 0 5H16" />
+      <path d="M8 3c0 1.5 1.5 1.5 1.5 3M12 3c0 1.5 1.5 1.5 1.5 3" />
+    </>
+  ),
+  croissant: (
+    <>
+      <path d="M3 15c1-5 5-8 9-8s8 3 9 8c-2 .5-3 1.5-4 3-1-1.5-3-2.5-5-2.5S8 16.5 7 18c-1-1.5-2-2.5-4-3Z" />
+      <path d="M9 8l1.5 6.5M15 8l-1.5 6.5" />
+    </>
+  ),
+  sandwich: (
+    <>
+      <path d="M4 10a8 5 0 0 1 16 0Z" />
+      <path d="M3 13h18" />
+      <path d="M5 16h14" />
+      <path d="M5 16a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3" />
+    </>
+  ),
+  ensalada: (
+    <>
+      <path d="M3 12h18c0 4.5-4 8-9 8s-9-3.5-9-8Z" />
+      <path d="M8 12c0-3 2-5 4-5M13 12c0-3 1.5-4.5 4-4.5M10 7.5c.5-2 2-3 3.5-3" />
+    </>
+  ),
+  postre: (
+    <>
+      <path d="M6 12h12l-1.5 8h-9L6 12Z" />
+      <path d="M6 12a6 5 0 0 1 12 0" />
+      <path d="M12 7V3.5" />
+    </>
+  ),
+  bebida: (
+    <>
+      <path d="M7 7h10l-1.2 13H8.2L7 7Z" />
+      <path d="M13 7l1-4h3" />
+      <path d="M7.4 11.5h9.2" />
+    </>
+  ),
   escudo: (
     <>
       <path d="M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6L12 3Z" />
       <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  sonido: (
+    <>
+      <path d="M11 5 6 9H3v6h3l5 4Z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+    </>
+  ),
+  sonidoOff: (
+    <>
+      <path d="M11 5 6 9H3v6h3l5 4Z" />
+      <path d="m16 9 5 6" />
+      <path d="m21 9-5 6" />
+    </>
+  ),
+  luna: <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" />,
+  sol: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />
     </>
   ),
 } as const;

@@ -39,3 +39,12 @@ class Pedido(BaseModel):
     # Último cambio de estado (lo asigna la base de datos); None si el pedido
     # todavía no se guardó.
     fecha_actualizacion: Optional[datetime] = None
+    # Cómo se pagó (EFECTIVO, TARJETA, ...). None cuando el canal no lo informa:
+    # nunca se inventa un valor.
+    metodo_pago: Optional[str] = None
+    # Momentos exactos en que la cocina empezó (aceptó) y terminó el pedido.
+    # Con ellos el tiempo de preparación no depende del "último cambio de estado".
+    fecha_aceptacion: Optional[datetime] = None
+    fecha_lista: Optional[datetime] = None
+    # Usuario de KITCHAN que aceptó el pedido (None si lo aceptó el sistema o es anterior).
+    aceptado_por_id: Optional[str] = None

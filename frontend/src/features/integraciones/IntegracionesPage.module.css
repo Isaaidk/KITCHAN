@@ -1,7 +1,5 @@
-/* Lista agrupada en vez de una grilla de tarjetas iguales: cada canal es una
-   fila (logo · descripción · estado · acción) dentro de una sola superficie. */
 .pagina {
-  max-width: 920px;
+  max-width: 1040px;
 }
 
 .seccion {
@@ -12,9 +10,9 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin: 0 0 10px 2px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  margin: 0 0 12px 2px;
+  font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--color-text-muted);
 }
@@ -25,75 +23,160 @@
   color: var(--color-text-subtle);
 }
 
-.lista {
-  overflow: hidden;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-}
-
-.fila {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) minmax(120px, auto) minmax(150px, auto);
+/* ---------- Resumen de canales ---------- */
+.resumen {
+  display: flex;
   align-items: center;
-  gap: 8px 18px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border);
-  transition: background-color var(--dur-fast) ease;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+  margin-bottom: 28px;
+  padding: 20px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(100deg, var(--color-primary-soft), var(--color-surface) 65%);
+  box-shadow: var(--shadow-card);
 }
 
-.fila:last-child {
-  border-bottom: none;
+.resumenTitulo {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.fila:hover {
-  background: var(--color-surface-muted);
+.resumenNumero {
+  font-family: var(--font-cifras);
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-feature-settings: "lnum" 1;
+  color: var(--color-primary);
 }
 
-.filaInactiva .logo {
-  filter: saturate(0.6);
-  opacity: 0.8;
-}
-
-.filaInactiva .canal {
+.resumenSub {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
   color: var(--color-text-muted);
+}
+
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+
+.chipTexto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.chipNombre {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.chipDato {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.chipAlerta {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-danger);
+}
+
+/* ---------- Tarjetas de canal ---------- */
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.tarjeta,
+.odoo,
+.pronto {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+
+.tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.tarjetaCabecera,
+.odooCabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tarjetaTitulo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .logo {
   transition: transform var(--dur) var(--ease-out);
 }
 
-.fila:hover .logo {
-  transform: scale(1.05);
-}
-
-.texto {
-  min-width: 0;
+.tarjeta:hover .logo {
+  transform: scale(1.06);
 }
 
 .canal {
-  font-size: 0.98rem;
-  font-weight: 600;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 .descripcion {
-  max-width: 60ch;
-  margin: 2px 0 0;
+  max-width: 62ch;
+  margin: 0;
   font-size: 0.84rem;
   line-height: 1.5;
   color: var(--color-text-muted);
   text-wrap: pretty;
 }
 
-/* Estado: punto + texto plano, sin pastilla. */
+/* Estado: punto + texto plano */
 .estado {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-muted);
 }
 
@@ -107,12 +190,12 @@
 
 .estadoOk {
   --punto: var(--color-success);
-  color: #166534;
+  color: var(--color-alerta-texto-exito);
 }
 
 .estadoOk::before {
   animation: kt-pulse-ring 2s ease-out infinite;
-  --pulse-color: rgba(22, 163, 74, 0.4);
+  --pulse-color: rgba(44, 177, 177, 0.45);
 }
 
 .estadoInfo {
@@ -120,35 +203,166 @@
   color: var(--color-text);
 }
 
+.estadoAlerta {
+  --punto: var(--color-danger);
+  color: var(--color-danger);
+}
+
 .estadoSkeleton {
   width: 96px;
   height: 14px;
 }
 
-.accion {
+/* Cifras del canal */
+.datos {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 10px;
+  margin: 0;
+}
+
+.datos > div,
+.datosOdoo > div {
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+}
+
+.datos dt,
+.datosOdoo dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.datos dd,
+.datosOdoo dd {
+  margin: 2px 0 0;
+}
+
+.cifra {
+  font-family: var(--font-cifras);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-feature-settings: "lnum" 1;
+}
+
+.ultimo {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.pie {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1.5px dashed var(--color-border-strong);
 }
 
 .nota {
   font-size: 0.8rem;
   color: var(--color-text-subtle);
-  text-align: right;
 }
 
-@media (max-width: 720px) {
-  .fila {
-    grid-template-columns: 44px minmax(0, 1fr);
-    padding: 16px;
+.enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.enlace:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Odoo ---------- */
+.odoo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+}
+
+.odooBoton {
+  flex-shrink: 0;
+}
+
+.datosOdoo {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.datoSub {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.datoAlerta {
+  background: var(--color-danger-soft) !important;
+}
+
+.datoAlerta .cifra {
+  color: var(--color-danger);
+}
+
+/* ---------- Próximamente ---------- */
+.pronto {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 22px 14px 12px;
+  border-style: dashed;
+  box-shadow: none;
+  background: transparent;
+}
+
+.prontoDibujo {
+  flex-shrink: 0;
+  width: 108px;
+  display: grid;
+  place-items: center;
+  opacity: 0.85;
+}
+
+.prontoTexto {
+  min-width: 0;
+}
+
+.prontoCabecera {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 860px) {
+  .datosOdoo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .odooCabecera {
+    flex-wrap: wrap;
   }
 
-  .estado,
-  .accion {
-    grid-column: 2;
-    justify-content: flex-start;
-  }
-
-  .nota {
-    text-align: left;
+  .pronto {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -61,7 +61,14 @@ PEDIDOS_PEDIDOSYA = [
     ("Sofía Andrade", [("Hamburguesa clásica", 1, 6.50, "Sin tomate")]),
 ]
 
-estado = {"rappi": 0, "pedidosya": 0, "ultimo_rappi": None}
+estado = {
+    "rappi": 0,
+    "pedidosya": 0,
+    "ultimo_rappi": None,
+    # Último pedido enviado (cuerpo exacto), para poder reenviarlo igual.
+    "ultimo_rappi_body": None,
+    "ultimo_pedidosya": None,
+}
 
 
 def _post(url: str, body: bytes, headers: dict) -> httpx.Response | None:
@@ -99,6 +106,7 @@ def pedido_rappi() -> None:
         "store": {"internal_id": store_id},
     }
     body = json.dumps(payload).encode("utf-8")
+    estado["ultimo_rappi_body"] = body
     firma = simular_rappi._firmar(os.environ["RAPPI_WEBHOOK_SECRET"], body)
     print(f"\n🛵 Rappi: pedido de {nombre} {apellido} por ${total:.2f} ({order_id})")
     respuesta = _post(
@@ -126,11 +134,13 @@ def pedido_pedidosya() -> None:
         ],
     }
     remote_id = simular_pedidosya._remote_id_por_defecto()
+    cuerpo = json.dumps(payload).encode("utf-8")
+    estado["ultimo_pedidosya"] = (remote_id, cuerpo, order_id)
     token = simular_pedidosya._jwt(os.environ["PEDIDOSYA_JWT_SECRET"])
     print(f"\n🛵 PedidosYa: pedido de {cliente} por ${total:.2f} ({order_id})")
     respuesta = _post(
         f"{KITCHAN_URL}/api/v1/integraciones/pedidosya/order/{remote_id}",
-        json.dumps(payload).encode("utf-8"),
+        cuerpo,
         {"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
     _resultado(respuesta, 200)
@@ -172,10 +182,11 @@ def intentos_falsos() -> None:
 
 
 def rappi_cancela() -> None:
+    if not estado["ultimo_rappi"]:
+        pedido_rappi()
     order_id = estado["ultimo_rappi"]
     if not order_id:
-        print("\n  Primero envía un pedido de Rappi (opción 1).")
-        return
+        return  # el envío falló y ya se mostró el error
     body = json.dumps(
         {
             "event": "canceled_by_user",
@@ -200,11 +211,57 @@ def rappi_cancela() -> None:
     estado["ultimo_rappi"] = None
 
 
+def reenviar_rappi() -> None:
+    if not estado["ultimo_rappi_body"]:
+        pedido_rappi()
+    body = estado["ultimo_rappi_body"]
+    if not body:
+        return
+    order_id = json.loads(body)["order_detail"]["order_id"]
+    print(f"\n🔁 Rappi reenvía el MISMO pedido {order_id} (como ante un timeout)")
+    _resultado(
+        _post(
+            f"{KITCHAN_URL}/api/v1/integraciones/rappi/webhook/new-order",
+            body,
+            {
+                "Content-Type": "application/json",
+                "Rappi-Signature": simular_rappi._firmar(
+                    os.environ["RAPPI_WEBHOOK_SECRET"], body
+                ),
+            },
+        ),
+        200,
+    )
+    print("  → KITCHAN responde OK pero NO crea otra tarjeta en el KDS.")
+
+
+def reenviar_pedidosya() -> None:
+    if not estado["ultimo_pedidosya"]:
+        pedido_pedidosya()
+    ultimo = estado["ultimo_pedidosya"]
+    if not ultimo:
+        return
+    remote_id, cuerpo, order_id = ultimo
+    token = simular_pedidosya._jwt(os.environ["PEDIDOSYA_JWT_SECRET"])
+    print(f"\n🔁 PedidosYa reenvía el MISMO pedido {order_id} (entrega duplicada)")
+    _resultado(
+        _post(
+            f"{KITCHAN_URL}/api/v1/integraciones/pedidosya/order/{remote_id}",
+            cuerpo,
+            {"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+        ),
+        200,
+    )
+    print("  → KITCHAN responde OK pero NO crea otra tarjeta en el KDS.")
+
+
 OPCIONES = {
     "1": ("Llega un pedido de Rappi", pedido_rappi),
     "2": ("Llega un pedido de PedidosYa", pedido_pedidosya),
     "3": ("Intentos falsos (firma y JWT inválidos)", intentos_falsos),
     "4": ("El cliente cancela el último pedido de Rappi", rappi_cancela),
+    "5": ("Rappi reenvía el MISMO pedido (no se duplica)", reenviar_rappi),
+    "6": ("PedidosYa reenvía el MISMO pedido (no se duplica)", reenviar_pedidosya),
 }
 
 

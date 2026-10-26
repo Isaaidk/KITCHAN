@@ -1,5 +1,8 @@
 import type { EstadoPedido } from "../../shared/types/pedido";
 
+/** Minutos tras los que un pedido sin terminar se considera demorado. */
+export const LIMITE_DEMORA_MINUTOS = 10;
+
 export const ESTADOS_ACTIVOS: EstadoPedido[] = ["NUEVA", "EN_PREPARACION", "LISTA"];
 
 export const ETIQUETA_ESTADO: Record<EstadoPedido, string> = {
@@ -33,11 +36,26 @@ const CANALES: Record<string, { nombre: string; color: string }> = {
   PEDIDOSYA: { nombre: "PedidosYa", color: "#EA004B" },
   WHATSAPP: { nombre: "WhatsApp", color: "#25D366" },
   ODOO: { nombre: "Odoo", color: "#714B67" },
-  LOCAL: { nombre: "Local", color: "#64748b" },
+  LOCAL: { nombre: "Local", color: "#2e3a46" },
 };
 
 export function infoCanal(origen: string): { nombre: string; color: string } {
-  return CANALES[origen] ?? { nombre: origen.replace(/_/g, " "), color: "#64748b" };
+  return CANALES[origen] ?? { nombre: origen.replace(/_/g, " "), color: "#5e6b78" };
+}
+
+const NOMBRES_PAGO: Record<string, string> = {
+  EFECTIVO: "Efectivo",
+  TARJETA: "Tarjeta",
+  TRANSFERENCIA: "Transferencia",
+  ONLINE: "Pago en la app",
+  BILLETERA: "Billetera digital",
+};
+
+/** Nombre legible de un método de pago ("TARJETA" → "Tarjeta"). */
+export function nombreMetodoPago(codigo: string): string {
+  if (NOMBRES_PAGO[codigo]) return NOMBRES_PAGO[codigo];
+  const texto = codigo.replace(/_/g, " ").toLowerCase();
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 export function minutosTranscurridos(fechaCreacion: string): number {

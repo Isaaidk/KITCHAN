@@ -1,20 +1,12 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrdersStore } from "../stores/ordersStore";
+import { useTemaStore } from "../stores/temaStore";
 import Icon from "./Icon";
 import styles from "./Topbar.module.css";
 
-const TITULOS: Array<[string, string]> = [
-  ["/integraciones", "Integraciones"],
-  ["/analiticas", "Analíticas"],
-  ["/usuarios", "Usuarios"],
-  ["/historial", "Historial"],
-  ["/", "Cola de pedidos"],
-];
-
-function tituloPara(pathname: string) {
-  return TITULOS.find(([ruta]) => (ruta === "/" ? pathname === "/" : pathname.startsWith(ruta)))?.[1] ?? "";
-}
+const formatoReloj = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
 
 function iniciales(nombre?: string) {
   if (!nombre) return "?";
@@ -34,7 +26,15 @@ export default function Topbar({ onMenu }: Props) {
   const { usuario, logout } = useAuthStore();
   const conectado = useOrdersStore((s) => s.conectado);
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const tema = useTemaStore((s) => s.tema);
+  const alternarTema = useTemaStore((s) => s.alternar);
+
+  // La hora se actualiza cada 15 s: basta para ver minutos sin recargar el componente a cada segundo.
+  const [ahora, setAhora] = useState(() => new Date());
+  useEffect(() => {
+    const intervalo = setInterval(() => setAhora(new Date()), 15000);
+    return () => clearInterval(intervalo);
+  }, []);
 
   const salir = () => {
     logout();
@@ -47,15 +47,13 @@ export default function Topbar({ onMenu }: Props) {
         <Icon name="menu" size={20} />
       </button>
 
-      <nav className={styles.migas} aria-label="Ubicación">
-        <span className={styles.migaRaiz}>KITCHAN</span>
-        <span className={styles.separador}>/</span>
-        <span className={styles.titulo} key={pathname}>
-          {tituloPara(pathname)}
-        </span>
-      </nav>
-
       <div className={styles.derecha}>
+        {/* Reloj de cocina, como el del KDS de la marca */}
+        <time className={styles.reloj} dateTime={ahora.toISOString()}>
+          <Icon name="reloj" size={14} />
+          {formatoReloj.format(ahora)}
+        </time>
+
         <span
           className={`${styles.enVivo} ${conectado ? styles.conectado : ""}`}
           title={conectado ? "Recibiendo pedidos en tiempo real" : "Reconectando…"}
@@ -64,6 +62,17 @@ export default function Topbar({ onMenu }: Props) {
           <span className={styles.punto} />
           <span className={styles.enVivoTexto}>{conectado ? "En vivo" : "Reconectando"}</span>
         </span>
+
+        <button
+          type="button"
+          className={`btn btn-ghost btn-icon ${styles.tema}`}
+          onClick={alternarTema}
+          aria-pressed={tema === "oscuro"}
+          aria-label="Modo oscuro de cocina"
+          title={tema === "oscuro" ? "Volver al modo claro" : "Modo oscuro de cocina"}
+        >
+          <Icon name={tema === "oscuro" ? "sol" : "luna"} size={18} />
+        </button>
 
         <div className={styles.usuario}>
           <div className={styles.avatar}>{iniciales(usuario?.nombre)}</div>

@@ -20,6 +20,9 @@ from src.kitchan.modules.integraciones.uber.application.webhook_use_cases import
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_adapter import (
     RedisUberTokenAdapter,
 )
+from src.kitchan.modules.integraciones.uber.infrastructure.adapters.uber_app_token_renovable import (
+    RedisUberTokenAdapterRenovable,
+)
 
 
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.http_order_adapter import (
@@ -92,7 +95,7 @@ async def validate_webhook_signature(
 def get_webhook_use_case(
     order_dispatcher: OrderDispatcherPort = Depends(get_order_dispatcher),
 ) -> UberWebhookUseCase:
-    token_adapter = RedisUberTokenAdapter(redis_url=REDIS_URL)
+    token_adapter = RedisUberTokenAdapterRenovable(redis_url=REDIS_URL)
 
     api_adapter = UberHttpAdapter()
 

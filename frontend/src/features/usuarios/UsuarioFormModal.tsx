@@ -5,8 +5,8 @@ import type { RolUsuario, Usuario } from "../../shared/types/usuario";
 import styles from "./UsuarioFormModal.module.css";
 
 const ROLES: { valor: RolUsuario; titulo: string; descripcion: string; icono: NombreIcono }[] = [
-  { valor: "OPERADOR", titulo: "Operador", descripcion: "Trabaja la cola de pedidos de la cocina.", icono: "cola" },
-  { valor: "ADMIN", titulo: "Administrador", descripcion: "Además gestiona usuarios, canales y analíticas.", icono: "escudo" },
+  { valor: "OPERADOR", titulo: "Operador", descripcion: "Cola de pedidos, historial y facturar. Sin analíticas ni administración.", icono: "cola" },
+  { valor: "ADMIN", titulo: "Administrador", descripcion: "Todo lo del operador, más analíticas, usuarios e integraciones.", icono: "escudo" },
 ];
 
 export interface DatosFormUsuario {

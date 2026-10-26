@@ -1,0 +1,35 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  line-height: 1;
+}
+
+.gorro {
+  flex-shrink: 0;
+  color: var(--kit);
+}
+
+.nombre {
+  display: inline-flex;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.kit {
+  color: var(--kit);
+}
+
+.chan {
+  color: var(--color-teal);
+}
+
+/* Sobre fondos claros: granate + turquesa */
+.oscuro {
+  --kit: var(--brand-granate);
+}
+
+/* Sobre fondos oscuros: crema + turquesa */
+.claro {
+  --kit: var(--brand-crema);
+}

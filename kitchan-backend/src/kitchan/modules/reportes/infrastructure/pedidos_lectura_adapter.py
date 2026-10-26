@@ -7,7 +7,7 @@ entera.
 from datetime import datetime
 
 from src.kitchan.modules.pedidos.domain.ports import PedidoRepositoryPort
-from src.kitchan.modules.reportes.domain.entities import PedidoResumen
+from src.kitchan.modules.reportes.domain.entities import ItemResumen, PedidoResumen
 from src.kitchan.modules.reportes.domain.ports import PedidosLecturaPort
 
 
@@ -28,6 +28,19 @@ class PedidosLecturaAdapter(PedidosLecturaPort):
                 estado=p.estado.value,
                 fecha_creacion=p.fecha_creacion,
                 fecha_actualizacion=p.fecha_actualizacion,
+                cliente=p.cliente or "",
+                items=tuple(
+                    ItemResumen(
+                        nombre=i.nombre,
+                        cantidad=i.cantidad,
+                        precio_unitario=float(i.precio_unitario),
+                    )
+                    for i in p.items
+                ),
+                metodo_pago=p.metodo_pago,
+                fecha_aceptacion=p.fecha_aceptacion,
+                fecha_lista=p.fecha_lista,
+                aceptado_por_id=p.aceptado_por_id,
             )
             for p in pedidos
         ]

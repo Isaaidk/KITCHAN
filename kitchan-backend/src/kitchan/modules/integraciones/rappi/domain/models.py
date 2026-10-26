@@ -41,6 +41,8 @@ class RappiOrderDetailPayload(BaseModel):
 
     order_id: str
     cooking_time: Optional[int] = None
+    # "cc" (tarjeta), "cash" (efectivo), etc.; se normaliza al mapear al DTO.
+    payment_method: Optional[str] = None
     items: list[RappiOrderItemPayload] = Field(default_factory=list)
     totals: RappiOrderTotalsPayload = Field(default_factory=RappiOrderTotalsPayload)
 

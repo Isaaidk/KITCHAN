@@ -4,173 +4,117 @@
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(380px, 5fr) 7fr;
-  background: var(--color-bg);
+  grid-template-columns: minmax(420px, 1.05fr) 1fr;
+  /* El granate asoma detrás de la esquina curva del panel del formulario */
+  background: #5a1832;
 }
 
-/* ---------- Panel de marca ---------- */
+/* ---------- Panel de marca: granate con logo y foto ---------- */
 .panelMarca {
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 40px;
-  padding: 44px 48px;
-  color: #e2e8f0;
-  background:
-    radial-gradient(80% 60% at 100% 0%, rgba(124, 58, 237, 0.45), transparent 60%),
-    radial-gradient(70% 60% at 0% 100%, rgba(37, 99, 235, 0.5), transparent 60%),
-    #0b1224;
-}
-
-/* Retícula sutil de fondo */
-.panelMarca::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
-  pointer-events: none;
-}
-
-.orbe1,
-.orbe2 {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  pointer-events: none;
-  animation: flotar 14s ease-in-out infinite alternate;
-}
-
-.orbe1 {
-  width: 280px;
-  height: 280px;
-  background: rgba(79, 70, 229, 0.35);
-  top: 30%;
-  right: -80px;
-}
-
-.orbe2 {
-  width: 220px;
-  height: 220px;
-  background: rgba(37, 99, 235, 0.3);
-  bottom: 10%;
-  left: -60px;
-  animation-delay: -7s;
-}
-
-@keyframes flotar {
-  to {
-    transform: translate(-30px, 40px) scale(1.1);
-  }
-}
-
-.marcaFila,
-.mensaje,
-.canales {
-  position: relative;
-  z-index: 1;
-}
-
-.marcaFila {
-  display: flex;
   align-items: center;
-  gap: 12px;
+  padding: clamp(40px, 11vh, 110px) 40px 0;
+  color: var(--brand-crema);
+  background:
+    radial-gradient(80% 50% at 50% 0%, rgba(125, 37, 73, 0.55), transparent 70%),
+    #5a1832;
+}
+
+/* Gorro gigante apenas visible al fondo, como en el diseño */
+.marcaDeco {
+  position: absolute;
+  top: -70px;
+  left: -130px;
+  color: rgba(248, 246, 239, 0.07);
+  pointer-events: none;
+}
+
+.marca {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   animation: kt-fade-up 600ms var(--ease-out) both;
 }
 
-.logo {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--gradient-brand);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.2rem;
-  box-shadow:
-    0 10px 24px -6px rgba(79, 70, 229, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+.marcaGorro {
+  color: var(--brand-crema);
 }
 
 .marcaNombre {
+  margin-top: 2px;
+  font-family: var(--font-marca);
+  font-size: clamp(3.4rem, 7.2vw, 5.8rem);
   font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--brand-crema);
+}
+
+.marcaPlataforma {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  color: var(--brand-crema);
+}
+
+.marcaPlataforma::before,
+.marcaPlataforma::after {
+  content: "";
+  width: 54px;
+  height: 2px;
+  background: rgba(248, 246, 239, 0.85);
+}
+
+.lema {
+  margin: 26px 0 0;
   font-size: 1.1rem;
-  letter-spacing: 0.06em;
-  color: #fff;
+  line-height: 1.35;
+  color: rgba(248, 246, 239, 0.92);
 }
 
-.mensaje {
-  animation: kt-fade-up 700ms var(--ease-out) 120ms both;
+/* Frase con tipografía manuscrita y trazo debajo */
+.lemaScript {
+  position: relative;
+  display: inline-block;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  color: var(--brand-crema);
+  transform: rotate(-3deg);
 }
 
-.titular {
-  font-size: clamp(2rem, 3.2vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: #fff;
-  margin-bottom: 16px;
+.lemaTrazo {
+  display: block;
+  width: 108%;
+  height: 12px;
+  margin: 2px 0 0 -4px;
+  color: var(--brand-crema);
 }
 
-.bajada {
-  margin: 0 0 28px;
-  max-width: 420px;
-  font-size: 0.98rem;
-  line-height: 1.6;
-  color: #94a3b8;
-}
-
-.beneficios {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  font-size: 0.9rem;
-}
-
-.beneficios li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.beneficios svg {
-  color: #a5b4fc;
-  padding: 7px;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.canales {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.canal {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px 6px 7px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #e2e8f0;
-  animation: kt-fade-up 500ms var(--ease-out) both;
-  animation-delay: calc(300ms + var(--i) * 90ms);
+/* Foto anclada abajo: se funde con la pared granate hacia arriba */
+.foto {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  max-height: 58%;
+  object-fit: cover;
+  object-position: bottom;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 30%);
+  pointer-events: none;
 }
 
 /* ---------- Panel del formulario ---------- */
@@ -183,57 +127,55 @@
      arriba y se puede hacer scroll en vez de cortarse por el centrado. */
   justify-content: safe center;
   gap: 22px;
-  padding: 40px 24px;
-  overflow-y: auto;
-  background:
-    radial-gradient(55% 45% at 85% 8%, rgba(124, 58, 237, 0.16), transparent 70%),
-    radial-gradient(60% 50% at 8% 95%, rgba(37, 99, 235, 0.18), transparent 70%),
-    radial-gradient(40% 35% at 70% 100%, rgba(6, 193, 103, 0.09), transparent 70%),
-    #f3f5fb;
+  padding: 40px 32px;
+  overflow: hidden auto;
+  background: var(--brand-crema);
+  /* Esquina curva que deja ver el granate, como en el diseño */
+  border-top-left-radius: clamp(48px, 7vw, 110px);
 }
 
-/* Puntos sutiles que se desvanecen hacia los bordes */
-.panelForm::before {
-  content: "";
+/* Gorro rosado decorativo en la esquina inferior */
+.decoGorro {
   position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(15, 23, 42, 0.14) 1px, transparent 1.2px);
-  background-size: 22px 22px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 20%, transparent 78%);
+  right: -60px;
+  bottom: -64px;
+  color: #ead3da;
   pointer-events: none;
 }
 
 .tarjeta {
   position: relative;
+  z-index: 1;
   width: 100%;
-  padding: 36px 36px 32px;
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  padding: 44px 48px 36px;
+  border-radius: 24px;
+  background: #fffdf8;
+  border: 1px solid rgba(232, 226, 211, 0.8);
   box-shadow:
-    0 0 0 1px rgba(15, 23, 42, 0.05),
-    0 2px 4px rgba(15, 23, 42, 0.04),
-    0 28px 60px -20px rgba(49, 46, 129, 0.28);
+    0 1px 2px rgba(46, 58, 70, 0.04),
+    0 22px 56px -28px rgba(107, 30, 60, 0.28);
   animation: kt-scale-in 500ms var(--ease-out) 80ms both;
 }
-
-/* Filete de color en el borde superior de la tarjeta */
-.tarjeta::before {
-  content: "";
-  position: absolute;
-  inset: 0 28px auto;
-  height: 2px;
-  border-radius: 0 0 4px 4px;
-  background: var(--gradient-brand);
-  opacity: 0.85;
-}
-
 
 .logoMovil {
   display: none;
   margin-bottom: 20px;
+}
+
+/* "¡Bienvenido a" fino y el nombre en negrita granate */
+.saludo {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.saludo strong {
+  display: block;
+  font-weight: 800;
+  color: var(--color-primary);
 }
 
 .formTitulo {
@@ -246,7 +188,30 @@
 .formBajada {
   margin: 0 0 28px;
   color: var(--color-text-muted);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* Campo con ícono a la izquierda */
+.campoIcono {
+  position: relative;
+}
+
+.campoIcono :global(.input) {
+  min-height: 50px;
+  padding-left: 46px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.iconoCampo {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
 }
 
 .filaPassword {
@@ -254,22 +219,22 @@
 }
 
 .filaPassword :global(.input) {
-  padding-right: 44px;
+  padding-right: 48px;
 }
 
 .togglePassword {
   position: absolute;
-  right: 6px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   background: none;
   border: none;
   border-radius: 8px;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
 }
 
@@ -278,27 +243,86 @@
   background: var(--color-primary-soft);
 }
 
-.submit {
-  min-height: 46px;
-  margin-top: 6px;
-  font-size: 0.95rem;
+/* "Recordarme" + enlace de contraseña olvidada */
+.opciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0 22px;
+  font-size: 0.85rem;
 }
 
-.alternativa {
-  text-align: center;
-  margin: 22px 0 0;
-  font-size: 0.875rem;
+.recordar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: var(--color-text-muted);
+  cursor: pointer;
 }
 
-.alternativa a {
-  color: var(--color-primary);
+/* La casilla real queda invisible sobre la etiqueta: accesible por teclado */
+.recordarInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.recordarCaja {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 7px;
+  background: #fff;
+  color: #fff;
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.recordarCaja svg {
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.recordarInput:checked + .recordarCaja {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.recordarInput:checked + .recordarCaja svg {
+  opacity: 1;
+}
+
+.recordar:has(.recordarInput:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* Funciones del diseño que aún no existen en el backend: visibles pero deshabilitadas */
+.olvido {
+  white-space: nowrap;
+  font-size: 0.85rem;
   font-weight: 600;
+  color: var(--color-primary);
   text-decoration: none;
 }
 
-.alternativa a:hover {
+.olvido:hover {
   text-decoration: underline;
+}
+
+.submit {
+  min-height: 54px;
+  margin-top: 4px;
+  border-radius: 999px;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
 }
 
 .demo {
@@ -361,7 +385,7 @@
   font-size: 0.74rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 4px 10px -4px rgba(79, 70, 229, 0.6);
+  box-shadow: 0 4px 10px -4px rgba(107, 30, 60, 0.6);
 }
 
 .grilla {
@@ -379,10 +403,15 @@
 @media (max-width: 860px) {
   .pantalla {
     grid-template-columns: 1fr;
+    background: var(--brand-crema);
   }
 
   .panelMarca {
     display: none;
+  }
+
+  .panelForm {
+    border-top-left-radius: 0;
   }
 
   .logoMovil {
@@ -401,6 +430,10 @@
   }
 
   .tarjeta {
-    padding: 28px 22px 24px;
+    padding: 30px 22px 26px;
+  }
+
+  .saludo {
+    font-size: 1.6rem;
   }
 }

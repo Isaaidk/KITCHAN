@@ -2,10 +2,13 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.kitchan.core.contexto_usuario import usuario_actual_id
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido
+from src.kitchan.modules.pedidos.domain.exceptions import PedidoDuplicadoError
 from src.kitchan.modules.pedidos.domain.ports import PedidoRepositoryPort
 from src.kitchan.modules.pedidos.infrastructure.models import PedidoModel
 
@@ -19,17 +22,57 @@ class PostgresPedidoRepository(PedidoRepositoryPort):
     async def guardar(self, pedido: Pedido) -> Pedido:
         modelo = PedidoModel.from_domain(pedido)
         self.session.add(modelo)
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            # Si la causa es el índice único (dos webhooks iguales a la vez),
+            # se informa como duplicado; cualquier otro error se propaga.
+            if pedido.id_externo is not None and await self.buscar_por_id_externo(
+                pedido.origen, pedido.id_externo
+            ):
+                raise PedidoDuplicadoError(
+                    f"{pedido.origen} {pedido.id_externo}"
+                ) from None
+            raise
         await self.session.refresh(modelo)
         return modelo.to_domain()
 
-    async def actualizar_estado(self, pedido_id: str, nuevo_estado: str) -> bool:
-        modelo = await self._buscar_modelo_por_id(pedido_id)
-        if modelo is None:
-            return False
-        modelo.estado = nuevo_estado
+    async def actualizar_estado(
+        self,
+        pedido_id: str,
+        nuevo_estado: str,
+        estado_esperado: Optional[str] = None,
+    ) -> bool:
+        condiciones = [PedidoModel.id == uuid.UUID(str(pedido_id))]
+        if estado_esperado is not None:
+            condiciones.append(PedidoModel.estado == estado_esperado)
+        resultado = await self.session.execute(
+            update(PedidoModel)
+            .where(*condiciones)
+            .values(**self._valores_de_actualizacion(nuevo_estado))
+        )
         await self.session.commit()
-        return True
+        return resultado.rowcount > 0
+
+    @staticmethod
+    def _valores_de_actualizacion(nuevo_estado) -> dict:
+        """Valores del UPDATE: el nuevo estado y, solo la primera vez, cuándo
+        (y quién) aceptó y terminó el pedido en cocina."""
+        estado = getattr(nuevo_estado, "value", nuevo_estado)
+        ahora = datetime.now(timezone.utc)
+        valores: dict = {"estado": estado}
+        if estado == EstadoPedido.EN_PREPARACION.value:
+            # coalesce: si ya tenía valor (primera aceptación) se conserva.
+            valores["fecha_aceptacion"] = func.coalesce(
+                PedidoModel.fecha_aceptacion, ahora
+            )
+            valores["aceptado_por_id"] = func.coalesce(
+                PedidoModel.aceptado_por_id, usuario_actual_id()
+            )
+        if estado == EstadoPedido.LISTA.value:
+            valores["fecha_lista"] = func.coalesce(PedidoModel.fecha_lista, ahora)
+        return valores
 
     async def actualizar_estado_entrega(
         self, pedido_id: str, estado_entrega: str

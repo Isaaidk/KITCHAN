@@ -43,7 +43,7 @@ from src.kitchan.modules.facturacion.infrastructure.odoo_json2_adapter import (
 RESTAURANTE = "11111111-1111-1111-1111-111111111111"
 
 
-def _pedido(estado="LISTA", restaurante_id=RESTAURANTE) -> PedidoAFacturar:
+def _pedido(estado="ENTREGADA", restaurante_id=RESTAURANTE) -> PedidoAFacturar:
     return PedidoAFacturar(
         id="pedido-1",
         restaurante_id=restaurante_id,
@@ -187,8 +187,8 @@ async def test_no_factura_pedidos_de_otro_restaurante():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("estado", ["NUEVA", "EN_PREPARACION", "CANCELADA"])
-async def test_solo_factura_pedidos_listos_o_entregados(estado):
+@pytest.mark.parametrize("estado", ["NUEVA", "EN_PREPARACION", "LISTA", "CANCELADA"])
+async def test_solo_factura_pedidos_entregados(estado):
     odoo = OdooFalso()
     caso = FacturarPedidoUseCase(
         odoo, FacturasEnMemoria(), PedidosFalsos(_pedido(estado=estado))

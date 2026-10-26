@@ -52,9 +52,9 @@
 }
 
 .chipActivo {
-  border-color: color-mix(in srgb, var(--chip-color) 40%, white);
-  background: color-mix(in srgb, var(--chip-color) 10%, white);
-  color: color-mix(in srgb, var(--chip-color) 85%, black);
+  border-color: color-mix(in srgb, var(--chip-color) 40%, var(--color-surface));
+  background: color-mix(in srgb, var(--chip-color) 10%, var(--color-surface));
+  color: color-mix(in srgb, var(--chip-color) 55%, var(--tinta-contraste));
 }
 
 .chipPunto {

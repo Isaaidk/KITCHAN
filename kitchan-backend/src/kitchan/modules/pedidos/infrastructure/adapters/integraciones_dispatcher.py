@@ -52,6 +52,7 @@ class PedidosIntegracionesAdapter(OrderDispatcherPort):
             items=items_core,
             total=order_dto.total,
             estado=EstadoPedido.NUEVA,
+            metodo_pago=order_dto.metodo_pago,
         )
 
         print(f"🌉 [PUENTE] Traducción completada. Enviando a Cocina Central...")

@@ -19,6 +19,30 @@ def crear_access_token(data: dict) -> str:
     return jwt.encode(payload, secret_key, algorithm=algorithm)
 
 
+def _secreto_restablecimiento() -> str:
+    # Clave derivada: un token de restablecimiento nunca vale como token de sesión.
+    return f"{os.getenv('SECRET_KEY')}:restablecer-password"
+
+
+def crear_token_restablecimiento(data: dict, minutos: int) -> str:
+    payload = data.copy()
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=minutos)
+    return jwt.encode(
+        payload, _secreto_restablecimiento(), algorithm=os.getenv("ALGORITHM", "HS256")
+    )
+
+
+def decodificar_token_restablecimiento(token: str) -> dict:
+    try:
+        return jwt.decode(
+            token,
+            _secreto_restablecimiento(),
+            algorithms=[os.getenv("ALGORITHM", "HS256")],
+        )
+    except JWTError:
+        raise ValueError("El enlace de restablecimiento no es válido o ya venció")
+
+
 def decodificar_access_token(token: str) -> dict:
     secret_key = os.getenv("SECRET_KEY")
     algorithm = os.getenv("ALGORITHM", "HS256")

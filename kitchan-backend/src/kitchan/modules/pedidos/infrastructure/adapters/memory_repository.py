@@ -3,6 +3,7 @@ from typing import Optional
 
 from src.kitchan.modules.pedidos.domain.ports import PedidoRepositoryPort
 from src.kitchan.modules.pedidos.domain.entities import EstadoPedido, Pedido
+from src.kitchan.modules.pedidos.domain.exceptions import PedidoDuplicadoError
 
 ESTADOS_TERMINALES = {EstadoPedido.ENTREGADA, EstadoPedido.CANCELADA}
 
@@ -17,14 +18,26 @@ class MemoryPedidoRepository(PedidoRepositoryPort):
         self.db: dict[str, Pedido] = {}
 
     async def guardar(self, pedido: Pedido) -> Pedido:
+        if pedido.id_externo is not None and await self.buscar_por_id_externo(
+            pedido.origen, pedido.id_externo
+        ):
+            raise PedidoDuplicadoError(f"{pedido.origen} {pedido.id_externo}")
         self.db[pedido.id] = pedido
         return pedido
 
-    async def actualizar_estado(self, pedido_id: str, nuevo_estado: str) -> bool:
-        if pedido_id in self.db:
-            self.db[pedido_id].estado = nuevo_estado
-            return True
-        return False
+    async def actualizar_estado(
+        self,
+        pedido_id: str,
+        nuevo_estado: str,
+        estado_esperado: Optional[str] = None,
+    ) -> bool:
+        pedido = self.db.get(pedido_id)
+        if pedido is None:
+            return False
+        if estado_esperado is not None and pedido.estado != estado_esperado:
+            return False
+        pedido.estado = nuevo_estado
+        return True
 
     async def actualizar_estado_entrega(
         self, pedido_id: str, estado_entrega: str

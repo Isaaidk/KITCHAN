@@ -1,15 +1,22 @@
 # Adaptador DE SALIDA
 # Inserta los datos en la BD y devuelve el usuario creado
 import uuid
+from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Importamos los puertos y entidades (El Núcleo)
-from src.kitchan.modules.usuarios.application.ports import IUsuarioRepository
-from src.kitchan.modules.usuarios.domain.entities import Usuario
-from src.kitchan.modules.usuarios.infrastructure.models import UsuarioModel
+from src.kitchan.modules.usuarios.application.ports import (
+    ICodigosRecuperacionRepository,
+    IUsuarioRepository,
+)
+from src.kitchan.modules.usuarios.domain.entities import CodigoRecuperacion, Usuario
+from src.kitchan.modules.usuarios.infrastructure.models import (
+    CodigoRecuperacionModel,
+    UsuarioModel,
+)
 
 
 class PostgresUsuarioRepository(IUsuarioRepository):
@@ -119,6 +126,14 @@ class PostgresUsuarioRepository(IUsuarioRepository):
 
         return modelo.to_domain()
 
+    async def registrar_acceso(self, usuario_id: str) -> None:
+        await self.session.execute(
+            update(UsuarioModel)
+            .where(UsuarioModel.id == uuid.UUID(str(usuario_id)))
+            .values(ultimo_acceso=datetime.now(timezone.utc))
+        )
+        await self.session.commit()
+
     async def listar_por_restaurante(self, restaurante_id: str) -> list[Usuario]:
         uuid_val = (
             uuid.UUID(str(restaurante_id))
@@ -138,3 +153,73 @@ class PostgresUsuarioRepository(IUsuarioRepository):
         modelos = resultado.scalars().all()
 
         return [modelo.to_domain() for modelo in modelos]
+
+
+class PostgresCodigosRecuperacionRepository(ICodigosRecuperacionRepository):
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def crear(self, codigo: CodigoRecuperacion) -> CodigoRecuperacion:
+        modelo = CodigoRecuperacionModel(
+            id=uuid.UUID(str(codigo.id)),
+            usuario_id=uuid.UUID(str(codigo.usuario_id)),
+            codigo_hash=codigo.codigo_hash,
+            expira_en=codigo.expira_en,
+            intentos=codigo.intentos,
+            usado=codigo.usado,
+            creado_en=codigo.creado_en,
+        )
+        self.session.add(modelo)
+        await self.session.commit()
+        await self.session.refresh(modelo)
+        return modelo.to_domain()
+
+    async def buscar_por_id(self, codigo_id: str) -> Optional[CodigoRecuperacion]:
+        try:
+            id_codigo = uuid.UUID(str(codigo_id))
+        except ValueError:
+            return None
+        resultado = await self.session.execute(
+            select(CodigoRecuperacionModel).where(
+                CodigoRecuperacionModel.id == id_codigo
+            )
+        )
+        modelo = resultado.scalar_one_or_none()
+        return modelo.to_domain() if modelo else None
+
+    async def ultimo_de_usuario(self, usuario_id: str) -> Optional[CodigoRecuperacion]:
+        resultado = await self.session.execute(
+            select(CodigoRecuperacionModel)
+            .where(CodigoRecuperacionModel.usuario_id == uuid.UUID(str(usuario_id)))
+            .order_by(CodigoRecuperacionModel.creado_en.desc())
+            .limit(1)
+        )
+        modelo = resultado.scalar_one_or_none()
+        return modelo.to_domain() if modelo else None
+
+    async def registrar_intento_fallido(self, codigo_id: str) -> None:
+        await self.session.execute(
+            update(CodigoRecuperacionModel)
+            .where(CodigoRecuperacionModel.id == uuid.UUID(str(codigo_id)))
+            .values(intentos=CodigoRecuperacionModel.intentos + 1)
+        )
+        await self.session.commit()
+
+    async def marcar_usado(self, codigo_id: str) -> None:
+        await self.session.execute(
+            update(CodigoRecuperacionModel)
+            .where(CodigoRecuperacionModel.id == uuid.UUID(str(codigo_id)))
+            .values(usado=True)
+        )
+        await self.session.commit()
+
+    async def invalidar_de_usuario(self, usuario_id: str) -> None:
+        await self.session.execute(
+            update(CodigoRecuperacionModel)
+            .where(
+                CodigoRecuperacionModel.usuario_id == uuid.UUID(str(usuario_id)),
+                CodigoRecuperacionModel.usado.is_(False),
+            )
+            .values(usado=True)
+        )
+        await self.session.commit()

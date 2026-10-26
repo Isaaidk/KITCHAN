@@ -1,10 +1,10 @@
 .sidebar {
+  --menu-texto: rgba(248, 246, 239, 0.86);
   width: var(--sidebar-width);
   flex-shrink: 0;
-  background:
-    radial-gradient(120% 60% at 0% 0%, rgba(79, 70, 229, 0.22), transparent 60%),
-    var(--sidebar-bg);
-  color: var(--sidebar-text);
+  /* Granate de la marca que se funde hacia el turquesa profundo */
+  background: linear-gradient(165deg, #6b1e3c 0%, #4f1a3a 38%, #145f66 100%);
+  color: var(--menu-texto);
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
@@ -16,59 +16,42 @@
 
 .marca {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 10px 22px;
-}
-
-.logo {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--gradient-brand);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.1rem;
-  box-shadow:
-    0 8px 20px -6px rgba(79, 70, 229, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-.marcaNombre {
-  color: var(--sidebar-text-active);
-  font-weight: 800;
-  font-size: 1.02rem;
-  letter-spacing: 0.04em;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 10px 20px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed rgba(248, 246, 239, 0.14);
 }
 
 .marcaSub {
-  font-size: 0.72rem;
-  color: var(--sidebar-text);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  color: var(--brand-ambar);
+  letter-spacing: 0.01em;
 }
 
 .seccion {
-  padding: 16px 12px 6px;
-  font-size: 0.68rem;
+  padding: 20px 14px 8px;
+  font-size: 0.74rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: rgba(248, 246, 239, 0.6);
 }
 
 .link {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  color: var(--sidebar-text);
+  gap: 14px;
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  color: var(--menu-texto);
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   transition:
     background-color var(--dur-fast) ease,
     color var(--dur-fast) ease,
@@ -76,8 +59,8 @@
 }
 
 .link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
+  background: rgba(248, 246, 239, 0.07);
+  color: var(--brand-crema);
   transform: translateX(2px);
 }
 
@@ -100,9 +83,9 @@
 
 .linkActivo,
 .linkActivo:hover {
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.95), rgba(79, 70, 229, 0.9));
-  color: var(--sidebar-text-active);
-  box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.8);
+  background: var(--brand-crema);
+  color: var(--brand-granate);
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.55);
   transform: none;
 }
 
@@ -110,43 +93,65 @@
   opacity: 1;
 }
 
+/* Canales dentro de Analíticas: una sangría y una línea guía los asocian al botón de arriba */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px 26px;
+  padding-left: 10px;
+  border-left: 1px dashed rgba(248, 246, 239, 0.18);
+}
+
+.subLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  color: var(--menu-texto);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
+}
+
+.subLink:hover {
+  background: rgba(248, 246, 239, 0.07);
+  color: var(--brand-crema);
+}
+
+.subLinkActivo,
+.subLinkActivo:hover {
+  background: rgba(248, 246, 239, 0.2);
+  color: #fff;
+  font-weight: 700;
+}
+
 .contador {
-  min-width: 22px;
-  height: 20px;
+  min-width: 24px;
+  height: 22px;
   padding: 0 6px;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #ef4444;
-  color: #fff;
+  /* Ámbar con texto pizarra: se ve en el menú oscuro y llama la atención como una campanita de cocina */
+  background: var(--brand-ambar);
+  color: var(--brand-pizarra);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  --pulse-color: rgba(239, 68, 68, 0.55);
+  --pulse-color: rgba(244, 185, 66, 0.55);
   animation: kt-pulse-ring 1.6s ease-out infinite;
 }
 
 .linkActivo .contador {
-  background: #fff;
-  color: var(--color-primary);
-  --pulse-color: rgba(255, 255, 255, 0.5);
-}
-
-.pie {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.72rem;
-  color: var(--sidebar-text);
-}
-
-.pie svg {
-  color: #a5b4fc;
+  background: var(--brand-granate);
+  color: var(--brand-crema);
+  --pulse-color: rgba(107, 30, 60, 0.45);
 }
 
 /* Tablet / móvil: el sidebar pasa a ser un drawer lateral. */

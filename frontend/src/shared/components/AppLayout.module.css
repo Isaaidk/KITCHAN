@@ -53,7 +53,7 @@
     position: fixed;
     inset: 0;
     z-index: 55;
-    background: rgba(15, 23, 42, 0.45);
+    background: rgba(46, 58, 70, 0.5);
     backdrop-filter: blur(3px);
     opacity: 0;
     pointer-events: none;

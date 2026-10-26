@@ -1,0 +1,30 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chip > span[aria-hidden] {
+  font-size: 0.6rem;
+}
+
+.bueno {
+  background: var(--color-success-soft);
+  color: #0f5c5c;
+}
+
+.malo {
+  background: var(--color-danger-soft);
+  color: #8f2d28;
+}
+
+.neutro {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}

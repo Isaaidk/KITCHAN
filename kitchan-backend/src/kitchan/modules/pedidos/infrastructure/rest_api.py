@@ -47,6 +47,7 @@ class PedidoResponse(BaseModel):
     total: float
     estado: str
     estado_entrega: Optional[str] = None
+    metodo_pago: Optional[str] = None
     fecha_creacion: str
 
     @staticmethod
@@ -62,6 +63,7 @@ class PedidoResponse(BaseModel):
             total=pedido.total,
             estado=pedido.estado.value,
             estado_entrega=pedido.estado_entrega,
+            metodo_pago=pedido.metodo_pago,
             fecha_creacion=pedido.fecha_creacion.isoformat(),
         )
 
@@ -118,6 +120,19 @@ async def listar_pedidos(
     )
 
 
+def _exigir_estado(pedido: Pedido, esperado: EstadoPedido) -> None:
+    """409 si el pedido no quedó en el estado pedido: otro operador (o la
+    plataforma) lo cambió antes, o ya estaba finalizado."""
+    if pedido.estado != esperado:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"El pedido ya está en {pedido.estado.value} y no se puede "
+                f"pasar a {esperado.value}. Actualiza la cola."
+            ),
+        )
+
+
 @router.post("/{pedido_id}/completar", response_model=PedidoResponse)
 async def completar_pedido(
     pedido_id: str,
@@ -141,6 +156,7 @@ async def completar_pedido(
     notificador = construir_notificador()
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
     actualizado = await caso_uso.ejecutar_por_id(pedido_id, EstadoPedido.ENTREGADA)
+    _exigir_estado(actualizado, EstadoPedido.ENTREGADA)
 
     return PedidoResponse.from_domain(actualizado)
 
@@ -167,5 +183,6 @@ async def cancelar_pedido_interno(
     notificador = construir_notificador()
     caso_uso = ActualizarEstadoPedidoUseCase(repository=repo, notificador=notificador)
     actualizado = await caso_uso.ejecutar_por_id(pedido_id, EstadoPedido.CANCELADA)
+    _exigir_estado(actualizado, EstadoPedido.CANCELADA)
 
     return PedidoResponse.from_domain(actualizado)

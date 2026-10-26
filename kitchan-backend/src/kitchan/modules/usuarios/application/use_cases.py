@@ -133,6 +133,8 @@ class LoginUsuarioUseCase:
         if not isinstance(usuario.rol, RolUsuario):
             raise ValueError("Rol de usuario no reconocido")
 
+        await self.repository.registrar_acceso(usuario.id)
+
         # Generamos el token incluyendo el restaurante_id para las futuras peticiones
         token = self.token_generator.generar_token(
             {

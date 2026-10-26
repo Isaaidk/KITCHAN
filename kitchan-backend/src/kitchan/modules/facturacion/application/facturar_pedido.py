@@ -28,9 +28,9 @@ from src.kitchan.modules.facturacion.domain.ports import (
 
 logger = logging.getLogger(__name__)
 
-# Se factura lo que la cocina ya preparó: un pedido nuevo todavía se puede
-# rechazar y uno cancelado no es una venta.
-ESTADOS_FACTURABLES = {"LISTA", "ENTREGADA"}
+# Solo se factura un pedido ENTREGADA: es un estado final, así que ya no se
+# puede cancelar y no se emite una factura de una venta que luego se anule.
+ESTADOS_FACTURABLES = {"ENTREGADA"}
 
 
 def referencia_de(pedido_id: str) -> str:
@@ -65,9 +65,7 @@ class FacturarPedidoUseCase:
             return await self.facturas.guardar(existente.aplicar(resultado))
 
         if pedido.estado not in ESTADOS_FACTURABLES:
-            raise PedidoNoFacturableError(
-                "Solo se facturan pedidos listos o entregados."
-            )
+            raise PedidoNoFacturableError("Solo se facturan pedidos entregados.")
         lineas = [linea for linea in pedido.items if linea.cantidad > 0]
         if not lineas:
             raise PedidoNoFacturableError("El pedido no tiene productos para facturar.")

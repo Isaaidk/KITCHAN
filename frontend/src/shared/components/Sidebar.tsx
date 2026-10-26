@@ -1,7 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useOrdersStore } from "../stores/ordersStore";
+import { CANALES_ANALITICAS } from "../../features/analiticas/canales";
+import { infoCanal } from "../../features/pedidos/estadoUtils";
+import CanalLogo from "./CanalLogo";
 import Icon, { type NombreIcono } from "./Icon";
+import KitchanLogo from "./KitchanLogo";
 import styles from "./Sidebar.module.css";
 
 const enlace = ({ isActive }: { isActive: boolean }) =>
@@ -29,7 +33,7 @@ function Enlace({
 }) {
   return (
     <NavLink to={to} end={end} className={enlace} onClick={onNavegar}>
-      <Icon name={icono} size={18} className={styles.icono} />
+      <Icon name={icono} size={22} className={styles.icono} />
       <span className={styles.texto}>{children}</span>
       {!!contador && (
         <span className={styles.contador}>
@@ -51,15 +55,18 @@ export default function Sidebar({ abierto, onNavegar }: Props) {
   return (
     <nav className={`${styles.sidebar} ${abierto ? styles.abierto : ""}`} aria-label="Navegación principal">
       <div className={styles.marca}>
-        <div className={styles.logo}>K</div>
-        <div>
-          <div className={styles.marcaNombre}>KITCHAN</div>
-          <div className={styles.marcaSub}>Gestión de pedidos</div>
-        </div>
+        <KitchanLogo tono="claro" tamano={36} />
+        <div className={styles.marcaSub}>Más que pedidos, experiencias</div>
       </div>
 
+      {rol === "ADMIN" && (
+        <Enlace to="/" end icono="panel" onNavegar={onNavegar}>
+          Dashboard
+        </Enlace>
+      )}
+
       <div className={styles.seccion}>Operación</div>
-      <Enlace to="/" end icono="cola" contador={nuevos} onNavegar={onNavegar}>
+      <Enlace to="/cola" icono="cola" contador={nuevos} onNavegar={onNavegar}>
         Cola de pedidos
       </Enlace>
       <Enlace to="/historial" icono="historial" onNavegar={onNavegar}>
@@ -69,9 +76,27 @@ export default function Sidebar({ abierto, onNavegar }: Props) {
       {rol === "ADMIN" && (
         <>
           <div className={styles.seccion}>Administración</div>
-          <Enlace to="/analiticas" icono="analiticas" onNavegar={onNavegar}>
+          <Enlace to="/analiticas" end icono="analiticas" onNavegar={onNavegar}>
             Analíticas
           </Enlace>
+          <div className={styles.submenu} role="group" aria-label="Analíticas por canal">
+            {CANALES_ANALITICAS.map(({ slug, codigo }) => {
+              const { nombre, color } = infoCanal(codigo);
+              return (
+                <NavLink
+                  key={slug}
+                  to={`/analiticas/${slug}`}
+                  className={({ isActive }) =>
+                    isActive ? `${styles.subLink} ${styles.subLinkActivo}` : styles.subLink
+                  }
+                  onClick={onNavegar}
+                >
+                  <CanalLogo canal={codigo} color={color} nombre={nombre} size={26} />
+                  <span>{nombre}</span>
+                </NavLink>
+              );
+            })}
+          </div>
           <Enlace to="/usuarios" icono="usuarios" onNavegar={onNavegar}>
             Usuarios
           </Enlace>
@@ -80,11 +105,6 @@ export default function Sidebar({ abierto, onNavegar }: Props) {
           </Enlace>
         </>
       )}
-
-      <div className={styles.pie}>
-        <Icon name="rayo" size={14} />
-        <span>Pedidos en tiempo real</span>
-      </div>
     </nav>
   );
 }

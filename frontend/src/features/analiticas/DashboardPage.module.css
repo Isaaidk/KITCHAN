@@ -1,47 +1,131 @@
-/* Los 4 indicadores viven en una sola superficie separada por filetes de 1px
-   (el fondo del contenedor asoma entre las celdas), no en 4 tarjetas sueltas. */
+/* ---------- Cabecera granate con la foto de la marca ---------- */
+.cabecera {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  min-height: 150px;
+  margin-bottom: 20px;
+  padding: 26px 30px;
+  border-radius: var(--radius-xl);
+  color: var(--brand-crema);
+  background:
+    radial-gradient(70% 120% at 0% 0%, rgba(125, 37, 73, 0.6), transparent 70%),
+    #5a1832;
+  box-shadow: var(--shadow-card);
+}
+
+/* La foto queda a la derecha y se funde hacia el granate */
+.cabeceraFoto {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(55%, 520px);
+  height: 100%;
+  object-fit: cover;
+  object-position: 30% 70%;
+  opacity: 0.9;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 55%);
+  mask-image: linear-gradient(to right, transparent 0, #000 55%);
+  pointer-events: none;
+}
+
+.cabeceraTexto,
+.cabeceraAcciones {
+  position: relative;
+  z-index: 1;
+}
+
+.saludo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--brand-ambar);
+}
+
+.titulo {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--brand-crema);
+}
+
+.fecha {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  color: rgba(248, 246, 239, 0.82);
+}
+
+/* Solo la primera letra en mayúscula ("Miércoles, 21 de octubre") */
+.fecha::first-letter {
+  text-transform: uppercase;
+}
+
+/* Frase optimista del día */
+.frase {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 46ch;
+  margin: 12px 0 0;
+  font-family: var(--font-marca);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--brand-crema);
+  animation: kt-fade-up var(--dur-slow) var(--ease-out) both;
+}
+
+.otraFrase {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(248, 246, 239, 0.3);
+  border-radius: 50%;
+  background: rgba(248, 246, 239, 0.1);
+  color: var(--brand-crema);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) ease,
+    transform var(--dur) var(--ease-spring);
+}
+
+.otraFrase:hover {
+  background: rgba(248, 246, 239, 0.22);
+  transform: rotate(120deg);
+}
+
+/* ---------- Indicadores principales ---------- */
 .kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
+  gap: 16px;
   margin-bottom: 20px;
-  overflow: hidden;
-  background: var(--color-border);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-card);
 }
 
 .kpi {
   position: relative;
   overflow: hidden;
+  padding: 20px 22px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
-  padding: 20px 22px 22px;
+  box-shadow: var(--shadow-card);
 }
 
-/* Filete de color arriba de cada indicador */
+/* Franja de color a la izquierda de cada indicador */
 .kpi::before {
   content: "";
   position: absolute;
-  inset: 0 22px auto;
-  height: 2px;
-  border-radius: 0 0 3px 3px;
+  inset: 0 auto 0 0;
+  width: 5px;
   background: var(--kpi-color, transparent);
-  opacity: 0.8;
-}
-
-/* Brillo de color en la esquina, discreto */
-.kpi::after {
-  content: "";
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  top: -80px;
-  right: -50px;
-  border-radius: 50%;
-  background: var(--kpi-color, transparent);
-  opacity: 0.08;
-  pointer-events: none;
 }
 
 .kpiCabecera {
@@ -49,155 +133,174 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.kpiLabel {
-  font-size: 0.8rem;
+.kpiEtiqueta {
+  margin: 0;
+  font-size: 0.85rem;
   font-weight: 600;
+  letter-spacing: 0;
   color: var(--color-text-muted);
 }
 
 .kpiIcono {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  color: var(--kpi-color);
-  background: color-mix(in srgb, var(--kpi-color) 12%, white);
+  border-radius: 12px;
+  /* El color de marca (ámbar, turquesa) es claro: el ícono usa una versión más oscura */
+  color: color-mix(in srgb, var(--kpi-color) 62%, var(--tinta-contraste));
+  background: color-mix(in srgb, var(--kpi-color) 16%, var(--color-surface));
 }
 
 .kpiValor {
-  font-size: 1.9rem;
+  font-size: clamp(2rem, 2.8vw, 2.6rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
+}
+
+.kpiPie {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 12px;
 }
 
 .kpiDetalle {
-  margin-top: 6px;
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   color: var(--color-text-subtle);
 }
 
-.graficos {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+.actualizando {
+  opacity: 0.6;
+  transition: opacity var(--dur) ease;
+}
+
+/* ---------- Cocina ahora ---------- */
+.cocina {
   margin-bottom: 20px;
 }
 
-.panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-card);
-  padding: 22px 22px 14px;
-  min-width: 0;
-}
-
-.panelCabecera {
+.cocinaTitulo {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 16px;
-}
-
-.comparativa {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-size: 0.78rem;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px 2px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--color-text-muted);
+}
+
+.cocinaTarjetas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cocinaTarjeta {
+  --tinta: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--fondo);
+  color: var(--tinta);
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+  transition:
+    transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+
+.cocinaTarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Mismos colores que las columnas de la cola (texto con contraste suficiente) */
+.cocinaNueva {
+  --fondo: var(--color-estado-nueva);
+}
+
+.cocinaPreparacion {
+  --fondo: var(--color-estado-en-preparacion);
+  --tinta: var(--brand-pizarra);
+}
+
+.cocinaLista {
+  --fondo: var(--color-estado-lista);
+  --tinta: var(--brand-pizarra);
+}
+
+.cocinaNumero {
+  min-width: 44px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
-.comparativa strong {
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-}
-
-.delta {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.72rem;
+.cocinaNombre {
+  flex: 1;
+  font-size: 0.92rem;
   font-weight: 700;
 }
 
-.deltaSube {
-  background: var(--color-success-soft);
-  color: #166534;
+.cocinaFlecha {
+  opacity: 0.8;
 }
 
-.deltaBaja {
-  background: var(--color-danger-soft);
-  color: #991b1b;
+/* ---------- Canales ---------- */
+.canales {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
 }
 
-.deltaIgual {
-  background: var(--color-surface-muted);
-  color: var(--color-text-muted);
-}
-
-.panelTitulo {
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.panelSub {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-}
-
-.participacion {
+.canal {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 180px;
-}
-
-.barraFondo {
-  flex: 1;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
+  padding: 12px 14px;
   border: 1px solid var(--color-border);
-  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
 }
 
-.barraRelleno {
-  height: 100%;
-  border-radius: inherit;
-  transform-origin: left;
-  animation: barra-crece 900ms var(--ease-out) 400ms both;
+.canalDatos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes barra-crece {
-  from {
-    transform: scaleX(0);
-  }
+.canalNombre {
+  font-weight: 700;
 }
 
-.porcentaje {
-  width: 40px;
-  text-align: right;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
+.canalSub {
+  font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
 }
 
-.sinDatos {
-  text-align: center;
-  color: var(--color-text-muted);
-  padding: 28px !important;
+.canalVentas {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 1180px) {
@@ -206,15 +309,18 @@
   }
 }
 
-@media (max-width: 480px) {
-  .comparativa {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 900px) {
-  .graficos {
+@media (max-width: 720px) {
+  .cocinaTarjetas {
     grid-template-columns: 1fr;
+  }
+
+  .cabecera {
+    padding: 22px 20px;
+  }
+
+  .cabeceraFoto {
+    width: 70%;
+    opacity: 0.55;
   }
 }
 
@@ -222,8 +328,13 @@
   .kpis {
     grid-template-columns: 1fr;
   }
+}
 
-  .kpiValor {
-    font-size: 1.6rem;
-  }
+
+/* Cifras con la tipografía de la marca */
+.kpiValor,
+.cocinaNumero {
+  font-family: var(--font-cifras);
+  font-weight: 700;
+  font-feature-settings: "lnum" 1;
 }

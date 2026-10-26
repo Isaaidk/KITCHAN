@@ -1,4 +1,5 @@
 from io import BytesIO
+from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -17,6 +18,7 @@ def _tabla(filas: list[list], anchos: list[float]) -> Table:
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2937")),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
                 ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D5DB")),
                 (
                     "ROWBACKGROUNDS",
@@ -31,54 +33,98 @@ def _tabla(filas: list[list], anchos: list[float]) -> Table:
     return tabla
 
 
+def _con_datos(filas: list[list], vacio: list) -> list[list]:
+    return filas if len(filas) > 1 else filas + [vacio]
+
+
+def _usd(valor: float) -> str:
+    return f"${valor:.2f}"
+
+
 class ExportadorPdf(ExportadorAnaliticasPort):
     media_type = "application/pdf"
     extension = "pdf"
 
-    def exportar(self, analiticas: dict, fecha: str) -> bytes:
+    def exportar(self, dashboard: dict) -> bytes:
         estilos = getSampleStyleSheet()
         salida = BytesIO()
         doc = SimpleDocTemplate(
-            salida, pagesize=A4, title=f"Analíticas KITCHAN {fecha}", topMargin=2 * cm
+            salida,
+            pagesize=A4,
+            title=f"Analíticas KITCHAN {dashboard['hasta']}",
+            topMargin=2 * cm,
         )
+        actual, previo = dashboard["resumen"], dashboard["periodo_anterior"]
 
         resumen = [
-            ["Métrica", "Valor"],
-            ["Pedidos totales hoy", analiticas["pedidos_totales_hoy"]],
-            ["Ticket promedio", f"${analiticas['ticket_promedio']:.2f}"],
+            ["Métrica", "Periodo", "Anterior"],
+            ["Pedidos totales", actual["pedidos_totales"], previo["pedidos_totales"]],
+            ["Pedidos cancelados", actual["pedidos_cancelados"], previo["pedidos_cancelados"]],
             [
-                "Tiempo promedio de preparación",
-                f"{analiticas['tiempo_promedio_preparacion_minutos']} min",
+                "Tasa de cancelación",
+                f"{actual['tasa_cancelacion']}%",
+                f"{previo['tasa_cancelacion']}%",
             ],
-            ["Pedidos cancelados hoy", analiticas["pedidos_cancelados_hoy"]],
+            ["Ventas totales", _usd(actual["ventas_totales"]), _usd(previo["ventas_totales"])],
+            ["Ticket promedio", _usd(actual["ticket_promedio"]), _usd(previo["ticket_promedio"])],
+            [
+                "Tiempo prom. preparación",
+                f"{actual['tiempo_promedio_preparacion_minutos']} min",
+                f"{previo['tiempo_promedio_preparacion_minutos']} min",
+            ],
         ]
-        canales = [["Canal", "Pedidos hoy"]] + [
-            [canal, cantidad] for canal, cantidad in analiticas["por_canal"].items()
-        ]
-        if len(canales) == 1:
-            canales.append(["Sin pedidos hoy", 0])
+        canales = _con_datos(
+            [["Canal", "Pedidos", "Cancel.", "Ventas", "Ticket", "Min. prom."]]
+            + [
+                [
+                    c["canal"],
+                    c["pedidos"],
+                    c["cancelados"],
+                    _usd(c["ventas"]),
+                    _usd(c["ticket_promedio"]),
+                    c["tiempo_promedio_minutos"],
+                ]
+                for c in dashboard["por_canal"]
+            ],
+            ["Sin pedidos", 0, 0, _usd(0), _usd(0), 0],
+        )
         # Solo las horas con actividad: 24 filas casi vacías no aportan.
-        horas = [["Hora", "Hoy", "Ayer"]] + [
-            [f"{p['hora']:02d}:00", p["hoy"], p["ayer"]]
-            for p in analiticas["comparacion_hoy_vs_ayer"]
-            if p["hoy"] or p["ayer"]
-        ]
-        if len(horas) == 1:
-            horas.append(["Sin actividad", 0, 0])
+        horas = _con_datos(
+            [["Hora", "Pedidos", "Anterior"]]
+            + [
+                [f"{h['hora']:02d}:00", h["pedidos"], h["pedidos_anterior"]]
+                for h in dashboard["por_hora"]
+                if h["pedidos"] or h["pedidos_anterior"]
+            ],
+            ["Sin actividad", 0, 0],
+        )
+        productos = _con_datos(
+            [["Producto", "Cantidad", "Ventas"]]
+            + [
+                [p["nombre"][:45], p["cantidad"], _usd(p["ventas"])]
+                for p in dashboard["productos_mas_vendidos"]
+            ],
+            ["Sin ventas", 0, _usd(0)],
+        )
 
+        canal = dashboard["canal"] or "todos los canales"
+        subtitulo = f"{dashboard['desde']} al {dashboard['hasta']} · {dashboard['rango']} · {canal}"
         doc.build(
             [
                 Paragraph("Analíticas KITCHAN", estilos["Title"]),
-                Paragraph(f"Fecha: {fecha}", estilos["Normal"]),
-                Spacer(1, 0.6 * cm),
-                Paragraph("Resumen del día", estilos["Heading2"]),
-                _tabla(resumen, [9 * cm, 5 * cm]),
-                Spacer(1, 0.6 * cm),
-                Paragraph("Pedidos por canal", estilos["Heading2"]),
-                _tabla(canales, [9 * cm, 5 * cm]),
-                Spacer(1, 0.6 * cm),
-                Paragraph("Hoy vs ayer por hora", estilos["Heading2"]),
-                _tabla(horas, [5 * cm, 4.5 * cm, 4.5 * cm]),
+                Paragraph(escape(subtitulo), estilos["Normal"]),
+                Spacer(1, 0.5 * cm),
+                Paragraph("Resumen", estilos["Heading2"]),
+                _tabla(resumen, [8 * cm, 4 * cm, 4 * cm]),
+                Spacer(1, 0.5 * cm),
+                Paragraph("Por canal", estilos["Heading2"]),
+                _tabla(canales, [4 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 2.8 * cm, 2.4 * cm]),
+                Spacer(1, 0.5 * cm),
+                Paragraph("Pedidos por hora", estilos["Heading2"]),
+                _tabla(horas, [5 * cm, 4 * cm, 4 * cm]),
+                Spacer(1, 0.5 * cm),
+                Paragraph("Productos más vendidos", estilos["Heading2"]),
+                _tabla(productos, [9 * cm, 3 * cm, 3.5 * cm]),
             ]
         )
         return salida.getvalue()

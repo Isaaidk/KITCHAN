@@ -1,0 +1,89 @@
+.ilustracion {
+  height: auto;
+  margin-bottom: 4px;
+  color: var(--color-primary);
+  animation: flotar 4.5s ease-in-out infinite;
+}
+
+.relleno {
+  fill: var(--color-surface);
+}
+
+.relleno2 {
+  fill: var(--color-amber-soft);
+}
+
+.cafe {
+  fill: var(--color-primary-soft);
+}
+
+.ambar {
+  fill: var(--brand-ambar);
+  stroke: var(--brand-ambar);
+}
+
+.franja {
+  stroke: var(--brand-ambar);
+}
+
+.destello {
+  stroke: var(--brand-ambar);
+  stroke-width: 2.2;
+}
+
+.mango {
+  stroke: var(--brand-ambar);
+  stroke-width: 6;
+}
+
+.vapor {
+  fill: none;
+  stroke: var(--brand-ambar);
+  stroke-width: 2.4;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: subir 2.6s ease-in-out infinite;
+}
+
+.vapor2 {
+  animation-delay: 0.5s;
+}
+
+.vapor3 {
+  animation-delay: 1s;
+}
+
+@keyframes subir {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ilustracion,
+  .vapor {
+    animation: none;
+  }
+
+  .vapor {
+    opacity: 1;
+  }
+}

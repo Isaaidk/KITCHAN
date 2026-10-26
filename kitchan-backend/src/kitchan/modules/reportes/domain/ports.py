@@ -22,6 +22,6 @@ class ExportadorAnaliticasPort(ABC):
     extension: str
 
     @abstractmethod
-    def exportar(self, analiticas: dict, fecha: str) -> bytes:
-        """Devuelve el contenido del archivo con las analíticas del día."""
+    def exportar(self, dashboard: dict) -> bytes:
+        """Devuelve el contenido del archivo con el dashboard del periodo."""
         pass

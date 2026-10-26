@@ -13,6 +13,9 @@ from src.kitchan.modules.integraciones.core.domain.entities import (
     KitchanOrderDTO,
     KitchanOrderItem,
 )
+from src.kitchan.modules.integraciones.core.domain.metodos_pago import (
+    normalizar_metodo_pago,
+)
 from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (
     OrderDispatcherPort,
 )
@@ -61,6 +64,7 @@ class RappiWebhookUseCase:
             items=items_kitchan,
             total=payload.order_detail.totals.total_order,
             estado="NUEVA",
+            metodo_pago=normalizar_metodo_pago(payload.order_detail.payment_method),
         )
 
     async def procesar_nuevo_pedido(self, payload: RappiOrderPayload) -> bool:
