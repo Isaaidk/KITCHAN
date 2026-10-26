@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
 import Modal from "../../shared/components/Modal";
+import { httpClient } from "../../shared/api/httpClient";
 import { infoCanal } from "../pedidos/estadoUtils";
 import type { AnaliticasPedidos } from "./types";
 import styles from "./ExportModal.module.css";
@@ -22,14 +23,15 @@ function generarCSV(datos: AnaliticasPedidos): string {
 // Fecha local (AAAA-MM-DD): toISOString usa UTC y de noche daría la fecha de mañana.
 const formatoFecha = new Intl.DateTimeFormat("sv-SE", { year: "numeric", month: "2-digit", day: "2-digit" });
 
-function nombreArchivo(): string {
-  return `kitchan-analiticas-${formatoFecha.format(new Date())}.csv`;
+function nombreArchivo(extension: "csv" | "xlsx" | "pdf"): string {
+  return `kitchan-analiticas-${formatoFecha.format(new Date())}.${extension}`;
 }
 
 export default function ExportModal({ datos, onClose }: Props) {
   const [copiado, setCopiado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [verCsv, setVerCsv] = useState(false);
+  const [generando, setGenerando] = useState<"xlsx" | "pdf" | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const csv = generarCSV(datos);
 
@@ -55,11 +57,11 @@ export default function ExportModal({ datos, onClose }: Props) {
     }
   };
 
-  const descargar = () => {
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const descargarBlob = (blob: Blob, nombre: string) => {
+    const url = URL.createObjectURL(blob);
     const enlace = document.createElement("a");
     enlace.href = url;
-    enlace.download = nombreArchivo();
+    enlace.download = nombre;
     // Firefox exige el enlace dentro del documento; y se libera la URL un
     // poco después para no cancelar la descarga en Safari.
     document.body.appendChild(enlace);
@@ -68,10 +70,30 @@ export default function ExportModal({ datos, onClose }: Props) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const descargar = () =>
+    descargarBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), nombreArchivo("csv"));
+
+  // Excel y PDF los genera el backend (mismas métricas que ve el dashboard).
+  const descargarServidor = async (formato: "xlsx" | "pdf") => {
+    setError(null);
+    setGenerando(formato);
+    try {
+      const { data } = await httpClient.get<Blob>("/api/v1/reportes/pedidos/analiticas/exportar", {
+        params: { formato },
+        responseType: "blob",
+      });
+      descargarBlob(data, nombreArchivo(formato));
+    } catch {
+      setError(`No se pudo generar el archivo ${formato === "xlsx" ? "Excel" : "PDF"}. Inténtalo de nuevo.`);
+    } finally {
+      setGenerando(null);
+    }
+  };
+
   return (
     <Modal titulo="Exportar analíticas" onClose={onClose}>
       <p className={styles.intro}>
-        Pedidos de hoy por canal, en formato CSV para abrir en Excel o Google Sheets.
+        Descarga las analíticas del día en Excel (.xlsx), PDF o CSV. Vista previa: pedidos de hoy por canal.
       </p>
 
       <div className={styles.vista}>
@@ -140,9 +162,25 @@ export default function ExportModal({ datos, onClose }: Props) {
         <span className="sr-only" role="status">
           {copiado ? "CSV copiado al portapapeles" : ""}
         </span>
-        <button className="btn btn-primary" onClick={descargar}>
+        <button className="btn btn-secondary" onClick={descargar}>
           <Icon name="descargar" size={16} />
-          Descargar CSV
+          CSV
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => descargarServidor("pdf")}
+          disabled={generando !== null}
+        >
+          <Icon name="descargar" size={16} />
+          {generando === "pdf" ? "Generando…" : "PDF"}
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={() => descargarServidor("xlsx")}
+          disabled={generando !== null}
+        >
+          <Icon name="descargar" size={16} />
+          {generando === "xlsx" ? "Generando…" : "Excel"}
         </button>
       </div>
     </Modal>

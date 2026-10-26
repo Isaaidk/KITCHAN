@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.core.database import get_db
@@ -9,6 +9,13 @@ from src.kitchan.modules.pedidos.infrastructure.dependencias import (
 from src.kitchan.modules.reportes.application.analiticas_pedidos import (
     ObtenerAnaliticasPedidosUseCase,
 )
+from src.kitchan.modules.reportes.application.exportar_analiticas import (
+    ExportarAnaliticasPedidosUseCase,
+)
+from src.kitchan.modules.reportes.infrastructure.exportador_excel import (
+    ExportadorExcel,
+)
+from src.kitchan.modules.reportes.infrastructure.exportador_pdf import ExportadorPdf
 from src.kitchan.modules.reportes.infrastructure.pedidos_lectura_adapter import (
     PedidosLecturaAdapter,
 )
@@ -38,6 +45,31 @@ def get_analiticas_use_case(
 ) -> ObtenerAnaliticasPedidosUseCase:
     return ObtenerAnaliticasPedidosUseCase(
         pedidos=PedidosLecturaAdapter(construir_repositorio_pedidos(db))
+    )
+
+
+def get_exportar_use_case(
+    db: AsyncSession = Depends(get_db),
+) -> ExportarAnaliticasPedidosUseCase:
+    return ExportarAnaliticasPedidosUseCase(
+        analiticas=get_analiticas_use_case(db),
+        exportadores={"xlsx": ExportadorExcel(), "pdf": ExportadorPdf()},
+    )
+
+
+@router.get("/pedidos/analiticas/exportar")
+async def exportar_analiticas_pedidos(
+    formato: str = Query(..., pattern="^(xlsx|pdf)$"),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ExportarAnaliticasPedidosUseCase = Depends(get_exportar_use_case),
+):
+    contenido, exportador, nombre = await use_case.ejecutar(
+        usuario_actual["restaurante_id"], formato
+    )
+    return Response(
+        content=contenido,
+        media_type=exportador.media_type,
+        headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
     )
 
 

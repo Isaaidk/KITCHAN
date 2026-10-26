@@ -13,3 +13,15 @@ class PedidosLecturaPort(ABC):
     ) -> list[PedidoResumen]:
         """Pedidos del restaurante creados desde `desde`, en cualquier estado."""
         pass
+
+
+class ExportadorAnaliticasPort(ABC):
+    """Puerto de salida: serializa las analíticas calculadas a un archivo."""
+
+    media_type: str
+    extension: str
+
+    @abstractmethod
+    def exportar(self, analiticas: dict, fecha: str) -> bytes:
+        """Devuelve el contenido del archivo con las analíticas del día."""
+        pass
