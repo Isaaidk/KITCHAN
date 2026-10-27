@@ -16,6 +16,9 @@ from src.kitchan.modules.integraciones.uber.domain.ports import (
 from src.kitchan.modules.integraciones.uber.infrastructure.adapters.redis_token_adapter import (
     RedisUberTokenAdapter,
 )
+from src.kitchan.modules.integraciones.uber.infrastructure.menu_cafeteria import (
+    construir_menu_payload,
+)
 
 # ============================================================
 # CONFIGURACIÓN
@@ -702,52 +705,8 @@ async def subir_menu_uber(
         "Content-Type": "application/json",
     }
 
-    # 3. Payload de Menú Básico (Una Hamburguesa)
-    dias_semana = [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-    ]
-    disponibilidad = [
-        {
-            "day_of_week": dia,
-            "time_periods": [{"start_time": "00:00", "end_time": "23:59"}],
-        }
-        for dia in dias_semana
-    ]
-    menu_payload = {
-        "items": [
-            {
-                "id": "item-hamburguesa-1",
-                "title": {"translations": {"es": "Hamburguesa Kitchan"}},
-                "price_info": {
-                    "price": 1000,
-                    "overrides": [],
-                },  # 10.00 en la moneda local
-                "tax_info": {"tax_rate": 0},
-            }
-        ],
-        "categories": [
-            {
-                "id": "cat-principales",
-                "title": {"translations": {"es": "Platos Principales"}},
-                "entities": [{"id": "item-hamburguesa-1", "type": "ITEM"}],
-            }
-        ],
-        "menus": [
-            {
-                "id": "menu-principal",
-                "title": {"translations": {"es": "Menú Principal"}},
-                "category_ids": ["cat-principales"],
-                "service_availability": disponibilidad,
-            }
-        ],
-        "modifier_groups": [],
-    }
+    # 3. Menú de la cafetería (platillos, combos y promos en menu_cafeteria.py)
+    menu_payload = construir_menu_payload()
 
     async with httpx.AsyncClient() as client:
         respuesta = await client.put(
