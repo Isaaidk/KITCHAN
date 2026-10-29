@@ -8,12 +8,15 @@ por eso hay un endpoint por evento en vez de uno solo que distingue por
 `event_type` como en Uber:
 - NEW_ORDER           -> POST /api/v1/integraciones/rappi/webhook/new-order
 - ORDER_EVENT_CANCEL  -> POST /api/v1/integraciones/rappi/webhook/order-cancel
+- PING                -> POST /api/v1/integraciones/rappi/webhook/ping
+- STORE_CONNECTIVITY  -> POST /api/v1/integraciones/rappi/webhook/store-connectivity
+- ORDER_OTHER_EVENT   -> POST /api/v1/integraciones/rappi/webhook/other-event
 """
 
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 
 from src.kitchan.modules.integraciones.rappi.application.webhook_use_cases import (
     RappiWebhookUseCase,
@@ -113,6 +116,48 @@ async def rappi_new_order(
             },
         )
 
+    return {"status": "success"}
+
+
+# ============================================================
+# PING (health check), STORE_CONNECTIVITY y ORDER_OTHER_EVENT
+# ============================================================
+@router.post("/ping")
+async def rappi_ping(payload: dict | None = Body(default=None)):
+    """Health check: Rappi envía {"store_id": ...} cada 3 minutos y espera
+    {"status": "OK"}. Si no responde OK, tras 2 fallos suspende la tienda.
+
+    No exige la firma: no devuelve ni cambia nada, y rechazar un ping
+    legítimo por un problema de firma dejaría la tienda suspendida."""
+    store_id = (payload or {}).get("store_id")
+    logger.debug("PING de Rappi para la tienda %s", store_id)
+    return {"status": "OK"}
+
+
+@router.post("/store-connectivity")
+async def rappi_store_connectivity(valid_body: bytes = Depends(validar_firma_rappi)):
+    """Rappi avisa que una tienda dejó de estar disponible o volvió. Solo se
+    registra: KITCHAN no cambia el estado de sus pedidos por esto."""
+    evento = _parsear_json(valid_body)
+    logger.info(
+        "STORE_CONNECTIVITY de Rappi: tienda %s habilitada=%s (%s)",
+        evento.get("external_store_id"),
+        evento.get("enabled"),
+        evento.get("message"),
+    )
+    return {"status": "success"}
+
+
+@router.post("/other-event")
+async def rappi_other_event(valid_body: bytes = Depends(validar_firma_rappi)):
+    """Eventos del ciclo de vida del pedido que aún no usamos (p. ej. el
+    repartidor llegó). Se reconocen con 200 para que Rappi no reintente."""
+    evento = _parsear_json(valid_body)
+    logger.info(
+        "ORDER_OTHER_EVENT de Rappi: pedido %s evento %s",
+        evento.get("order_id"),
+        evento.get("event"),
+    )
     return {"status": "success"}
 
 

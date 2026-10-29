@@ -27,6 +27,11 @@ RAPPI_API_BASE_DEFAULT = "https://microservices.dev.rappi.com"
 ORDERS_PATH = "/api/v2/restaurants-integrations-public-api/orders"
 TOKEN_PATH = "/restaurants/auth/v1/token/login/integrations"
 
+# Con credenciales de la API v2 Rappi entrega una `audience` y el login es el
+# de Auth0 (verificado con el sandbox: 200 y token de 7 días). En producción se
+# define RAPPI_AUTH_URL con el login del país.
+AUTH0_DEV_URL = "https://rests-integrations-dev.auth0.com/oauth/token"
+
 
 class RappiHttpAdapter(RappiApiPort):
     def __init__(self, token_cache: RappiTokenCachePort):
@@ -36,6 +41,17 @@ class RappiHttpAdapter(RappiApiPort):
         self.client_id = os.getenv("RAPPI_CLIENT_ID")
         self.client_secret = os.getenv("RAPPI_CLIENT_SECRET")
         self.audience = os.getenv("RAPPI_AUDIENCE")
+
+    def _url_login(self) -> str:
+        """URL del login: la de RAPPI_AUTH_URL si está definida; con audience,
+        el Auth0 de desarrollo; sin audience, el login clásico (y el del
+        simulador local, que usa RAPPI_AUTH_BASE)."""
+        url = (os.getenv("RAPPI_AUTH_URL") or "").strip()
+        if url:
+            return url
+        if self.audience:
+            return AUTH0_DEV_URL
+        return f"{self.auth_base}{TOKEN_PATH}"
 
     async def _obtener_token(self) -> str:
         token = await self.token_cache.get_app_token()
@@ -61,9 +77,7 @@ class RappiHttpAdapter(RappiApiPort):
             body["audience"] = self.audience
 
         async with httpx.AsyncClient() as client:
-            respuesta = await client.post(
-                f"{self.auth_base}{TOKEN_PATH}", json=body, timeout=15
-            )
+            respuesta = await client.post(self._url_login(), json=body, timeout=15)
 
         if respuesta.status_code != 200:
             raise HTTPException(
