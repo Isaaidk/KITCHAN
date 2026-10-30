@@ -53,6 +53,51 @@ class RappiTokenCachePort(ABC):
         pass
 
 
+class RappiMerchantTokenCachePort(ABC):
+    """
+    Caché del token del COMERCIO (el `id_token` que entrega el OAuth de
+    Rappi). La API v2 exige dos tokens en cada llamada: el del integrador
+    (client-credentials, ver RappiTokenCachePort) y este, que identifica al
+    comercio que autorizó a KITCHAN.
+    """
+
+    @abstractmethod
+    async def save_merchant_token(self, token: str, expires_in: int) -> None:
+        pass
+
+    @abstractmethod
+    async def get_merchant_token(self) -> Optional[str]:
+        pass
+
+
+class RappiOAuthStatePort(ABC):
+    """Guarda, mientras el comercio autoriza en Rappi, el `code_verifier` de
+    PKCE asociado al `state` de esa autorización."""
+
+    @abstractmethod
+    async def save_state(
+        self, state: str, code_verifier: str, expires_in: int = 600
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def pop_code_verifier(self, state: str) -> Optional[str]:
+        """Devuelve y elimina el code_verifier (el state solo sirve una vez)."""
+        pass
+
+
+class RappiOAuthPort(ABC):
+    """Cliente del endpoint de tokens del OAuth de Rappi."""
+
+    @abstractmethod
+    async def exchange_code(
+        self, code: str, code_verifier: str, redirect_uri: str
+    ) -> tuple[str, int]:
+        """Cambia el `code` por el token del comercio. Devuelve
+        (id_token, segundos de vigencia). Lanza RappiOAuthError si falla."""
+        pass
+
+
 class RappiStoreMappingPort(ABC):
     """
     Puerto para resolver el id de tienda de Rappi (store.internal_id /

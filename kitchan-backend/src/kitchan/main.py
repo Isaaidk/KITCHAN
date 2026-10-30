@@ -30,6 +30,7 @@ from src.kitchan.modules.integraciones.pedidosya.infrastructure.controllers impo
 from src.kitchan.modules.integraciones.rappi.infrastructure.controllers import (
     webhook_api as rappi_webhook_api,
     orders_api as rappi_orders_api,
+    oauth_api as rappi_oauth_api,
 )
 
 # Composition root: registra las rutas de la integración WhatsApp (el bot es un
@@ -124,6 +125,8 @@ app.include_router(pedidosya_orders_api.router)
 app.include_router(rappi_webhook_api.router)
 
 app.include_router(rappi_orders_api.router)
+
+app.include_router(rappi_oauth_api.router)
 
 app.include_router(whatsapp_webhook_api.router)
 

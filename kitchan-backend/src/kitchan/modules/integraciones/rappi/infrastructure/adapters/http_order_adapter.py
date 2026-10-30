@@ -15,6 +15,7 @@ from fastapi import HTTPException
 
 from src.kitchan.modules.integraciones.rappi.domain.ports import (
     RappiApiPort,
+    RappiMerchantTokenCachePort,
     RappiTokenCachePort,
 )
 
@@ -99,11 +100,21 @@ class RappiHttpAdapter(RappiApiPort):
         await self.token_cache.save_app_token(token, int(datos.get("expires_in", 3600)))
         return token
 
+    async def _token_comercio(self) -> Optional[str]:
+        if isinstance(self.token_cache, RappiMerchantTokenCachePort):
+            return await self.token_cache.get_merchant_token()
+        return None
+
     async def _llamar(
         self, metodo: str, path: str, accion: str, json: Optional[dict] = None
     ) -> bool:
         token = await self._obtener_token()
         headers = {"x-authorization": f"Bearer {token}"}
+        token_comercio = await self._token_comercio()
+        if token_comercio:
+            # La API v2 pide tambien el token del comercio (OAuth); sin el, las
+            # rutas de tienda responden 401 "v1_disabled".
+            headers["Authorization-Partners"] = f"Bearer {token_comercio}"
 
         async with httpx.AsyncClient() as client:
             respuesta = await client.request(
