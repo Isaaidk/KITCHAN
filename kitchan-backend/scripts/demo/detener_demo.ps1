@@ -5,7 +5,7 @@
 # tambien se llama "KITCHAN") ni Windows Terminal con otras pestanas abiertas.
 # Despues detiene Postgres y Redis sin borrar datos.
 
-$patron = '(?i)kitchan.*(api_rappi_falsa|api_pedidosya_falsa|src\.kitchan\.main:app|demo_pedidos\.py|npm run dev|ngrok http)'
+$patron = '(?i)kitchan.*(api_rappi_falsa|api_pedidosya_falsa|bot_whatsapp_falso|src\.kitchan\.main:app|demo_pedidos\.py|npm run dev|ngrok http)'
 
 Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" |
     Where-Object { $_.CommandLine -match $patron } |
@@ -13,7 +13,7 @@ Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" |
 
 # Por si algun servidor quedo vivo fuera de su ventana: se libera por puerto,
 # solo si es un proceso de Python o Node (los de la demo).
-foreach ($puerto in 8000, 8010, 8011, 5173) {
+foreach ($puerto in 8000, 8001, 8010, 8011, 5173) {
     Get-NetTCPConnection -LocalPort $puerto -State Listen -ErrorAction SilentlyContinue |
         ForEach-Object {
             $proceso = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue

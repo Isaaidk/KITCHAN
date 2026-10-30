@@ -3,7 +3,7 @@
 Envía pedidos de Rappi y PedidosYa a KITCHAN con clientes y productos
 realistas, usando la misma firma (Rappi-Signature) y el mismo JWT
 (Integration Middleware) que usan las plataformas reales. Reutiliza la lógica
-de los simuladores de scripts/simulador_rappi y scripts/simulador_pedidosya.
+de los simuladores de scripts/simulador_rappi, simulador_pedidosya y simulador_whatsapp.
 
 Uso (desde kitchan-backend/):
     python scripts/demo/demo_pedidos.py
@@ -21,9 +21,11 @@ from dotenv import load_dotenv
 SCRIPTS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SCRIPTS / "simulador_rappi"))
 sys.path.insert(0, str(SCRIPTS / "simulador_pedidosya"))
+sys.path.insert(0, str(SCRIPTS / "simulador_whatsapp"))
 
 import simular_pedidosya  # noqa: E402
 import simular_rappi  # noqa: E402
+import simular_whatsapp  # noqa: E402
 
 KITCHAN_URL = "http://127.0.0.1:8000"
 
@@ -61,6 +63,32 @@ PEDIDOS_PEDIDOSYA = [
     ("Sofía Andrade", [("Hamburguesa clásica", 1, 6.50, "Sin tomate")]),
 ]
 
+# (cliente, teléfono, tipo de entrega, dirección, indicaciones, productos)
+PEDIDOS_WHATSAPP = [
+    (
+        "Valeria Castro",
+        "+593991234567",
+        "DOMICILIO",
+        "Av. Charles Darwin N9-50 y Luis Felipe Borja, Quito",
+        "Tocar el timbre dos veces",
+        [
+            ("Cappuccino", 2, 3.00, "Con leche deslactosada"),
+            ("Croissant de Jamón y Queso", 2, 4.50, None),
+        ],
+    ),
+    (
+        "Mateo Salazar",
+        "+593987654321",
+        "RETIRO",
+        None,
+        None,
+        [
+            ("Hamburguesa Kitchan", 1, 10.00, "Sin tomate"),
+            ("Café Americano", 1, 2.00, None),
+        ],
+    ),
+]
+
 estado = {
     "rappi": 0,
     "pedidosya": 0,
@@ -68,6 +96,7 @@ estado = {
     # Último pedido enviado (cuerpo exacto), para poder reenviarlo igual.
     "ultimo_rappi_body": None,
     "ultimo_pedidosya": None,
+    "whatsapp": 0,
 }
 
 
@@ -146,6 +175,42 @@ def pedido_pedidosya() -> None:
     _resultado(respuesta, 200)
 
 
+def pedido_whatsapp() -> None:
+    cliente, telefono, entrega, direccion, indicaciones, items = PEDIDOS_WHATSAPP[
+        estado["whatsapp"] % len(PEDIDOS_WHATSAPP)
+    ]
+    estado["whatsapp"] += 1
+    order_id = f"WA-{uuid.uuid4().hex[:6].upper()}"
+    total = round(sum(c * p for _, c, p, _ in items), 2)
+    payload = {
+        "order_id": order_id,
+        "store_id": simular_whatsapp._store_id_por_defecto(),
+        "customer_name": cliente,
+        "items": [
+            {"name": n, "quantity": c, "unit_price": p, "notes": nota}
+            for n, c, p, nota in items
+        ],
+        "total": total,
+        "currency": "USD",
+        "payment_method": "EFECTIVO",
+        "customer_phone": telefono,
+        "delivery_type": entrega,
+        "delivery_address": direccion,
+        "order_notes": indicaciones,
+    }
+    body = json.dumps(payload).encode("utf-8")
+    firma = simular_whatsapp._firmar(os.environ["WHATSAPP_BOT_SECRET"], body)
+    print(f"\n💬 WhatsApp: pedido de {cliente} por ${total:.2f} ({order_id})")
+    _resultado(
+        _post(
+            f"{KITCHAN_URL}/api/v1/integraciones/whatsapp/webhook/new-order",
+            body,
+            {"Content-Type": "application/json", simular_whatsapp.HEADER: firma},
+        ),
+        200,
+    )
+
+
 def intentos_falsos() -> None:
     print("\n🕵️ Intento 1: pedido de Rappi con firma falsa")
     body = json.dumps(
@@ -178,7 +243,29 @@ def intentos_falsos() -> None:
         ),
         401,
     )
-    print("  → Ninguno de los dos aparece en el KDS.")
+    print("🕵️ Intento 3: pedido de WhatsApp con firma falsa")
+    cuerpo_whatsapp = json.dumps(
+        {
+            "order_id": "FALSO-3",
+            "store_id": simular_whatsapp._store_id_por_defecto(),
+            "items": [{"name": "Café", "quantity": 1, "unit_price": 2.0}],
+            "total": 2.0,
+        }
+    ).encode("utf-8")
+    _resultado(
+        _post(
+            f"{KITCHAN_URL}/api/v1/integraciones/whatsapp/webhook/new-order",
+            cuerpo_whatsapp,
+            {
+                "Content-Type": "application/json",
+                simular_whatsapp.HEADER: simular_whatsapp._firmar(
+                    "secreto-falso", cuerpo_whatsapp
+                ),
+            },
+        ),
+        403,
+    )
+    print("  → Ninguno de los tres aparece en el KDS.")
 
 
 def rappi_cancela() -> None:
@@ -262,13 +349,20 @@ OPCIONES = {
     "4": ("El cliente cancela el último pedido de Rappi", rappi_cancela),
     "5": ("Rappi reenvía el MISMO pedido (no se duplica)", reenviar_rappi),
     "6": ("PedidosYa reenvía el MISMO pedido (no se duplica)", reenviar_pedidosya),
+    "7": ("Llega un pedido de WhatsApp", pedido_whatsapp),
 }
 
 
 def main() -> None:
     load_dotenv(Path(__file__).resolve().parents[2] / ".env")
     faltan = [
-        v for v in ("RAPPI_WEBHOOK_SECRET", "PEDIDOSYA_JWT_SECRET") if not os.getenv(v)
+        v
+        for v in (
+            "RAPPI_WEBHOOK_SECRET",
+            "PEDIDOSYA_JWT_SECRET",
+            "WHATSAPP_BOT_SECRET",
+        )
+        if not os.getenv(v)
     ]
     if faltan:
         print(f"❌ Faltan en el .env: {', '.join(faltan)}")
