@@ -122,6 +122,8 @@ def test_el_menu_de_la_cafeteria_es_valido_y_va_a_la_tienda_padre(monkeypatch):
     menu = menu_de_cafeteria()
 
     assert menu["storeId"] == TIENDA_PADRE_POR_DEFECTO == "900175767"
+    # Por defecto el precio va en dólares (6.5), no en centavos (650).
+    assert menu["items"][0]["price"] == 6.5
     assert len(menu["items"]) == 18
     assert len({i["sku"] for i in menu["items"]}) == 18
     assert validar_menu_rappi(menu) == []
@@ -129,9 +131,9 @@ def test_el_menu_de_la_cafeteria_es_valido_y_va_a_la_tienda_padre(monkeypatch):
 
 def test_la_tienda_y_la_unidad_de_precio_se_configuran(monkeypatch):
     monkeypatch.setenv("RAPPI_TIENDA_PADRE_ID", "123")
-    monkeypatch.setenv("RAPPI_PRECIO_EN_CENTAVOS", "false")
+    monkeypatch.setenv("RAPPI_PRECIO_EN_CENTAVOS", "true")
 
     menu = menu_de_cafeteria()
 
     assert menu["storeId"] == "123"
-    assert isinstance(menu["items"][0]["price"], float)
+    assert menu["items"][0]["price"] == 650

@@ -24,8 +24,10 @@ def tienda_padre_id() -> str:
 
 
 def precios_en_centavos() -> bool:
-    """RAPPI_PRECIO_EN_CENTAVOS=false envía dólares con decimales."""
-    return (os.getenv("RAPPI_PRECIO_EN_CENTAVOS") or "true").strip().lower() != "false"
+    """Por defecto se envían dólares con decimales (6.5): el simulador del
+    sandbox de Rappi mostró el entero 650 como "$ 650", es decir, no lo trata
+    como centavos. RAPPI_PRECIO_EN_CENTAVOS=true los envía como enteros."""
+    return (os.getenv("RAPPI_PRECIO_EN_CENTAVOS") or "false").strip().lower() == "true"
 
 
 def menu_de_cafeteria() -> dict:
