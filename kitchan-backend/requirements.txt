@@ -13,6 +13,8 @@ redis==5.0.1
 httpx==0.26.0
 # Base de zonas horarias (en Windows no viene con el sistema); la usa Reportes.
 tzdata==2025.2
+openpyxl==3.1.5
+reportlab==5.1.0
 
 # --- Dependencias de Pruebas y Calidad de Código (CI/CD) ---
 pytest==8.0.0

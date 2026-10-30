@@ -47,6 +47,9 @@ class PedidoModel(Base):
     )
     cliente: Mapped[str] = mapped_column(String(150), nullable=False)
     nota_cliente: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    telefono_cliente: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    tipo_entrega: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    direccion_entrega: Mapped[str | None] = mapped_column(String(300), nullable=True)
     items: Mapped[list] = mapped_column(
         JSON().with_variant(JSONB, "postgresql"), nullable=False
     )
@@ -80,6 +83,9 @@ class PedidoModel(Base):
             id_externo=self.id_externo,
             cliente=self.cliente,
             nota_cliente=self.nota_cliente,
+            telefono_cliente=self.telefono_cliente,
+            tipo_entrega=self.tipo_entrega,
+            direccion_entrega=self.direccion_entrega,
             items=[PedidoItem(**item) for item in self.items],
             total=float(self.total),
             estado=EstadoPedido(self.estado),
@@ -101,6 +107,9 @@ class PedidoModel(Base):
             id_externo=pedido.id_externo,
             cliente=pedido.cliente,
             nota_cliente=pedido.nota_cliente,
+            telefono_cliente=pedido.telefono_cliente,
+            tipo_entrega=pedido.tipo_entrega,
+            direccion_entrega=pedido.direccion_entrega,
             items=[item.model_dump() for item in pedido.items],
             total=pedido.total,
             estado=pedido.estado,

@@ -35,3 +35,8 @@ class KitchanOrderDTO(BaseModel):
     # Método de pago ya normalizado (ver core/domain/metodos_pago.py); None si
     # el canal no lo informó.
     metodo_pago: Optional[str] = None
+    # Datos opcionales que solo algunos canales informan (p. ej. WhatsApp).
+    telefono_cliente: Optional[str] = None
+    tipo_entrega: Optional[str] = None  # DOMICILIO | RETIRO
+    direccion_entrega: Optional[str] = None
+    nota_cliente: Optional[str] = None

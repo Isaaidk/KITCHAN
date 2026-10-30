@@ -43,6 +43,9 @@ class PedidoResponse(BaseModel):
     id_externo: Optional[str] = None
     cliente: str
     nota_cliente: Optional[str] = None
+    telefono_cliente: Optional[str] = None
+    tipo_entrega: Optional[str] = None
+    direccion_entrega: Optional[str] = None
     items: list[PedidoItemResponse]
     total: float
     estado: str
@@ -59,6 +62,9 @@ class PedidoResponse(BaseModel):
             id_externo=pedido.id_externo,
             cliente=pedido.cliente,
             nota_cliente=pedido.nota_cliente,
+            telefono_cliente=pedido.telefono_cliente,
+            tipo_entrega=pedido.tipo_entrega,
+            direccion_entrega=pedido.direccion_entrega,
             items=[PedidoItemResponse(**item.model_dump()) for item in pedido.items],
             total=pedido.total,
             estado=pedido.estado.value,

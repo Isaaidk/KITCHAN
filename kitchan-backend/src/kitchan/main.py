@@ -32,6 +32,13 @@ from src.kitchan.modules.integraciones.rappi.infrastructure.controllers import (
     orders_api as rappi_orders_api,
 )
 
+# Composition root: registra las rutas de la integración WhatsApp (el bot es un
+# servicio independiente que envía pedidos firmados + acciones del KDS).
+from src.kitchan.modules.integraciones.whatsapp.infrastructure.controllers import (
+    webhook_api as whatsapp_webhook_api,
+    orders_api as whatsapp_orders_api,
+)
+
 from src.kitchan.modules.restaurantes.infrastructure.rest_api import (
     router as onboarding_router,
 )
@@ -117,6 +124,10 @@ app.include_router(pedidosya_orders_api.router)
 app.include_router(rappi_webhook_api.router)
 
 app.include_router(rappi_orders_api.router)
+
+app.include_router(whatsapp_webhook_api.router)
+
+app.include_router(whatsapp_orders_api.router)
 
 app.include_router(pedidos_router)
 

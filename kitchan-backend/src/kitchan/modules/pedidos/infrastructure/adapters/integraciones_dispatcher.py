@@ -53,6 +53,10 @@ class PedidosIntegracionesAdapter(OrderDispatcherPort):
             total=order_dto.total,
             estado=EstadoPedido.NUEVA,
             metodo_pago=order_dto.metodo_pago,
+            nota_cliente=order_dto.nota_cliente,
+            telefono_cliente=order_dto.telefono_cliente,
+            tipo_entrega=order_dto.tipo_entrega,
+            direccion_entrega=order_dto.direccion_entrega,
         )
 
         print(f"🌉 [PUENTE] Traducción completada. Enviando a Cocina Central...")
