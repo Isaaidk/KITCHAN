@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { API_URL, httpClient } from "../../shared/api/httpClient";
 import CanalLogo from "../../shared/components/CanalLogo";
 import Icon from "../../shared/components/Icon";
-import Ilustracion from "../../shared/components/Ilustracion";
+import { mensajeDeError } from "../../shared/api/mensajeDeError";
 import { useAuthStore } from "../../shared/stores/authStore";
+import { useToastStore } from "../../shared/stores/toastStore";
 import { hace, numero } from "../../shared/utils/formato";
 import { CANALES_ANALITICAS } from "../analiticas/canales";
 import { infoCanal } from "../pedidos/estadoUtils";
@@ -16,11 +17,11 @@ const DESCRIPCION: Record<string, string> = {
   UBER_EATS: "Recibe y gestiona los pedidos de tu tienda de Uber Eats.",
   RAPPI: "Recibe pedidos de Rappi y acéptalos, recházalos o márcalos listos desde la cola.",
   PEDIDOS_YA: "Recibe pedidos de PedidosYa y acéptalos, recházalos, cancélalos o márcalos listos desde la cola.",
-  WHATSAPP: "Pedidos directos desde WhatsApp Business.",
+  WHATSAPP: "Recibe los pedidos de tu bot de WhatsApp y avísale al cliente cuando aceptas, rechazas o terminas.",
 };
 
 // Canales de venta que ya reciben pedidos, en el orden en que se muestran.
-const CANALES_ACTIVOS = ["UBER_EATS", "RAPPI", "PEDIDOS_YA"] as const;
+const CANALES_ACTIVOS = ["UBER_EATS", "RAPPI", "PEDIDOS_YA", "WHATSAPP"] as const;
 
 /** Logo del canal con su color de marca. */
 export function LogoCanal({ canal, tamano = 44 }: { canal: string; tamano?: number }) {
@@ -161,7 +162,49 @@ function TarjetaCanal({
 export default function IntegracionesPage() {
   const restauranteId = useAuthStore((s) => s.usuario?.restaurante_id);
   const [uberConectado, setUberConectado] = useState<boolean | null>(null);
+  const [rappiConectado, setRappiConectado] = useState<boolean | null>(null);
+  const [conectandoRappi, setConectandoRappi] = useState(false);
+  const [params, setParams] = useSearchParams();
   const { actividad } = useActividadCanales();
+
+  // Solo el administrador puede consultar la conexión de Rappi; para otros roles
+  // la tarjeta queda como "Disponible".
+  useEffect(() => {
+    httpClient
+      .get<{ conectado: boolean }>("/api/v1/integraciones/rappi/auth/status")
+      .then(({ data }) => setRappiConectado(data.conectado))
+      .catch(() => setRappiConectado(null));
+  }, []);
+
+  // Rappi vuelve a esta página con ?rappi=conectado|error|estado_invalido.
+  useEffect(() => {
+    const resultado = params.get("rappi");
+    if (!resultado) return;
+    const agregar = useToastStore.getState().add;
+    if (resultado === "conectado") {
+      agregar("Rappi quedó conectado.", "normal");
+      setRappiConectado(true);
+    } else {
+      agregar("No se pudo conectar Rappi. Inténtalo de nuevo.", "critica");
+    }
+    params.delete("rappi");
+    setParams(params, { replace: true });
+  }, [params, setParams]);
+
+  const conectarRappi = async () => {
+    setConectandoRappi(true);
+    try {
+      const { data } = await httpClient.post<{ authorization_url: string }>(
+        "/api/v1/integraciones/rappi/auth/login",
+      );
+      window.location.href = data.authorization_url;
+    } catch (err) {
+      useToastStore
+        .getState()
+        .add(mensajeDeError(err, "No se pudo iniciar la conexión con Rappi."), "critica");
+      setConectandoRappi(false);
+    }
+  };
 
   useEffect(() => {
     if (!restauranteId) return;
@@ -181,8 +224,14 @@ export default function IntegracionesPage() {
       : uberConectado
         ? { etiqueta: "Conectado", tono: "ok" }
         : { etiqueta: "No conectado", tono: "alerta" };
-  // Rappi y PedidosYa usan credenciales fijas del servidor, no un flujo de conexión por local.
+  // PedidosYa y WhatsApp usan credenciales fijas del servidor, no un flujo de conexión por local.
   const estadoCredenciales: EstadoCanal = { etiqueta: "Disponible", tono: "info" };
+  const estadoRappi: EstadoCanal =
+    rappiConectado === null
+      ? estadoCredenciales
+      : rappiConectado
+        ? { etiqueta: "Conectado", tono: "ok" }
+        : { etiqueta: "Sin conectar", tono: "alerta" };
   const notaTecnica = <span className={styles.nota}>Lo configura el equipo técnico</span>;
 
   return (
@@ -220,15 +269,38 @@ export default function IntegracionesPage() {
           <TarjetaCanal
             canal="RAPPI"
             indice={1}
-            estado={estadoCredenciales}
+            estado={estadoRappi}
             actividad={actividad && (actividad.RAPPI ?? undefined)}
-            accion={notaTecnica}
+            accion={
+              rappiConectado === false ? (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={conectarRappi}
+                  disabled={conectandoRappi}
+                >
+                  {conectandoRappi ? "Abriendo Rappi…" : "Conectar Rappi"}
+                  <Icon name="flecha" size={14} />
+                </button>
+              ) : rappiConectado ? (
+                <span className={styles.nota}>Conexión activa</span>
+              ) : (
+                notaTecnica
+              )
+            }
           />
           <TarjetaCanal
             canal="PEDIDOS_YA"
             indice={2}
             estado={estadoCredenciales}
             actividad={actividad && (actividad.PEDIDOS_YA ?? undefined)}
+            accion={notaTecnica}
+          />
+          <TarjetaCanal
+            canal="WHATSAPP"
+            indice={3}
+            estado={estadoCredenciales}
+            actividad={actividad && (actividad.WHATSAPP ?? undefined)}
             accion={notaTecnica}
           />
         </div>
@@ -239,25 +311,6 @@ export default function IntegracionesPage() {
           Facturación electrónica
         </h2>
         <OdooCard />
-      </section>
-
-      <section className={styles.seccion} aria-labelledby="int-pronto">
-        <h2 id="int-pronto" className={styles.seccionTitulo}>
-          Próximamente <span className={styles.seccionCuenta}>1</span>
-        </h2>
-        <article className={`${styles.pronto} animate-in`}>
-          <div className={styles.prontoDibujo}>
-            <Ilustracion tipo="taza" ancho={96} />
-          </div>
-          <div className={styles.prontoTexto}>
-            <div className={styles.prontoCabecera}>
-              <LogoCanal canal="WHATSAPP" tamano={36} />
-              <h3 className={styles.canal}>WhatsApp</h3>
-              <span className={styles.estado}>En desarrollo</span>
-            </div>
-            <p className={styles.descripcion}>{DESCRIPCION.WHATSAPP}</p>
-          </div>
-        </article>
       </section>
     </div>
   );
