@@ -45,7 +45,7 @@ async def test_actividad_de_canales_cuenta_hoy_y_recuerda_el_ultimo_pedido():
                 _pedido("RAPPI", datetime(2026, 10, 8, 18, 0, tzinfo=UTC)),
                 _pedido("RAPPI", datetime(2026, 10, 8, 19, 30, tzinfo=UTC)),
                 _pedido("RAPPI", datetime(2026, 10, 5, 12, 0, tzinfo=UTC)),
-                _pedido("PEDIDOSYA", datetime(2026, 10, 3, 12, 0, tzinfo=UTC)),
+                _pedido("WHATSAPP", datetime(2026, 10, 3, 12, 0, tzinfo=UTC)),
                 # Antes de las 00:00 de hoy en Guayaquil (05:00 UTC): cuenta como ayer.
                 _pedido("UBER_EATS", datetime(2026, 10, 8, 4, 30, tzinfo=UTC)),
                 # Fuera de los 30 días.
@@ -61,9 +61,8 @@ async def test_actividad_de_canales_cuenta_hoy_y_recuerda_el_ultimo_pedido():
     assert canales["RAPPI"]["pedidos_hoy"] == 2
     assert canales["RAPPI"]["pedidos_30d"] == 3
     assert canales["RAPPI"]["ultimo_pedido"].startswith("2026-10-08T19:30")
-    # PedidosYa se acepta con las dos grafías y queda con una sola.
-    assert canales["PEDIDOS_YA"]["pedidos_hoy"] == 0
-    assert canales["PEDIDOS_YA"]["pedidos_30d"] == 1
+    assert canales["WHATSAPP"]["pedidos_hoy"] == 0
+    assert canales["WHATSAPP"]["pedidos_30d"] == 1
     assert canales["UBER_EATS"]["pedidos_hoy"] == 0
     assert "LOCAL" not in canales
 

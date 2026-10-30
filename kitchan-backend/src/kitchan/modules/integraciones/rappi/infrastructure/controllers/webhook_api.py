@@ -1,6 +1,6 @@
 """Infraestructura de Rappi: endpoints que reciben los webhooks de Rappi.
 Es el equivalente arquitectónico al webhook_api.py de Uber y al
-order_dispatch_api.py de PedidosYa: valida la firma entrante, parsea y valida
+order_dispatch_api.py de Uber: valida la firma entrante, parsea y valida
 el payload, y delega en el caso de uso.
 
 Rappi configura una URL por evento (POST webhook con {event, url, stores}),

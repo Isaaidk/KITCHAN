@@ -1,7 +1,7 @@
 """Infraestructura de Pedidos: adaptador puente que implementa el puerto
 compartido de integraciones (OrderDispatcherPort), traduciendo el DTO neutral
 al modelo de dominio de Pedidos. Es el único punto donde una integración
-(Uber, PedidosYa, ...) toca el modelo genérico del sistema.
+(Uber, Rappi, ...) toca el modelo genérico del sistema.
 """
 
 from src.kitchan.modules.integraciones.core.domain.inter_module_ports import (

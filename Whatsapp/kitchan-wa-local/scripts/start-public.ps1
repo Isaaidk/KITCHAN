@@ -30,6 +30,11 @@ if (-not (Test-Path $Cloudflared)) {
 
 New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
 
+# Config vacía: sin ella cloudflared lee ~/.cloudflared/config.yml (túneles propios
+# con ingress "http_status:404") y el túnel rápido responde 404 a todo.
+$QuickConfig = Join-Path $DataDir "cloudflared-quick.yml"
+if (-not (Test-Path $QuickConfig)) { Set-Content -Path $QuickConfig -Value "# sin ingress propio" }
+
 function Test-ServerUp {
     try {
         $r = Invoke-WebRequest -Uri "http://127.0.0.1:$Port/health" -UseBasicParsing -TimeoutSec 3
@@ -69,7 +74,7 @@ if (Test-Path $TunnelLog) { Remove-Item $TunnelLog -Force }
 
 Write-Host "Iniciando túnel HTTPS (http2)..." -ForegroundColor Cyan
 $tunnel = Start-Process -FilePath $Cloudflared `
-    -ArgumentList @("tunnel", "--protocol", "http2", "--url", "http://127.0.0.1:$Port") `
+    -ArgumentList @("tunnel", "--config", "`"$QuickConfig`"", "--protocol", "http2", "--url", "http://127.0.0.1:$Port") `
     -RedirectStandardError $TunnelLog `
     -PassThru `
     -WindowStyle Hidden

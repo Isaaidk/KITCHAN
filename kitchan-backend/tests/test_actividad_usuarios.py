@@ -81,7 +81,7 @@ async def test_el_detalle_de_un_usuario_trae_canales_y_ultimos_pedidos():
             _pedido("ana", origen="RAPPI", hora=15),
             _pedido("ana", origen="RAPPI", hora=16),
             _pedido("ana", origen="UBER_EATS", hora=17),
-            _pedido("luis", origen="PEDIDOS_YA"),
+            _pedido("luis", origen="WHATSAPP"),
         ]
     )
 

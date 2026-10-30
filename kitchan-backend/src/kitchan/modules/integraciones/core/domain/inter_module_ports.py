@@ -1,5 +1,5 @@
 """Dominio compartido de integraciones: puerto de salida que cualquier
-integración (Uber, PedidosYa, ...) usa para enviar pedidos al módulo de
+integración (Uber, Rappi, ...) usa para enviar pedidos al módulo de
 Pedidos, sin conocer su base de datos ni su modelo de persistencia.
 """
 
@@ -24,7 +24,7 @@ class OrderDispatcherPort(ABC):
         Permite a una integración comprobar, antes de despachar, si un pedido
         con ese id externo ya fue creado — necesario para integraciones cuyo
         proveedor puede reenviar la misma notificación más de una vez (ej.
-        PedidosYa documenta explícitamente entregas duplicadas), sin que la
+        Rappi documenta explícitamente entregas duplicadas), sin que la
         integración tenga que acoplarse al repositorio de Pedidos.
         """
         pass
@@ -37,7 +37,7 @@ class OrderDispatcherPort(ABC):
         Indica si el pedido (identificado por el id de la plataforma externa)
         existe y pertenece a ese restaurante. Las acciones del KDS lo usan
         para que un usuario no pueda operar pedidos de otro restaurante: las
-        credenciales de PedidosYa y Rappi son de aplicación, no por tenant.
+        credenciales de Rappi son de aplicación, no por tenant.
         """
         pass
 

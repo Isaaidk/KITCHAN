@@ -1,10 +1,10 @@
 """Caso de uso de la integración Rappi: procesa los webhooks que Rappi envía
 (NEW_ORDER y ORDER_EVENT_CANCEL). Es el equivalente arquitectónico a
-UberWebhookUseCase / PedidosYaOrderDispatchUseCase.
+UberWebhookUseCase.
 
 Diferencias de transporte con las otras integraciones:
 - Con Uber, el webhook solo avisa y hay que descargar el pedido; Rappi
-  entrega el pedido completo en el body de NEW_ORDER (como PedidosYa).
+  entrega el pedido completo en el body de NEW_ORDER.
 - Rappi configura una URL por evento, así que cada evento tiene su propio
   método en vez de un único dispatcher por `event_type`.
 """

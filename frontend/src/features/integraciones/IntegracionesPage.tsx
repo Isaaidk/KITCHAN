@@ -16,12 +16,11 @@ import styles from "./IntegracionesPage.module.css";
 const DESCRIPCION: Record<string, string> = {
   UBER_EATS: "Recibe y gestiona los pedidos de tu tienda de Uber Eats.",
   RAPPI: "Recibe pedidos de Rappi y acéptalos, recházalos o márcalos listos desde la cola.",
-  PEDIDOS_YA: "Recibe pedidos de PedidosYa y acéptalos, recházalos, cancélalos o márcalos listos desde la cola.",
   WHATSAPP: "Recibe los pedidos de tu bot de WhatsApp y avísale al cliente cuando aceptas, rechazas o terminas.",
 };
 
 // Canales de venta que ya reciben pedidos, en el orden en que se muestran.
-const CANALES_ACTIVOS = ["UBER_EATS", "RAPPI", "PEDIDOS_YA", "WHATSAPP"] as const;
+const CANALES_ACTIVOS = ["UBER_EATS", "RAPPI", "WHATSAPP"] as const;
 
 /** Logo del canal con su color de marca. */
 export function LogoCanal({ canal, tamano = 44 }: { canal: string; tamano?: number }) {
@@ -224,7 +223,7 @@ export default function IntegracionesPage() {
       : uberConectado
         ? { etiqueta: "Conectado", tono: "ok" }
         : { etiqueta: "No conectado", tono: "alerta" };
-  // PedidosYa y WhatsApp usan credenciales fijas del servidor, no un flujo de conexión por local.
+  // WhatsApp usa credenciales fijas del servidor, no un flujo de conexión por local.
   const estadoCredenciales: EstadoCanal = { etiqueta: "Disponible", tono: "info" };
   const estadoRappi: EstadoCanal =
     rappiConectado === null
@@ -290,15 +289,8 @@ export default function IntegracionesPage() {
             }
           />
           <TarjetaCanal
-            canal="PEDIDOS_YA"
-            indice={2}
-            estado={estadoCredenciales}
-            actividad={actividad && (actividad.PEDIDOS_YA ?? undefined)}
-            accion={notaTecnica}
-          />
-          <TarjetaCanal
             canal="WHATSAPP"
-            indice={3}
+            indice={2}
             estado={estadoCredenciales}
             actividad={actividad && (actividad.WHATSAPP ?? undefined)}
             accion={notaTecnica}

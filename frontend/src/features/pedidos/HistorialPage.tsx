@@ -11,7 +11,7 @@ import OrderDetailModal from "./OrderDetailModal";
 import styles from "./HistorialPage.module.css";
 
 const PAGE_SIZE = 20;
-const CANALES_FILTRO = ["UBER_EATS", "RAPPI", "PEDIDOS_YA", "WHATSAPP", "LOCAL"];
+const CANALES_FILTRO = ["UBER_EATS", "RAPPI", "WHATSAPP", "LOCAL"];
 // Espera tras la última tecla antes de consultar: evita una petición por letra.
 const ESPERA_BUSQUEDA_MS = 300;
 

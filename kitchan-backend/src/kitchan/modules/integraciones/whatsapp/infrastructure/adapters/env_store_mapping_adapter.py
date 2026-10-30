@@ -1,5 +1,5 @@
 """Infraestructura de WhatsApp: mapeo store_id del bot -> restaurante_id,
-cargado desde WHATSAPP_STORE_ID_MAP (JSON), igual que Rappi/PedidosYa.
+cargado desde WHATSAPP_STORE_ID_MAP (JSON), igual que Rappi.
 Ej: {"default": "11111111-1111-1111-1111-111111111111"}
 """
 

@@ -1,7 +1,7 @@
 """Dominio de la integración WhatsApp: payload que el bot de WhatsApp (servicio
 independiente) envía al webhook de KITCHAN cuando un cliente confirma un pedido.
 
-A diferencia de Uber/Rappi/PedidosYa, el emisor no es una plataforma de
+A diferencia de Uber/Rappi, el emisor no es una plataforma de
 terceros sino un servicio propio, así que el contrato es nuestro y estable.
 Los montos vienen en unidades de moneda (no centavos).
 """

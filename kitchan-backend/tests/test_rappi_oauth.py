@@ -407,3 +407,37 @@ async def test_sin_token_del_comercio_solo_va_el_del_integrador(monkeypatch, cac
 
     assert headers["x-authorization"] == "Bearer token-del-integrador"
     assert "Authorization-Partners" not in headers
+
+
+@pytest.mark.asyncio
+async def test_listo_para_recoger_rechazado_por_rappi_no_es_un_error_http(monkeypatch):
+    from src.kitchan.modules.integraciones.rappi.domain.exceptions import (
+        RappiAccionNoConfirmadaError,
+    )
+
+    async def request(self, metodo, url, **kwargs):
+        return httpx.Response(424, text="sin repartidor")
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", request)
+
+    with pytest.raises(RappiAccionNoConfirmadaError) as error:
+        await RappiHttpAdapter(
+            token_cache=CacheCompleto("id-token-comercio")
+        ).mark_ready_for_pickup("123")
+
+    assert error.value.estado == 424
+
+
+@pytest.mark.asyncio
+async def test_aceptar_rechazado_por_rappi_sigue_siendo_error_http(monkeypatch):
+    from fastapi import HTTPException
+
+    async def request(self, metodo, url, **kwargs):
+        return httpx.Response(424, text="no")
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", request)
+
+    with pytest.raises(HTTPException):
+        await RappiHttpAdapter(
+            token_cache=CacheCompleto("id-token-comercio")
+        ).take_order("123")

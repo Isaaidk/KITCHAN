@@ -80,7 +80,7 @@ async def test_mismo_id_en_otra_plataforma_no_es_duplicado():
     caso = CrearPedidoUseCase(repository=repo)
 
     await caso.ejecutar(_pedido(origen="RAPPI", id_externo="X-1"))
-    await caso.ejecutar(_pedido(origen="PEDIDOS_YA", id_externo="X-1"))
+    await caso.ejecutar(_pedido(origen="WHATSAPP", id_externo="X-1"))
 
     assert len(repo.db) == 2
 

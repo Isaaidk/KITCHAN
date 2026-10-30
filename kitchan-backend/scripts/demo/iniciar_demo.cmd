@@ -2,9 +2,8 @@
 setlocal
 rem ============================================================
 rem  Inicia todo lo necesario para la demo de KITCHAN:
-rem  Docker (Postgres + Redis), APIs falsas de Rappi y PedidosYa,
-rem  backend, frontend, el tunel de ngrok (webhooks de Uber) y el menu de
-rem  pedidos de la demo.
+rem  Docker (Postgres + Redis), backend, frontend y el tunel de ngrok
+rem  (webhooks de Uber y Rappi).
 rem  Cada servicio abre su propia ventana; para cerrar todo usa
 rem  detener_demo.cmd.
 rem ============================================================
@@ -27,7 +26,7 @@ if not exist "%BACKEND%\.env" (
     exit /b 1
 )
 
-echo [1/7] Iniciando Docker (Postgres y Redis)...
+echo [1/4] Iniciando Docker (Postgres y Redis)...
 docker info >nul 2>&1
 if not errorlevel 1 goto docker_listo
 start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
@@ -65,22 +64,13 @@ pause
 exit /b 1
 :migraciones_listas
 
-echo [2/7] API falsa de Rappi (puerto 8010)...
-start "KITCHAN - API Rappi falsa" /min cmd /k "cd /d "%BACKEND%" && set PYTHONUTF8=1&& "%PYTHON%" -m uvicorn scripts.simulador_rappi.api_rappi_falsa:app --port 8010"
-
-echo [3/7] API falsa de PedidosYa (puerto 8011)...
-start "KITCHAN - API PedidosYa falsa" /min cmd /k "cd /d "%BACKEND%" && set PYTHONUTF8=1&& "%PYTHON%" -m uvicorn scripts.simulador_pedidosya.api_pedidosya_falsa:app --port 8011"
-
-echo [4/7] Bot de WhatsApp falso (puerto 8001)...
-start "KITCHAN - Bot WhatsApp falso" /min cmd /k "cd /d "%BACKEND%" && set PYTHONUTF8=1&& "%PYTHON%" -m uvicorn scripts.simulador_whatsapp.bot_whatsapp_falso:app --port 8001"
-
-echo [5/7] Backend de KITCHAN (puerto 8000)...
+echo [2/4] Backend de KITCHAN (puerto 8000)...
 start "KITCHAN - Backend" /min cmd /k "cd /d "%BACKEND%" && set PYTHONUTF8=1&& set PYTHONIOENCODING=utf-8&& "%PYTHON%" -m uvicorn src.kitchan.main:app --host 127.0.0.1 --port 8000"
 
-echo [6/7] Frontend (puerto 5173)...
+echo [3/4] Frontend (puerto 5173)...
 start "KITCHAN - Frontend" /min cmd /k "cd /d "%FRONTEND%" && npm run dev"
 
-echo [7/7] Tunel publico de ngrok para los webhooks de Uber...
+echo [4/4] Tunel publico de ngrok para los webhooks de Uber...
 rem Dominio fijo de ngrok: es la URL que esta registrada como webhook en la
 rem app KITCHAN de Uber Developers. Si cambia, hay que actualizarla alli.
 set "NGROK_DOMINIO=able-gap-saddling.ngrok-free.dev"
@@ -95,9 +85,8 @@ echo.
 echo Esperando a que todo arranque...
 timeout /t 12 /nobreak >nul
 start "" http://localhost:5173/
-start "KITCHAN - Menu de la demo" cmd /k "cd /d "%BACKEND%" && set PYTHONUTF8=1&& "%PYTHON%" scripts\demo\demo_pedidos.py"
 
 echo.
-echo Listo. Inicia sesion en KITCHAN en el navegador y usa la ventana
-echo "KITCHAN - Menu de la demo" para enviar pedidos.
+echo Listo. Inicia sesion en KITCHAN en el navegador. Los pedidos llegan
+echo desde Uber Eats, Rappi y WhatsApp.
 timeout /t 8 >nul

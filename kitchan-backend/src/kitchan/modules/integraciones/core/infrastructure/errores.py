@@ -2,7 +2,7 @@
 
 Un 401 en la API de KITCHAN significa "tu sesión de KITCHAN no es válida" y
 el frontend cierra la sesión al recibirlo. Por eso los rechazos de Uber,
-Rappi o PedidosYa (credenciales faltantes, vencidas o sin permiso sobre la
+Rappi (credenciales faltantes, vencidas o sin permiso sobre la
 tienda) nunca deben llegar al frontend como 401/403: son fallas de un
 servicio externo, no del usuario.
 """

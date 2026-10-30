@@ -1,6 +1,6 @@
 """Infraestructura de Rappi: adaptador que implementa RappiApiPort contra la
 Restaurants Integrations Public API de Rappi (equivalente a UberHttpAdapter /
-PedidosYaHttpAdapter).
+UberHttpAdapter).
 
 Autenticación: OAuth client-credentials. Se pide un token a
 POST {RAPPI_AUTH_BASE}/restaurants/auth/v1/token/login/integrations y se
@@ -13,6 +13,9 @@ from typing import Optional
 import httpx
 from fastapi import HTTPException
 
+from src.kitchan.modules.integraciones.rappi.domain.exceptions import (
+    RappiAccionNoConfirmadaError,
+)
 from src.kitchan.modules.integraciones.rappi.domain.ports import (
     RappiApiPort,
     RappiMerchantTokenCachePort,
@@ -108,7 +111,12 @@ class RappiHttpAdapter(RappiApiPort):
         return None
 
     async def _llamar(
-        self, metodo: str, path: str, accion: str, json: Optional[dict] = None
+        self,
+        metodo: str,
+        path: str,
+        accion: str,
+        json: Optional[dict] = None,
+        opcional: bool = False,
     ) -> bool:
         token = await self._obtener_token()
         headers = {"x-authorization": f"Bearer {token}"}
@@ -130,6 +138,10 @@ class RappiHttpAdapter(RappiApiPort):
         print(f"📡 [RAPPI {accion}] {metodo} {path} -> {respuesta.status_code}")
 
         if respuesta.status_code not in (200, 204):
+            if opcional:
+                raise RappiAccionNoConfirmadaError(
+                    accion, respuesta.status_code, respuesta.text
+                )
             raise HTTPException(
                 status_code=respuesta.status_code,
                 detail={
@@ -163,5 +175,8 @@ class RappiHttpAdapter(RappiApiPort):
 
     async def mark_ready_for_pickup(self, order_id: str) -> bool:
         return await self._llamar(
-            "POST", f"{ORDERS_PATH}/{order_id}/ready-for-pickup", "READY"
+            "POST",
+            f"{ORDERS_PATH}/{order_id}/ready-for-pickup",
+            "READY",
+            opcional=True,
         )

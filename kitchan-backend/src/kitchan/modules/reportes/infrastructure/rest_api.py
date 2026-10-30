@@ -300,7 +300,7 @@ async def dashboard_pedidos(
     canal: Optional[str] = Query(
         None,
         max_length=30,
-        description="Limita el reporte a un canal (UBER_EATS, RAPPI, PEDIDOS_YA, WHATSAPP, LOCAL)",
+        description="Limita el reporte a un canal (UBER_EATS, RAPPI, WHATSAPP, LOCAL)",
     ),
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
     use_case: ObtenerDashboardPedidosUseCase = Depends(get_dashboard_use_case),
