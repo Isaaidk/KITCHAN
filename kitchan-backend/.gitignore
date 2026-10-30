@@ -3,3 +3,6 @@ venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Vista previa generada por scripts/rappi/menu_rappi.py
+menu_rappi_vista_previa.json

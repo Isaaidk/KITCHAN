@@ -25,6 +25,7 @@ RAPPI_AUTH_BASE_DEFAULT = "https://api.dev.rappi.com"
 RAPPI_API_BASE_DEFAULT = "https://microservices.dev.rappi.com"
 
 ORDERS_PATH = "/api/v2/restaurants-integrations-public-api/orders"
+MENU_PATH = "/api/v2/restaurants-integrations-public-api/menu"
 TOKEN_PATH = "/restaurants/auth/v1/token/login/integrations"
 
 # Con credenciales de la API v2 Rappi entrega una `audience` y el login es el
@@ -124,6 +125,11 @@ class RappiHttpAdapter(RappiApiPort):
                 },
             )
         return True
+
+    async def upload_menu(self, menu: dict) -> bool:
+        """Envía el menú a la tienda PADRE (`menu["storeId"]`); la hija lo
+        hereda. Con mapeo automático cada producto debe llevar su sku."""
+        return await self._llamar("POST", MENU_PATH, "MENU", json=menu)
 
     async def take_order(
         self, order_id: str, cooking_time: Optional[int] = None
