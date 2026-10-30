@@ -145,7 +145,9 @@ async def test_pedido_valido_se_persiste_como_nueva(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_pedido_guarda_contacto_entrega_pago_y_especificaciones(client, db_session):
+async def test_pedido_guarda_contacto_entrega_pago_y_especificaciones(
+    client, db_session
+):
     payload = _payload("WA-FULL") | {
         "customer_phone": "593991112222",
         "delivery_type": "DOMICILIO",
@@ -153,7 +155,12 @@ async def test_pedido_guarda_contacto_entrega_pago_y_especificaciones(client, db
         "order_notes": "Tocar el timbre dos veces",
     }
     payload["items"] = [
-        {"name": "Latte", "quantity": 1, "unit_price": 3.0, "notes": "leche deslactosada, con crema"},
+        {
+            "name": "Latte",
+            "quantity": 1,
+            "unit_price": 3.0,
+            "notes": "leche deslactosada, con crema",
+        },
         {"name": "Croissant", "quantity": 1, "unit_price": 2.0},
     ]
 

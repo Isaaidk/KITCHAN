@@ -38,7 +38,9 @@ def _dashboard(pedidos):
     )
 
 
-def _pedido(origen, total, estado="ENTREGADA", horas_atras=1, cliente="", metodo_pago=None):
+def _pedido(
+    origen, total, estado="ENTREGADA", horas_atras=1, cliente="", metodo_pago=None
+):
     creado = AHORA - timedelta(hours=horas_atras)
     return PedidoResumen(
         origen=origen,
@@ -48,7 +50,13 @@ def _pedido(origen, total, estado="ENTREGADA", horas_atras=1, cliente="", metodo
         fecha_actualizacion=creado + timedelta(minutes=12),
         cliente=cliente,
         metodo_pago=metodo_pago,
-        items=[ItemResumen(nombre="Hamburguesa <Doble> & Papas", cantidad=2, precio_unitario=total / 2)],
+        items=[
+            ItemResumen(
+                nombre="Hamburguesa <Doble> & Papas",
+                cantidad=2,
+                precio_unitario=total / 2,
+            )
+        ],
     )
 
 
@@ -68,23 +76,43 @@ PEDIDOS = [
 
 @pytest.mark.asyncio
 async def test_excel_incluye_las_hojas_y_los_datos_del_periodo():
-    contenido, exportador, nombre = await _caso_de_uso(PEDIDOS).ejecutar("r1", "xlsx", "7d")
+    contenido, exportador, nombre = await _caso_de_uso(PEDIDOS).ejecutar(
+        "r1", "xlsx", "7d"
+    )
 
     libro = load_workbook(BytesIO(contenido))
     assert libro.sheetnames == [
-        "Resumen", "Por canal", "Por día", "Por hora", "Día de la semana", "Productos",
-        "Métodos de pago", "Clientes",
+        "Resumen",
+        "Por canal",
+        "Por día",
+        "Por hora",
+        "Día de la semana",
+        "Productos",
+        "Métodos de pago",
+        "Clientes",
     ]
     assert libro["Resumen"]["B2"].value == 3  # pedidos totales
     canales = {fila[0].value for fila in libro["Por canal"].iter_rows(min_row=2)}
     assert canales == {"RAPPI", "WHATSAPP"}
-    metodos = {f[0].value: f[1].value for f in libro["Métodos de pago"].iter_rows(min_row=2, max_row=3)}
+    metodos = {
+        f[0].value: f[1].value
+        for f in libro["Métodos de pago"].iter_rows(min_row=2, max_row=3)
+    }
     assert metodos == {"TARJETA": 1, "EFECTIVO": 1}
-    indicadores = {f[0].value: f[1].value for f in libro["Clientes"].iter_rows(min_row=2, max_row=7)}
-    assert indicadores["Clientes únicos"] == 1  # el pedido cancelado de Luis Mora no cuenta
+    indicadores = {
+        f[0].value: f[1].value
+        for f in libro["Clientes"].iter_rows(min_row=2, max_row=7)
+    }
+    assert (
+        indicadores["Clientes únicos"] == 1
+    )  # el pedido cancelado de Luis Mora no cuenta
     assert indicadores["Clientes recurrentes"] == 1  # Ana Pérez pidió dos veces
     resumen = {f[0].value for f in libro["Resumen"].iter_rows(min_row=2)}
-    assert {"Hora pico", "Productos distintos vendidos", "Umbral de demora (min)"} <= resumen
+    assert {
+        "Hora pico",
+        "Productos distintos vendidos",
+        "Umbral de demora (min)",
+    } <= resumen
     assert exportador.extension == "xlsx"
     assert nombre == "kitchan-analiticas-7d-2026-10-08.xlsx"
 
@@ -101,7 +129,9 @@ async def test_pdf_se_genera_con_datos_con_caracteres_especiales_y_sin_pedidos()
 
 @pytest.mark.asyncio
 async def test_exportar_filtra_por_canal():
-    contenido, _, nombre = await _caso_de_uso(PEDIDOS).ejecutar("r1", "xlsx", "7d", "rappi")
+    contenido, _, nombre = await _caso_de_uso(PEDIDOS).ejecutar(
+        "r1", "xlsx", "7d", "rappi"
+    )
 
     libro = load_workbook(BytesIO(contenido))
     canales = {fila[0].value for fila in libro["Por canal"].iter_rows(min_row=2)}
@@ -144,6 +174,10 @@ async def test_endpoint_exportar_descarga_archivo(client, formato, firma, extens
     assert respuesta.content.startswith(firma)
     assert f".{extension}" in respuesta.headers["content-disposition"]
 
-    assert (await client.get(f"{ruta}?formato=docx", headers=cabeceras)).status_code == 422
-    assert (await client.get(f"{ruta}?formato={formato}&rango=99d", headers=cabeceras)).status_code == 422
+    assert (
+        await client.get(f"{ruta}?formato=docx", headers=cabeceras)
+    ).status_code == 422
+    assert (
+        await client.get(f"{ruta}?formato={formato}&rango=99d", headers=cabeceras)
+    ).status_code == 422
     assert (await client.get(f"{ruta}?formato={formato}")).status_code in (401, 403)

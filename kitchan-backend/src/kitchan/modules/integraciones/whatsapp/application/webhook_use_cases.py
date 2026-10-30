@@ -61,7 +61,9 @@ class WhatsAppWebhookUseCase:
             tipo_entrega=payload.delivery_type,
             # Un retiro en local no tiene dirección aunque el bot la enviara.
             direccion_entrega=(
-                payload.delivery_address if payload.delivery_type == "DOMICILIO" else None
+                payload.delivery_address
+                if payload.delivery_type == "DOMICILIO"
+                else None
             ),
             nota_cliente=payload.order_notes,
         )

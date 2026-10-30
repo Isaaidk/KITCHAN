@@ -73,7 +73,9 @@ async def whatsapp_new_order(
     try:
         registrado = await use_case.procesar_nuevo_pedido(payload)
     except Exception:
-        logger.exception("Error inesperado procesando pedido WhatsApp %s", payload.order_id)
+        logger.exception(
+            "Error inesperado procesando pedido WhatsApp %s", payload.order_id
+        )
         raise HTTPException(status_code=500, detail={"error": "INTERNAL_SERVICE_ERROR"})
 
     if not registrado:

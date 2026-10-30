@@ -62,14 +62,26 @@ class ExportadorPdf(ExportadorAnaliticasPort):
         resumen = [
             ["Métrica", "Periodo", "Anterior"],
             ["Pedidos totales", actual["pedidos_totales"], previo["pedidos_totales"]],
-            ["Pedidos cancelados", actual["pedidos_cancelados"], previo["pedidos_cancelados"]],
+            [
+                "Pedidos cancelados",
+                actual["pedidos_cancelados"],
+                previo["pedidos_cancelados"],
+            ],
             [
                 "Tasa de cancelación",
                 f"{actual['tasa_cancelacion']}%",
                 f"{previo['tasa_cancelacion']}%",
             ],
-            ["Ventas totales", _usd(actual["ventas_totales"]), _usd(previo["ventas_totales"])],
-            ["Ticket promedio", _usd(actual["ticket_promedio"]), _usd(previo["ticket_promedio"])],
+            [
+                "Ventas totales",
+                _usd(actual["ventas_totales"]),
+                _usd(previo["ventas_totales"]),
+            ],
+            [
+                "Ticket promedio",
+                _usd(actual["ticket_promedio"]),
+                _usd(previo["ticket_promedio"]),
+            ],
             [
                 "Tiempo prom. preparación",
                 f"{actual['tiempo_promedio_preparacion_minutos']} min",
@@ -103,13 +115,20 @@ class ExportadorPdf(ExportadorAnaliticasPort):
         )
         pico = dashboard["hora_pico"]
         resumen += [
-            ["Hora pico", f"{pico['hora']:02d}:00 ({pico['pedidos']})" if pico else "-", ""],
+            [
+                "Hora pico",
+                f"{pico['hora']:02d}:00 ({pico['pedidos']})" if pico else "-",
+                "",
+            ],
             ["Productos distintos vendidos", dashboard["productos_distintos"], ""],
             ["Umbral de demora", f"{dashboard['umbral_demora_minutos']} min", ""],
         ]
         dias = _con_datos(
             [["Fecha", "Pedidos", "Ventas"]]
-            + [[d["fecha"], d["pedidos"], _usd(d["ventas"])] for d in dashboard["por_dia"]],
+            + [
+                [d["fecha"], d["pedidos"], _usd(d["ventas"])]
+                for d in dashboard["por_dia"]
+            ],
             ["Sin pedidos", 0, _usd(0)],
         )
         semana = _con_datos(
@@ -124,7 +143,12 @@ class ExportadorPdf(ExportadorAnaliticasPort):
         metodos = _con_datos(
             [["Método", "Pedidos", "Ventas", "% ventas"]]
             + [
-                [m["metodo"], m["pedidos"], _usd(m["ventas"]), f"{m['porcentaje_ventas']}%"]
+                [
+                    m["metodo"],
+                    m["pedidos"],
+                    _usd(m["ventas"]),
+                    f"{m['porcentaje_ventas']}%",
+                ]
                 for m in pagos["items"]
             ],
             ["Sin dato de pago", 0, _usd(0), "0%"],
@@ -140,14 +164,20 @@ class ExportadorPdf(ExportadorAnaliticasPort):
         ]
         frecuentes = _con_datos(
             [["Cliente", "Pedidos", "Ventas"]]
-            + [[c["cliente"][:40], c["pedidos"], _usd(c["ventas"])] for c in cl["mas_frecuentes"]],
+            + [
+                [c["cliente"][:40], c["pedidos"], _usd(c["ventas"])]
+                for c in cl["mas_frecuentes"]
+            ],
             ["Sin clientes", 0, _usd(0)],
         )
 
         def ranking(clave: str) -> list[list]:
             return _con_datos(
                 [["Producto", "Cantidad", "Ventas"]]
-                + [[p["nombre"][:45], p["cantidad"], _usd(p["ventas"])] for p in dashboard[clave]],
+                + [
+                    [p["nombre"][:45], p["cantidad"], _usd(p["ventas"])]
+                    for p in dashboard[clave]
+                ],
                 ["Sin ventas", 0, _usd(0)],
             )
 
@@ -162,7 +192,9 @@ class ExportadorPdf(ExportadorAnaliticasPort):
                 _tabla(resumen, [8 * cm, 4 * cm, 4 * cm]),
                 Spacer(1, 0.5 * cm),
                 Paragraph("Por canal", estilos["Heading2"]),
-                _tabla(canales, [4 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 2.8 * cm, 2.4 * cm]),
+                _tabla(
+                    canales, [4 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 2.8 * cm, 2.4 * cm]
+                ),
                 Spacer(1, 0.5 * cm),
                 Paragraph("Pedidos por hora", estilos["Heading2"]),
                 _tabla(horas, [5 * cm, 4 * cm, 4 * cm]),

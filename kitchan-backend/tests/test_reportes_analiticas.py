@@ -129,4 +129,3 @@ async def test_endpoint_analiticas_responde_con_datos_reales(client, db_session)
         "comparacion_hoy_vs_ayer",
     }
     assert len(datos["comparacion_hoy_vs_ayer"]) == 24
-

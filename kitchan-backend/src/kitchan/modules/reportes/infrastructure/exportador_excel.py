@@ -39,7 +39,10 @@ class ExportadorExcel(ExportadorAnaliticasPort):
             ("Tasa de cancelación (%)", "tasa_cancelacion"),
             ("Ventas totales ($)", "ventas_totales"),
             ("Ticket promedio ($)", "ticket_promedio"),
-            ("Tiempo promedio de preparación (min)", "tiempo_promedio_preparacion_minutos"),
+            (
+                "Tiempo promedio de preparación (min)",
+                "tiempo_promedio_preparacion_minutos",
+            ),
             ("Unidades por pedido", "unidades_por_pedido"),
         ]
         _tabla(
@@ -50,13 +53,22 @@ class ExportadorExcel(ExportadorAnaliticasPort):
         )
         pico = dashboard["hora_pico"]
         for nombre, valor in (
-            ("Hora pico", f"{pico['hora']:02d}:00 ({pico['pedidos']} pedidos)" if pico else "Sin pedidos"),
+            (
+                "Hora pico",
+                (
+                    f"{pico['hora']:02d}:00 ({pico['pedidos']} pedidos)"
+                    if pico
+                    else "Sin pedidos"
+                ),
+            ),
             ("Productos distintos vendidos", dashboard["productos_distintos"]),
             ("Umbral de demora (min)", dashboard["umbral_demora_minutos"]),
         ):
             hoja.append([nombre, valor])
         hoja["E1"] = "Periodo"
-        hoja["F1"] = f"{dashboard['desde']} al {dashboard['hasta']} ({dashboard['rango']})"
+        hoja["F1"] = (
+            f"{dashboard['desde']} al {dashboard['hasta']} ({dashboard['rango']})"
+        )
         hoja["E2"] = "Canal"
         hoja["F2"] = dashboard["canal"] or "Todos"
         hoja.column_dimensions["E"].width = 10
@@ -138,7 +150,13 @@ class ExportadorExcel(ExportadorAnaliticasPort):
             hoja_pagos,
             ["Método", "Pedidos", "Ventas ($)", "% pedidos", "% ventas"],
             [
-                [m["metodo"], m["pedidos"], m["ventas"], m["porcentaje_pedidos"], m["porcentaje_ventas"]]
+                [
+                    m["metodo"],
+                    m["pedidos"],
+                    m["ventas"],
+                    m["porcentaje_pedidos"],
+                    m["porcentaje_ventas"],
+                ]
                 for m in pagos["items"]
             ],
             [20, 10, 12, 11, 11],
