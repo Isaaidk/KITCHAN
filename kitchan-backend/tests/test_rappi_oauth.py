@@ -253,7 +253,8 @@ async def test_un_canje_fallido_o_sin_id_token_lanza_error(monkeypatch, respuest
 
 
 @pytest.mark.asyncio
-async def test_sin_client_id_no_se_intenta_el_canje():
+async def test_sin_client_id_no_se_intenta_el_canje(monkeypatch):
+    monkeypatch.delenv("RAPPI_OAUTH_CLIENT_ID", raising=False)
     with pytest.raises(RappiOAuthError, match="RAPPI_OAUTH_CLIENT_ID"):
         await RappiOAuthHttpAdapter(
             token_url="https://x.test", client_id=""

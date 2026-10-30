@@ -29,10 +29,11 @@ ORDERS_PATH = "/api/v2/restaurants-integrations-public-api/orders"
 MENU_PATH = "/api/v2/restaurants-integrations-public-api/menu"
 TOKEN_PATH = "/restaurants/auth/v1/token/login/integrations"
 
-# Con credenciales de la API v2 Rappi entrega una `audience` y el login es el
-# de Auth0 (verificado con el sandbox: 200 y token de 7 días). En producción se
-# define RAPPI_AUTH_URL con el login del país.
-AUTH0_DEV_URL = "https://rests-integrations-dev.auth0.com/oauth/token"
+# El login de Auth0 (`rests-integrations-dev.auth0.com`) entrega un token que la
+# API rechaza con 401 "v1_disabled" aunque el login responda 200. El token que
+# sirve (menú, tiendas, webhooks y pedidos, verificado con el sandbox: 200) es el
+# del login propio de Rappi, `{RAPPI_AUTH_BASE}/restaurants/auth/v1/token/login/
+# integrations`, que responde 307 hacia la misma ruta con "/" final.
 
 
 class RappiHttpAdapter(RappiApiPort):
@@ -45,14 +46,11 @@ class RappiHttpAdapter(RappiApiPort):
         self.audience = os.getenv("RAPPI_AUDIENCE")
 
     def _url_login(self) -> str:
-        """URL del login: la de RAPPI_AUTH_URL si está definida; con audience,
-        el Auth0 de desarrollo; sin audience, el login clásico (y el del
-        simulador local, que usa RAPPI_AUTH_BASE)."""
+        """URL del login: la de RAPPI_AUTH_URL si está definida; si no, el login
+        de Rappi (y el del simulador local) bajo RAPPI_AUTH_BASE."""
         url = (os.getenv("RAPPI_AUTH_URL") or "").strip()
         if url:
             return url
-        if self.audience:
-            return AUTH0_DEV_URL
         return f"{self.auth_base}{TOKEN_PATH}"
 
     async def _obtener_token(self) -> str:
@@ -79,7 +77,11 @@ class RappiHttpAdapter(RappiApiPort):
             body["audience"] = self.audience
 
         async with httpx.AsyncClient() as client:
-            respuesta = await client.post(self._url_login(), json=body, timeout=15)
+            # Rappi responde 307 hacia la ruta con "/" final; el 307 conserva el
+            # método y el cuerpo, así que basta con seguirlo.
+            respuesta = await client.post(
+                self._url_login(), json=body, timeout=15, follow_redirects=True
+            )
 
         if respuesta.status_code != 200:
             raise HTTPException(
@@ -112,8 +114,8 @@ class RappiHttpAdapter(RappiApiPort):
         headers = {"x-authorization": f"Bearer {token}"}
         token_comercio = await self._token_comercio()
         if token_comercio:
-            # La API v2 pide tambien el token del comercio (OAuth); sin el, las
-            # rutas de tienda responden 401 "v1_disabled".
+            # Token del comercio (OAuth): Rappi lo pide para actuar en nombre de
+            # una tienda; las rutas de tiendas propias responden igual sin el.
             headers["Authorization-Partners"] = f"Bearer {token_comercio}"
 
         async with httpx.AsyncClient() as client:

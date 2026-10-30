@@ -14,7 +14,6 @@ from src.kitchan.modules.integraciones.rappi.infrastructure.adapters import (
     http_order_adapter as modulo,
 )
 from src.kitchan.modules.integraciones.rappi.infrastructure.adapters.http_order_adapter import (
-    AUTH0_DEV_URL,
     RappiHttpAdapter,
 )
 
@@ -119,10 +118,10 @@ def _adaptador(monkeypatch, **entorno) -> RappiHttpAdapter:
     return RappiHttpAdapter(token_cache=TokenCacheFalso())
 
 
-def test_con_audience_el_login_es_auth0(monkeypatch):
+def test_con_audience_el_login_sigue_siendo_el_de_rappi_no_auth0(monkeypatch):
     adaptador = _adaptador(monkeypatch, RAPPI_AUDIENCE="https://int-public-api-v2/api")
 
-    assert adaptador._url_login() == AUTH0_DEV_URL
+    assert adaptador._url_login() == ("http://127.0.0.1:8010" + modulo.TOKEN_PATH)
 
 
 def test_sin_audience_el_login_es_el_clasico(monkeypatch):
@@ -158,7 +157,7 @@ async def test_el_login_envia_la_audience_y_guarda_el_token(monkeypatch):
     token = await adaptador._obtener_token()
 
     assert token == "token-sandbox"
-    assert capturado["url"] == AUTH0_DEV_URL
+    assert capturado["url"] == "http://127.0.0.1:8010" + modulo.TOKEN_PATH
     assert capturado["json"]["audience"] == "https://int-public-api-v2/api"
     assert capturado["json"]["grant_type"] == "client_credentials"
     assert adaptador.token_cache.guardado == ("token-sandbox", 604800)
