@@ -5,6 +5,7 @@ import asyncio
 import logging
 
 from src.kitchan.core.database import AsyncSessionLocal
+from src.kitchan.core.tareas import propagar_si_cancelada
 from src.kitchan.modules.facturacion.infrastructure.dependencias import (
     construir_conciliar_use_case,
 )
@@ -27,6 +28,7 @@ async def _bucle_conciliar() -> None:
             if actualizadas:
                 logger.info("🧾 %s facturas actualizadas desde Odoo.", actualizadas)
         except Exception:
+            propagar_si_cancelada()
             logger.exception("Error en la conciliación de facturas con Odoo.")
 
 
