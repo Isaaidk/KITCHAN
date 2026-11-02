@@ -10,7 +10,7 @@ import { canalPorSlug } from "./canales";
 import compartido from "./Compartido.module.css";
 import { useGraficos } from "./estilosGraficos";
 import { DegradadoVertical, etiquetaDelMaximo } from "./etiquetasGraficos";
-import RankingProductos from "./RankingProductos";
+import GraficoPlatos from "./GraficoPlatos";
 import SelectorRango from "./SelectorRango";
 import type { DashboardPedidos, ResumenPeriodo } from "./types";
 import { RANGOS, useDashboard, useRango } from "./useDashboard";
@@ -185,7 +185,7 @@ function Contenido({ datos, contra }: { datos: DashboardPedidos; contra: string 
               <p className={compartido.panelSub}>Por unidades vendidas</p>
             </div>
           </div>
-          <RankingProductos items={datos.productos_mas_vendidos} vacio="Aún no hay ventas en este periodo." />
+          <GraficoPlatos items={datos.productos_mas_vendidos} vacio="Aún no hay ventas en este periodo." />
         </section>
 
         <section className={compartido.panel} aria-labelledby="canal-menos">
@@ -197,8 +197,8 @@ function Contenido({ datos, contra }: { datos: DashboardPedidos; contra: string 
               <p className={compartido.panelSub}>Los que menos salen entre los que sí se vendieron</p>
             </div>
           </div>
-          <RankingProductos
-            menos
+          <GraficoPlatos
+            variante="radial"
             items={datos.productos_menos_vendidos}
             vacio={
               datos.productos_distintos === 0
@@ -224,9 +224,9 @@ function Contenido({ datos, contra }: { datos: DashboardPedidos; contra: string 
               <p className={compartido.panelSub}>Ordenados por ventas, no por unidades</p>
             </div>
           </div>
-          <RankingProductos
+          <GraficoPlatos
             items={datos.productos_mayor_ingreso}
-            porVentas
+            medida="ventas"
             vacio="Aún no hay ventas en este periodo."
           />
         </section>

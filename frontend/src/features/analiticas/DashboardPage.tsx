@@ -26,7 +26,7 @@ import compartido from "./Compartido.module.css";
 import { useGraficos } from "./estilosGraficos";
 import { DegradadoVertical, etiquetaDelMaximo } from "./etiquetasGraficos";
 import PlatoEstrella from "./PlatoEstrella";
-import RankingProductos from "./RankingProductos";
+import GraficoPlatos from "./GraficoPlatos";
 import SelectorRango from "./SelectorRango";
 import type { DashboardPedidos, ResumenPeriodo } from "./types";
 import { RANGOS, useDashboard, useRango } from "./useDashboard";
@@ -436,10 +436,7 @@ export default function DashboardPage() {
                   Ver analíticas
                 </Link>
               </div>
-              <RankingProductos
-                items={datos.productos_mas_vendidos}
-                vacio="Aún no hay ventas en este periodo."
-              />
+              <GraficoPlatos items={datos.productos_mas_vendidos} vacio="Aún no hay ventas en este periodo." />
             </div>
           </div>
 

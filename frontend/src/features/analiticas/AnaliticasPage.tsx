@@ -9,7 +9,7 @@ import compartido from "./Compartido.module.css";
 import ExportModal from "./ExportModal";
 import { useGraficos } from "./estilosGraficos";
 import { DegradadoVertical, etiquetaDelMaximo } from "./etiquetasGraficos";
-import RankingProductos from "./RankingProductos";
+import GraficoPlatos from "./GraficoPlatos";
 import SelectorRango from "./SelectorRango";
 import type { CanalResumen, DashboardPedidos } from "./types";
 import { RANGOS, useDashboard, useRango } from "./useDashboard";
@@ -157,7 +157,7 @@ function Productos({ datos }: { datos: DashboardPedidos }) {
               <p className={compartido.panelSub}>Por unidades vendidas</p>
             </div>
           </div>
-          <RankingProductos items={datos.productos_mas_vendidos} vacio="Aún no hay ventas en este periodo." />
+          <GraficoPlatos items={datos.productos_mas_vendidos} vacio="Aún no hay ventas en este periodo." />
         </section>
 
         <section className={compartido.panel} aria-labelledby="an-menos">
@@ -169,8 +169,8 @@ function Productos({ datos }: { datos: DashboardPedidos }) {
               <p className={compartido.panelSub}>Los que menos salen entre los que sí se vendieron</p>
             </div>
           </div>
-          <RankingProductos
-            menos
+          <GraficoPlatos
+            variante="radial"
             items={datos.productos_menos_vendidos}
             vacio={
               datos.productos_distintos === 0
@@ -190,7 +190,7 @@ function Productos({ datos }: { datos: DashboardPedidos }) {
             <p className={compartido.panelSub}>Se reconocen porque su nombre incluye la palabra “combo”</p>
           </div>
         </div>
-        <RankingProductos
+        <GraficoPlatos
           items={datos.combos_mas_vendidos}
           vacio="Todavía no hay combos vendidos en este periodo."
         />
