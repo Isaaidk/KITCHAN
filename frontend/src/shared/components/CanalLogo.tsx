@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 interface Props {
-  /** Clave del canal: UBER_EATS, RAPPI, PEDIDOSYA, WHATSAPP, ODOO, LOCAL... */
+  /** Clave del canal: UBER_EATS, RAPPI, WHATSAPP, ODOO, LOCAL... */
   canal: string;
   color: string;
   nombre: string;
@@ -32,17 +32,6 @@ function glifo(canal: string, nombre: string): ReactNode {
           d="M2.5 13.5c2.2-4.2 5.6-4.6 9.5-1.4 3.9-3.2 7.3-2.8 9.5 1.4-2.2-1.2-4.4-.6-6.2 1.4-1.2 1.3-2.2 1.5-3.3 1.5s-2.1-.2-3.3-1.5c-1.8-2-4-2.6-6.2-1.4z"
           fill="#fff"
         />
-      );
-    case "PEDIDOS_YA":
-    case "PEDIDOSYA":
-      // Carita sonriente
-      return (
-        <>
-          <circle cx="12" cy="12" r="8.5" {...trazo} />
-          <path d="M8 13.5c1 2 2.4 3 4 3s3-1 4-3" {...trazo} />
-          <circle cx="9" cy="9.8" r="1" fill="#fff" />
-          <circle cx="15" cy="9.8" r="1" fill="#fff" />
-        </>
       );
     case "WHATSAPP":
       return (

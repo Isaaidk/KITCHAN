@@ -52,7 +52,7 @@ async def registrar_restaurante(
                 restaurante_id=admin.restaurante_id,
                 nombre=admin.nombre,
                 email=admin.email,
-                rol=admin.rol.value,
+                rol=admin.rol,
                 estado=admin.estado,
             ),
         )

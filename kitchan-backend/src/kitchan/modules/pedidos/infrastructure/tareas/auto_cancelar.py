@@ -3,6 +3,7 @@ import logging
 import os
 
 from src.kitchan.core.database import AsyncSessionLocal
+from src.kitchan.core.tareas import propagar_si_cancelada
 from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
     ESTADOS_QUE_YA_NO_SE_CANCELAN,
     ActualizarEstadoPedidoUseCase,
@@ -68,6 +69,7 @@ async def _bucle_auto_cancelar(redis_url: str) -> None:
         try:
             await _barrer_una_vez(redis_url)
         except Exception:
+            propagar_si_cancelada()
             logger.exception("Error en el barrido de auto-cancelación de pedidos.")
         await asyncio.sleep(INTERVALO_BARRIDO_SEGUNDOS)
 

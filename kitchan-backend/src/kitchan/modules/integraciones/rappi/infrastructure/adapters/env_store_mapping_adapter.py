@@ -1,5 +1,5 @@
 """Infraestructura de Rappi: mapeo store_id de Rappi -> restaurante_id,
-cargado desde una variable de entorno (JSON). Igual que en PedidosYa, el
+cargado desde una variable de entorno (JSON). Aqui, el
 alta de cada tienda en Rappi es manual, por eso este adaptador es estático
 en vez de apoyarse en Redis como el store-mapping de Uber.
 """

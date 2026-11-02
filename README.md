@@ -1,6 +1,6 @@
 # KITCHAN
 
-Panel de cocina para cafeterías y restaurantes (hoy, **Vangalia**). Centraliza en una sola cola, en tiempo real, los pedidos de Uber Eats, Rappi y PedidosYa, y ofrece un dashboard y analíticas para el administrador.
+Panel de cocina para cafeterías y restaurantes (hoy, **Vangalia**). Centraliza en una sola cola, en tiempo real, los pedidos de Uber Eats, Rappi y WhatsApp, y ofrece un dashboard y analíticas para el administrador.
 
 | Carpeta | Qué es |
 |---|---|
@@ -58,7 +58,7 @@ La aplicación queda en <http://localhost:5173>.
 
 ## Demo
 
-`kitchan-backend/scripts/demo/iniciar_demo.cmd` levanta todo lo necesario para la demo (Docker, APIs falsas de Rappi y PedidosYa, backend, frontend y ngrok) y **aplica las migraciones pendientes** antes de arrancar el backend. El paso a paso está en [`GUION_DEMO.md`](kitchan-backend/scripts/demo/GUION_DEMO.md); para cerrar todo usa `detener_demo.cmd`.
+`kitchan-backend/scripts/demo/iniciar_demo.cmd` levanta todo lo necesario para la demo (Docker, backend, frontend y ngrok) y **aplica las migraciones pendientes** antes de arrancar el backend. El paso a paso está en [`GUION_DEMO.md`](kitchan-backend/scripts/demo/GUION_DEMO.md); para cerrar todo usa `detener_demo.cmd`.
 
 ## Pruebas
 

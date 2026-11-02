@@ -1,6 +1,6 @@
 """Infraestructura de Rappi: adaptador que implementa RappiApiPort contra la
 Restaurants Integrations Public API de Rappi (equivalente a UberHttpAdapter /
-PedidosYaHttpAdapter).
+UberHttpAdapter).
 
 Autenticación: OAuth client-credentials. Se pide un token a
 POST {RAPPI_AUTH_BASE}/restaurants/auth/v1/token/login/integrations y se
@@ -13,8 +13,12 @@ from typing import Optional
 import httpx
 from fastapi import HTTPException
 
+from src.kitchan.modules.integraciones.rappi.domain.exceptions import (
+    RappiAccionNoConfirmadaError,
+)
 from src.kitchan.modules.integraciones.rappi.domain.ports import (
     RappiApiPort,
+    RappiMerchantTokenCachePort,
     RappiTokenCachePort,
 )
 
@@ -25,7 +29,14 @@ RAPPI_AUTH_BASE_DEFAULT = "https://api.dev.rappi.com"
 RAPPI_API_BASE_DEFAULT = "https://microservices.dev.rappi.com"
 
 ORDERS_PATH = "/api/v2/restaurants-integrations-public-api/orders"
+MENU_PATH = "/api/v2/restaurants-integrations-public-api/menu"
 TOKEN_PATH = "/restaurants/auth/v1/token/login/integrations"
+
+# El login de Auth0 (`rests-integrations-dev.auth0.com`) entrega un token que la
+# API rechaza con 401 "v1_disabled" aunque el login responda 200. El token que
+# sirve (menú, tiendas, webhooks y pedidos, verificado con el sandbox: 200) es el
+# del login propio de Rappi, `{RAPPI_AUTH_BASE}/restaurants/auth/v1/token/login/
+# integrations`, que responde 307 hacia la misma ruta con "/" final.
 
 
 class RappiHttpAdapter(RappiApiPort):
@@ -36,6 +47,14 @@ class RappiHttpAdapter(RappiApiPort):
         self.client_id = os.getenv("RAPPI_CLIENT_ID")
         self.client_secret = os.getenv("RAPPI_CLIENT_SECRET")
         self.audience = os.getenv("RAPPI_AUDIENCE")
+
+    def _url_login(self) -> str:
+        """URL del login: la de RAPPI_AUTH_URL si está definida; si no, el login
+        de Rappi (y el del simulador local) bajo RAPPI_AUTH_BASE."""
+        url = (os.getenv("RAPPI_AUTH_URL") or "").strip()
+        if url:
+            return url
+        return f"{self.auth_base}{TOKEN_PATH}"
 
     async def _obtener_token(self) -> str:
         token = await self.token_cache.get_app_token()
@@ -61,8 +80,10 @@ class RappiHttpAdapter(RappiApiPort):
             body["audience"] = self.audience
 
         async with httpx.AsyncClient() as client:
+            # Rappi responde 307 hacia la ruta con "/" final; el 307 conserva el
+            # método y el cuerpo, así que basta con seguirlo.
             respuesta = await client.post(
-                f"{self.auth_base}{TOKEN_PATH}", json=body, timeout=15
+                self._url_login(), json=body, timeout=15, follow_redirects=True
             )
 
         if respuesta.status_code != 200:
@@ -84,11 +105,26 @@ class RappiHttpAdapter(RappiApiPort):
         await self.token_cache.save_app_token(token, int(datos.get("expires_in", 3600)))
         return token
 
+    async def _token_comercio(self) -> Optional[str]:
+        if isinstance(self.token_cache, RappiMerchantTokenCachePort):
+            return await self.token_cache.get_merchant_token()
+        return None
+
     async def _llamar(
-        self, metodo: str, path: str, accion: str, json: Optional[dict] = None
+        self,
+        metodo: str,
+        path: str,
+        accion: str,
+        json: Optional[dict] = None,
+        opcional: bool = False,
     ) -> bool:
         token = await self._obtener_token()
         headers = {"x-authorization": f"Bearer {token}"}
+        token_comercio = await self._token_comercio()
+        if token_comercio:
+            # Token del comercio (OAuth): Rappi lo pide para actuar en nombre de
+            # una tienda; las rutas de tiendas propias responden igual sin el.
+            headers["Authorization-Partners"] = f"Bearer {token_comercio}"
 
         async with httpx.AsyncClient() as client:
             respuesta = await client.request(
@@ -102,6 +138,10 @@ class RappiHttpAdapter(RappiApiPort):
         print(f"📡 [RAPPI {accion}] {metodo} {path} -> {respuesta.status_code}")
 
         if respuesta.status_code not in (200, 204):
+            if opcional:
+                raise RappiAccionNoConfirmadaError(
+                    accion, respuesta.status_code, respuesta.text
+                )
             raise HTTPException(
                 status_code=respuesta.status_code,
                 detail={
@@ -110,6 +150,11 @@ class RappiHttpAdapter(RappiApiPort):
                 },
             )
         return True
+
+    async def upload_menu(self, menu: dict) -> bool:
+        """Envía el menú a la tienda PADRE (`menu["storeId"]`); la hija lo
+        hereda. Con mapeo automático cada producto debe llevar su sku."""
+        return await self._llamar("POST", MENU_PATH, "MENU", json=menu)
 
     async def take_order(
         self, order_id: str, cooking_time: Optional[int] = None
@@ -130,5 +175,8 @@ class RappiHttpAdapter(RappiApiPort):
 
     async def mark_ready_for_pickup(self, order_id: str) -> bool:
         return await self._llamar(
-            "POST", f"{ORDERS_PATH}/{order_id}/ready-for-pickup", "READY"
+            "POST",
+            f"{ORDERS_PATH}/{order_id}/ready-for-pickup",
+            "READY",
+            opcional=True,
         )

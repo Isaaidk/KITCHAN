@@ -1,6 +1,6 @@
 """Infraestructura de Rappi: rutas HTTP consumidas por el frontend/KDS para
 disparar acciones manuales sobre un pedido de Rappi (aceptar/rechazar/marcar
-listo), equivalentes a las de las integraciones de Uber y PedidosYa.
+listo), equivalentes a las de las integraciones de Uber.
 
 Diferencias con esas rutas:
 - No hay /cancel: la API pública de Rappi no documenta cómo cancelar un
@@ -124,10 +124,16 @@ async def ready_rappi_order(
     use_case: RappiOrderUseCase = Depends(get_order_use_case),
 ):
     try:
-        await use_case.mark_order_ready_in_rappi(order_id)
+        confirmado = await use_case.mark_order_ready_in_rappi(order_id)
+        mensaje = (
+            f"Pedido {order_id} marcado como listo en Rappi."
+            if confirmado
+            else f"Pedido {order_id} listo en KITCHAN; Rappi no confirmó el aviso."
+        )
         return {
             "status": "success",
-            "message": f"Pedido {order_id} marcado como listo en Rappi.",
+            "message": mensaje,
+            "confirmado_en_rappi": confirmado,
         }
     except HTTPException as e:
         raise error_de_plataforma(e, "Rappi")

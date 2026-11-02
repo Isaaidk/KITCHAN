@@ -19,6 +19,10 @@ export interface Pedido {
   id_externo: string | null;
   cliente: string;
   nota_cliente: string | null;
+  /** Contacto y entrega; null cuando el canal no los informa. */
+  telefono_cliente?: string | null;
+  tipo_entrega?: "DOMICILIO" | "RETIRO" | null;
+  direccion_entrega?: string | null;
   items: PedidoItem[];
   total: number;
   estado: EstadoPedido;

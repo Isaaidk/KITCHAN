@@ -1,11 +1,11 @@
 """Seguridad compartida de las acciones del KDS sobre pedidos de integraciones
-(aceptar, rechazar, cancelar, marcar listo) en Uber, PedidosYa y Rappi.
+(aceptar, rechazar, cancelar, marcar listo) en Uber y Rappi.
 
 Cada ruta exige:
 1. Un usuario de KITCHAN autenticado (Bearer JWT).
 2. Que el pedido pertenezca al restaurante de ese usuario. Sin esto, alguien
    con sesión en un restaurante podría operar pedidos de otro conociendo su
-   id externo, porque las credenciales de PedidosYa y Rappi son de
+   id externo, porque las credenciales de Rappi son de
    aplicación y no por restaurante.
 """
 

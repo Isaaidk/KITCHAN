@@ -10,7 +10,7 @@ from typing import Optional
 class RappiApiPort(ABC):
     """
     Puerto exclusivo para la comunicación HTTP con la API de Rappi. Es el
-    equivalente a UberApiPort / PedidosYaApiPort, acotado a las operaciones
+    equivalente a UberApiPort, acotado a las operaciones
     que tienen paridad con las acciones del KDS (accept -> take,
     deny -> reject, ready -> ready-for-pickup).
 
@@ -33,7 +33,9 @@ class RappiApiPort(ABC):
 
     @abstractmethod
     async def mark_ready_for_pickup(self, order_id: str) -> bool:
-        """Marca un pedido como listo para recoger (Rappi limita a 3 llamadas por pedido)."""
+        """Marca un pedido como listo para recoger (Rappi limita a 3 llamadas por
+        pedido). Paso opcional: si Rappi responde con error lanza
+        RappiAccionNoConfirmadaError."""
         pass
 
 
@@ -53,12 +55,57 @@ class RappiTokenCachePort(ABC):
         pass
 
 
+class RappiMerchantTokenCachePort(ABC):
+    """
+    Caché del token del COMERCIO (el `id_token` que entrega el OAuth de
+    Rappi). La API v2 exige dos tokens en cada llamada: el del integrador
+    (client-credentials, ver RappiTokenCachePort) y este, que identifica al
+    comercio que autorizó a KITCHAN.
+    """
+
+    @abstractmethod
+    async def save_merchant_token(self, token: str, expires_in: int) -> None:
+        pass
+
+    @abstractmethod
+    async def get_merchant_token(self) -> Optional[str]:
+        pass
+
+
+class RappiOAuthStatePort(ABC):
+    """Guarda, mientras el comercio autoriza en Rappi, el `code_verifier` de
+    PKCE asociado al `state` de esa autorización."""
+
+    @abstractmethod
+    async def save_state(
+        self, state: str, code_verifier: str, expires_in: int = 600
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def pop_code_verifier(self, state: str) -> Optional[str]:
+        """Devuelve y elimina el code_verifier (el state solo sirve una vez)."""
+        pass
+
+
+class RappiOAuthPort(ABC):
+    """Cliente del endpoint de tokens del OAuth de Rappi."""
+
+    @abstractmethod
+    async def exchange_code(
+        self, code: str, code_verifier: str, redirect_uri: str
+    ) -> tuple[str, int]:
+        """Cambia el `code` por el token del comercio. Devuelve
+        (id_token, segundos de vigencia). Lanza RappiOAuthError si falla."""
+        pass
+
+
 class RappiStoreMappingPort(ABC):
     """
     Puerto para resolver el id de tienda de Rappi (store.internal_id /
     store_id) hacia el `restaurante_id` interno de KITCHAN.
 
-    Igual que en PedidosYa (y a diferencia de Uber), el alta de tiendas en
+    A diferencia de Uber, el alta de tiendas en
     Rappi es manual, por eso este mapeo es estático/configurado de antemano.
     """
 

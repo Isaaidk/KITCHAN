@@ -1,5 +1,5 @@
 """Dominio compartido de integraciones: DTOs neutrales (agnósticos de
-plataforma) que cualquier integración (Uber, PedidosYa, ...) usa para hablar
+plataforma) que cualquier integración (Uber, Rappi, ...) usa para hablar
 con el módulo de Pedidos a través de OrderDispatcherPort.
 """
 
@@ -22,7 +22,7 @@ class KitchanOrderDTO(BaseModel):
     Antes vivía en integraciones.uber.domain.models pese a no tener nada
     específico de Uber (de ahí que OrderDispatcherPort ya lo usaba como si
     fuera neutral). Se movió aquí al agregar la segunda integración real
-    (PedidosYa) para que el puerto compartido no dependa del paquete de Uber.
+    (Rappi) para que el puerto compartido no dependa del paquete de Uber.
     """
 
     id_externo: str
@@ -35,3 +35,8 @@ class KitchanOrderDTO(BaseModel):
     # Método de pago ya normalizado (ver core/domain/metodos_pago.py); None si
     # el canal no lo informó.
     metodo_pago: Optional[str] = None
+    # Datos opcionales que solo algunos canales informan (p. ej. WhatsApp).
+    telefono_cliente: Optional[str] = None
+    tipo_entrega: Optional[str] = None  # DOMICILIO | RETIRO
+    direccion_entrega: Optional[str] = None
+    nota_cliente: Optional[str] = None

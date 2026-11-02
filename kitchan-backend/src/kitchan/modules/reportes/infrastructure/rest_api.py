@@ -2,7 +2,7 @@ import os
 from typing import Literal, Optional
 
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.kitchan.core.database import get_db
@@ -24,6 +24,13 @@ from src.kitchan.modules.reportes.application.dashboard_pedidos import (
     RangoInvalidoError,
     zona_horaria,
 )
+from src.kitchan.modules.reportes.application.exportar_analiticas import (
+    ExportarAnaliticasPedidosUseCase,
+)
+from src.kitchan.modules.reportes.infrastructure.exportador_excel import (
+    ExportadorExcel,
+)
+from src.kitchan.modules.reportes.infrastructure.exportador_pdf import ExportadorPdf
 from src.kitchan.modules.reportes.infrastructure.pedidos_lectura_adapter import (
     PedidosLecturaAdapter,
 )
@@ -245,6 +252,37 @@ def get_dashboard_use_case(
     )
 
 
+def get_exportar_use_case(
+    dashboard: ObtenerDashboardPedidosUseCase = Depends(get_dashboard_use_case),
+) -> ExportarAnaliticasPedidosUseCase:
+    return ExportarAnaliticasPedidosUseCase(
+        dashboard=dashboard,
+        exportadores={"xlsx": ExportadorExcel(), "pdf": ExportadorPdf()},
+    )
+
+
+@router.get("/pedidos/analiticas/exportar")
+async def exportar_analiticas_pedidos(
+    formato: Literal["xlsx", "pdf"] = Query(...),
+    rango: Literal["hoy", "7d", "30d"] = Query("hoy"),
+    canal: Optional[str] = Query(None, max_length=30),
+    usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
+    use_case: ExportarAnaliticasPedidosUseCase = Depends(get_exportar_use_case),
+):
+    """Descarga el mismo dashboard que ve el administrador, en Excel o PDF."""
+    try:
+        contenido, exportador, nombre = await use_case.ejecutar(
+            usuario_actual["restaurante_id"], formato, rango, canal
+        )
+    except RangoInvalidoError as error:
+        raise HTTPException(status_code=422, detail=str(error))
+    return Response(
+        content=contenido,
+        media_type=exportador.media_type,
+        headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
+    )
+
+
 @router.get("/pedidos/analiticas", response_model=AnaliticasPedidosResponse)
 async def analiticas_pedidos(
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
@@ -262,7 +300,7 @@ async def dashboard_pedidos(
     canal: Optional[str] = Query(
         None,
         max_length=30,
-        description="Limita el reporte a un canal (UBER_EATS, RAPPI, PEDIDOS_YA, WHATSAPP, LOCAL)",
+        description="Limita el reporte a un canal (UBER_EATS, RAPPI, WHATSAPP, LOCAL)",
     ),
     usuario_actual: dict = Depends(requiere_rol(RolUsuario.ADMIN.value)),
     use_case: ObtenerDashboardPedidosUseCase = Depends(get_dashboard_use_case),

@@ -177,6 +177,39 @@ export default function OrderDetailModal({ pedido, onClose }: Props) {
         </div>
       )}
 
+      {(pedido.telefono_cliente || pedido.tipo_entrega || pedido.direccion_entrega) && (
+        <dl className={styles.entrega} aria-label="Contacto y entrega">
+          {pedido.tipo_entrega && (
+            <div>
+              <dt>Entrega</dt>
+              <dd>{pedido.tipo_entrega === "DOMICILIO" ? "A domicilio" : "Retira en el restaurante"}</dd>
+            </div>
+          )}
+          {pedido.tipo_entrega === "DOMICILIO" && !pedido.direccion_entrega && (
+            <div>
+              <dt>Dirección</dt>
+              <dd>No indicada</dd>
+            </div>
+          )}
+          {pedido.direccion_entrega && (
+            <div>
+              <dt>Dirección</dt>
+              <dd>{pedido.direccion_entrega}</dd>
+            </div>
+          )}
+          {pedido.telefono_cliente && (
+            <div>
+              <dt>Teléfono</dt>
+              <dd translate="no">
+                <a href={`https://wa.me/${pedido.telefono_cliente.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
+                  +{pedido.telefono_cliente.replace(/\D/g, "")}
+                </a>
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+
       {pedido.nota_cliente && (
         <div className={styles.notaCliente}>
           <Icon name="nota" size={16} />

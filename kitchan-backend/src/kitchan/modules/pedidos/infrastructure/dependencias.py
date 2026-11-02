@@ -2,7 +2,7 @@
 
 Es el único punto donde se arman las piezas internas de `pedidos`
 (repositorio de Postgres, notificador de eventos y casos de uso). El resto
-de los módulos —las integraciones con Uber, PedidosYa y Rappi— dependen solo
+de los módulos —las integraciones con Uber y Rappi— dependen solo
 de `get_order_dispatcher`, que les entrega el puerto `OrderDispatcherPort`,
 sin conocer cómo está construido el núcleo de pedidos por dentro.
 """

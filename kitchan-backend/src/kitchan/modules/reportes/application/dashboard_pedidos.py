@@ -392,11 +392,10 @@ class ObtenerDashboardPedidosUseCase:
 
 
 def _normalizar_canal(canal: Optional[str]) -> Optional[str]:
-    """Código de canal en mayúsculas y con una sola grafía de PedidosYa."""
+    """Código de canal en mayúsculas."""
     if not canal or not canal.strip():
         return None
-    codigo = canal.strip().upper()
-    return "PEDIDOS_YA" if codigo == "PEDIDOSYA" else codigo
+    return canal.strip().upper()
 
 
 def _promedio(valores: list[float], decimales: int) -> float:

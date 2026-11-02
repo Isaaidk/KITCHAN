@@ -219,9 +219,7 @@ async def test_el_reporte_se_puede_limitar_a_un_canal():
                 items=[("Muffin", 1, 2.5)],
                 creado=_utc(8, 18),
             ),
-            _pedido(
-                origen="PEDIDOS_YA", total=50.0, items=[("Combo desayuno", 5, 7.0)]
-            ),
+            _pedido(origen="WHATSAPP", total=50.0, items=[("Combo desayuno", 5, 7.0)]),
             _pedido(origen="UBER_EATS", total=30.0, items=[("Brownie", 9, 3.5)]),
         ]
     )
@@ -249,12 +247,12 @@ async def test_el_reporte_se_puede_limitar_a_un_canal():
 
 
 @pytest.mark.asyncio
-async def test_pedidosya_se_acepta_con_las_dos_grafias():
-    _, use_case = _use_case([_pedido(origen="PEDIDOS_YA")])
+async def test_el_canal_se_acepta_en_minusculas():
+    _, use_case = _use_case([_pedido(origen="WHATSAPP")])
 
-    datos = await use_case.ejecutar("rest-1", "hoy", canal="PEDIDOSYA")
+    datos = await use_case.ejecutar("rest-1", "hoy", canal="whatsapp")
 
-    assert datos["canal"] == "PEDIDOS_YA"
+    assert datos["canal"] == "WHATSAPP"
     assert datos["resumen"]["pedidos_totales"] == 1
 
 

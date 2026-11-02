@@ -449,7 +449,7 @@ export default function DashboardPage() {
                 <h2 id="dash-canales" className={compartido.panelTitulo}>
                   Canales de venta
                 </h2>
-                <p className={compartido.panelSub}>Local, Uber Eats, Rappi y PedidosYa</p>
+                <p className={compartido.panelSub}>Local, Uber Eats, Rappi y WhatsApp</p>
               </div>
               <Link to={`/analiticas${rango === "hoy" ? "" : `?rango=${rango}`}`} className={compartido.panelAccion}>
                 Comparar canales

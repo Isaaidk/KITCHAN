@@ -1,6 +1,5 @@
 """Tests unitarios de las acciones de Rappi (accept/deny/ready y error de
-autenticación con el proveedor), con fakes en memoria — mismo estilo que
-test_pedidosya_order_actions.py. Incluye un test HTTP que verifica que las
+autenticación con el proveedor), con fakes en memoria. Incluye un test HTTP que verifica que las
 rutas del KDS exigen un usuario autenticado.
 """
 
@@ -8,6 +7,9 @@ import pytest
 
 from src.kitchan.modules.integraciones.rappi.application.order_use_cases import (
     RappiOrderUseCase,
+)
+from src.kitchan.modules.integraciones.rappi.domain.exceptions import (
+    RappiAccionNoConfirmadaError,
 )
 from src.kitchan.modules.integraciones.rappi.domain.ports import RappiApiPort
 from src.kitchan.modules.pedidos.application.actualizar_estado_pedido_service import (
@@ -28,8 +30,9 @@ from src.kitchan.modules.pedidos.infrastructure.adapters.memory_repository impor
 class FakeRappiApi(RappiApiPort):
     """Reemplaza a RappiHttpAdapter en tests: nunca llama a la red."""
 
-    def __init__(self, fallar_auth: bool = False):
+    def __init__(self, fallar_auth: bool = False, rechaza_ready: bool = False):
         self.fallar_auth = fallar_auth
+        self.rechaza_ready = rechaza_ready
         self.llamadas: list[tuple] = []
 
     def _verificar_auth(self):
@@ -51,6 +54,8 @@ class FakeRappiApi(RappiApiPort):
     async def mark_ready_for_pickup(self, order_id):
         self._verificar_auth()
         self.llamadas.append(("ready", order_id))
+        if self.rechaza_ready:
+            raise RappiAccionNoConfirmadaError("READY", 424, "sin repartidor")
         return True
 
 
@@ -119,6 +124,33 @@ async def test_mark_ready_actualiza_estado_a_lista():
 
     pedido = await repo.buscar_por_id_externo("RAPPI", "R-3")
     assert pedido.estado == EstadoPedido.LISTA
+
+
+@pytest.mark.asyncio
+async def test_mark_ready_si_rappi_no_confirma_el_pedido_igual_queda_lista():
+    api = FakeRappiApi(rechaza_ready=True)
+    use_case, repo = _armar_caso_de_uso(api)
+    await _crear_pedido_previo(repo, "R-3B")
+
+    confirmado = await use_case.mark_order_ready_in_rappi("R-3B")
+
+    assert confirmado is False
+    pedido = await repo.buscar_por_id_externo("RAPPI", "R-3B")
+    assert pedido.estado == EstadoPedido.LISTA
+
+
+@pytest.mark.asyncio
+async def test_mark_ready_sin_credenciales_sigue_propagando_el_error():
+    """Solo el rechazo de Rappi es tolerado: una mala configuración no."""
+    api = FakeRappiApi(fallar_auth=True)
+    use_case, repo = _armar_caso_de_uso(api)
+    await _crear_pedido_previo(repo, "R-3C")
+
+    with pytest.raises(ValueError):
+        await use_case.mark_order_ready_in_rappi("R-3C")
+
+    pedido = await repo.buscar_por_id_externo("RAPPI", "R-3C")
+    assert pedido.estado == EstadoPedido.NUEVA
 
 
 @pytest.mark.asyncio

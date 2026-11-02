@@ -1,9 +1,13 @@
 import uuid
 
-from src.kitchan.modules.restaurantes.application.ports import IRestauranteRepository
-from src.kitchan.modules.restaurantes.domain.entities import Restaurante
-from src.kitchan.modules.usuarios.application.ports import IPasswordHasher
-from src.kitchan.modules.usuarios.domain.entities import RolUsuario, Usuario
+from src.kitchan.modules.restaurantes.application.ports import (
+    IPasswordHasher,
+    IRestauranteRepository,
+)
+from src.kitchan.modules.restaurantes.domain.entities import (
+    AdministradorInicial,
+    Restaurante,
+)
 
 
 class RegistrarRestauranteSaaSUseCase:
@@ -13,7 +17,7 @@ class RegistrarRestauranteSaaSUseCase:
 
     async def ejecutar(
         self, datos_restaurante: dict, datos_admin: dict
-    ) -> tuple[Restaurante, Usuario]:
+    ) -> tuple[Restaurante, AdministradorInicial]:
         # 1. Validación de negocio corregida con la palabra "iguales" que espera el test
         if datos_restaurante["email_corporativo"] == datos_admin["email"]:
             raise ValueError(
@@ -39,14 +43,13 @@ class RegistrarRestauranteSaaSUseCase:
             estado=True,
         )
 
-        # 5. Ensamblamos la Entidad Usuario
-        nuevo_admin = Usuario(
+        # 5. Ensamblamos la cuenta del administrador inicial
+        nuevo_admin = AdministradorInicial(
             id=admin_id,
             restaurante_id=restaurante_id,
             nombre=datos_admin["nombre"],
             email=datos_admin["email"],
             password_hash=password_segura,
-            rol=RolUsuario.ADMIN,
             estado=True,
         )
 

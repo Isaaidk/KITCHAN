@@ -19,17 +19,18 @@ from src.kitchan.modules.integraciones.uber.infrastructure.controllers.oauth_api
 from src.kitchan.modules.integraciones.uber.infrastructure.controllers import orders_api
 
 # Composition root: registra las rutas de infraestructura de la integración
-# PedidosYa (dispatch de pedidos + acciones del KDS), igual que ya hace con Uber.
-from src.kitchan.modules.integraciones.pedidosya.infrastructure.controllers import (
-    order_dispatch_api as pedidosya_dispatch_api,
-    orders_api as pedidosya_orders_api,
-)
-
-# Composition root: registra las rutas de infraestructura de la integración
 # Rappi (webhooks NEW_ORDER/ORDER_EVENT_CANCEL + acciones del KDS).
 from src.kitchan.modules.integraciones.rappi.infrastructure.controllers import (
     webhook_api as rappi_webhook_api,
     orders_api as rappi_orders_api,
+    oauth_api as rappi_oauth_api,
+)
+
+# Composition root: registra las rutas de la integración WhatsApp (el bot es un
+# servicio independiente que envía pedidos firmados + acciones del KDS).
+from src.kitchan.modules.integraciones.whatsapp.infrastructure.controllers import (
+    webhook_api as whatsapp_webhook_api,
+    orders_api as whatsapp_orders_api,
 )
 
 from src.kitchan.modules.restaurantes.infrastructure.rest_api import (
@@ -110,13 +111,15 @@ app.include_router(uber_oauth_router)
 
 app.include_router(orders_api.router)
 
-app.include_router(pedidosya_dispatch_api.router)
-
-app.include_router(pedidosya_orders_api.router)
-
 app.include_router(rappi_webhook_api.router)
 
 app.include_router(rappi_orders_api.router)
+
+app.include_router(rappi_oauth_api.router)
+
+app.include_router(whatsapp_webhook_api.router)
+
+app.include_router(whatsapp_orders_api.router)
 
 app.include_router(pedidos_router)
 

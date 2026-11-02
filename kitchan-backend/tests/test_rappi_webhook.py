@@ -2,8 +2,7 @@
 recepción de pedido válido, idempotencia ante reenvíos, firma
 ausente/inválida, payload malformado/incompleto, tienda no mapeada y
 cancelación. No se llama a la API real de Rappi: el mapeo de tiendas y el
-notificador se reemplazan vía dependency override (mismo criterio que
-test_pedidosya_order_dispatch.py).
+notificador se reemplazan vía dependency override.
 """
 
 import hashlib
